@@ -1,31 +1,37 @@
-const CACHE_NAME = "solo-leveling-v2";
+// اسم الكاش - قم بتغيير الرقم (v3) عند تحديث الكود لفرض التحديث على الهواتف
+const CACHE_NAME = "solo-leveling-system-v3";
+
+// قائمة الملفات المطلوب حفظها للعمل بدون إنترنت (Offline)
+// يجب كتابة المسار الكامل للمجلد في GitHub Pages
 const ASSETS_TO_CACHE = [
-    "./",
-    "./index.html",
-    "./manifest.json",
-    // أضف أيقوناتك هنا لتظهر حتى بدون إنترنت
-    "./icon-192.png",
-    "./icon-512.png"
+    "/solo-leveling-system/",
+    "/solo-leveling-system/index.html",
+    "/solo-leveling-system/manifest.json",
+    "/solo-leveling-system/sw.js",
+    // روابط الأيقونات (نفس الروابط المستخدمة في المانيفست)
+    "https://cdn-icons-png.flaticon.com/512/2592/2592201.png"
 ];
 
-// عند تثبيت التطبيق: قم بحفظ الملفات فوراً
+// مرحلة التثبيت: حفظ الملفات في الكاش
 self.addEventListener("install", (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            console.log("Caching assets for offline use...");
+            console.log("System: Caching all assets...");
             return cache.addAll(ASSETS_TO_CACHE);
         })
     );
+    // تفعيل السيرفس وركر فوراً دون انتظار إغلاق المتصفح
     self.skipWaiting();
 });
 
-// تفعيل وتحويل السيطرة فوراً
+// مرحلة التنشيط: حذف الكاش القديم
 self.addEventListener("activate", (event) => {
     event.waitUntil(
         caches.keys().then((keyList) => {
             return Promise.all(
                 keyList.map((key) => {
                     if (key !== CACHE_NAME) {
+                        console.log("System: Removing old cache", key);
                         return caches.delete(key);
                     }
                 })
@@ -35,10 +41,11 @@ self.addEventListener("activate", (event) => {
     return self.clients.claim();
 });
 
-// استراتيجية الاستجابة: ابحث في الذاكرة أولاً، إذا لم تجد اذهب للإنترنت
+// استراتيجية جلب البيانات: البحث في الكاش أولاً، ثم الإنترنت
 self.addEventListener("fetch", (event) => {
     event.respondWith(
         caches.match(event.request).then((response) => {
+            // إذا وجد الملف في الكاش نعيده، وإلا نطلبه من الإنترنت
             return response || fetch(event.request);
         })
     );
