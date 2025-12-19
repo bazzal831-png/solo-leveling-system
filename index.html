@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO | SYSTEM CLOUD V2</title>
+    <title>DAILY QUEST | SUNG JIN-WOO SYSTEM CLOUD</title>
     
     <link rel="manifest" href="/solo-leveling-system/manifest.json">
     <meta name="theme-color" content="#00d2ff">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2592/2592201.png">
 
     <style>
+        /* --- نفس التنسيقات الأصلية بالكامل بدون حذف أي سطر --- */
         :root {
-            --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); --mana: #00d2ff;
+            --bg: #05070b; --panel: rgba(17, 20, 29, 0.9); --mana: #00d2ff;
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
             --inventory: #ff79c6;
             --rank-ss: #ffcc00; --rank-s: #ff3131; --rank-a: #bc13fe;
@@ -20,187 +20,167 @@
 
         body { 
             background-color: var(--bg); color: var(--text); 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; padding: 0; overflow-x: hidden;
-            background-image: radial-gradient(circle at center, #101525 0%, #05070b 100%);
-            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; 
+            overflow-x: hidden; background-image: radial-gradient(circle at center, #101525 0%, #05070b 100%);
         }
 
-        /* --- AUTHENTICATION SCREEN --- */
+        /* شاشة الدخول (إضافة جديدة للسحاب) */
         #authOverlay {
             position: fixed; inset: 0; background: var(--bg); z-index: 50000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         .login-card {
-            border: 1px solid var(--mana); padding: 50px 30px; background: rgba(0, 210, 255, 0.03);
-            text-align: center; box-shadow: 0 0 50px rgba(0, 210, 255, 0.1);
-            width: 85%; max-width: 400px; position: relative;
-        }
-        .login-card::before {
-            content: "SYSTEM RESTRICTED"; position: absolute; top: -10px; left: 50%;
-            transform: translateX(-50%); background: var(--bg); padding: 0 15px;
-            color: var(--mana); font-size: 0.7rem; letter-spacing: 3px;
-        }
-        .btn-google {
-            background: white; color: #000; border: none; padding: 15px 25px;
-            font-weight: 900; cursor: pointer; display: flex; align-items: center;
-            gap: 12px; margin: 40px auto 0; border-radius: 2px; font-size: 0.9rem;
-            transition: 0.3s;
+            width: 85%; max-width: 400px; border: 1px solid var(--mana);
+            padding: 40px 20px; text-align: center; background: rgba(0, 30, 50, 0.3);
         }
 
-        /* --- MAIN SYSTEM UI --- */
-        #mainContainer { display: none; padding: 20px; animation: fadeIn 1s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #systemNotice {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 5, 15, 0.85); backdrop-filter: blur(8px);
+            z-index: 20000; justify-content: center; align-items: center;
+        }
+        .notice-window {
+            width: 85%; border: 2px solid var(--mana); background: rgba(0, 30, 50, 0.95);
+            padding: 25px; box-shadow: 0 0 50px rgba(0, 210, 255, 0.4);
+            text-align: center; animation: noticePop 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.28);
+        }
+        .notice-header { color: var(--mana); font-size: 0.75rem; letter-spacing: 5px; border-bottom: 1px solid var(--mana); padding-bottom: 10px; margin-bottom: 20px; text-transform: uppercase; }
+        .notice-body { color: #fff; font-size: 1.1rem; font-weight: 900; line-height: 1.5; text-shadow: 0 0 5px var(--mana); }
+
+        @keyframes noticePop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .system-header {
             border: 1px solid var(--mana); background: rgba(0, 210, 255, 0.05);
-            padding: 25px; border-radius: 4px; margin-bottom: 25px; position: relative;
-            box-shadow: inset 0 0 30px rgba(0, 210, 255, 0.1);
+            padding: 15px; border-radius: 4px; margin-bottom: 20px;
+            box-shadow: inset 0 0 15px rgba(0, 210, 255, 0.1); position: relative;
         }
-        .rank-tag { 
-            position: absolute; top: -12px; right: 20px; background: var(--bg); 
-            border: 1px solid var(--mana); padding: 5px 25px; font-size: 0.85rem; 
-            font-weight: 900; color: var(--mana); box-shadow: 0 0 20px var(--mana);
-        }
-        .gold-main { 
-            font-size: 3.2rem; color: var(--gold); display: block; font-weight: 900; 
-            text-align: center; margin: 20px 0; font-family: 'Courier New', monospace;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-        }
+        .system-title { color: var(--mana); font-weight: bold; font-size: 0.7rem; letter-spacing: 3px; border-bottom: 1px solid var(--mana); padding-bottom: 5px; margin-bottom: 15px; text-transform: uppercase; }
+        .player-info { display: flex; justify-content: space-between; align-items: flex-end; }
+        .name-box { font-size: 1.15rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--mana); }
+        .lvl-box { color: var(--mana); font-family: monospace; font-weight: bold; }
+        .gold-main { font-size: 2.6rem; color: var(--gold); display: block; font-weight: bold; text-align: center; margin: 12px 0; font-family: monospace; }
+        .usd-sub { font-size: 1.1rem; color: var(--success); text-align: center; display: block; font-weight: bold; opacity: 0.9; }
+        .rank-tag { position: absolute; top: -10px; right: 10px; background: var(--bg); border: 1px solid var(--mana); padding: 3px 15px; font-size: 0.75rem; font-weight: bold; color: var(--mana); box-shadow: 0 0 15px var(--mana); }
 
-        .btn-system { 
-            background: rgba(0, 0, 0, 0.8); border: 1px solid var(--mana); 
-            color: var(--mana); padding: 16px; font-weight: 900; cursor: pointer; 
-            text-transform: uppercase; font-size: 0.8rem; width: 100%; 
-            transition: 0.2s; letter-spacing: 2px;
-        }
-        .btn-system:hover { background: var(--mana); color: #000; }
+        .main-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .btn-system { background: rgba(0, 0, 0, 0.7); border: 1px solid var(--mana); color: var(--mana); padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; transition: 0.2s; letter-spacing: 1px; width: 100%; }
+        .btn-system:active { transform: scale(0.95); background: var(--mana); color: #000; }
+        .btn-withdraw { border-color: var(--danger); color: var(--danger); grid-column: span 2; margin-top: 5px; }
 
-        /* --- QUEST CARDS --- */
-        .quest-card { 
-            background: var(--panel); border: 1px solid #222; padding: 20px; 
-            margin-bottom: 18px; position: relative; 
-            clip-path: polygon(0 0, 100% 0, 100% 85%, 95% 100%, 0 100%);
-            transition: 0.3s; border-left: 5px solid var(--mana);
-        }
-        .rank-badge-watermark {
-            position: absolute; right: 10px; bottom: 5px; font-size: 3rem;
-            font-weight: 900; font-style: italic; opacity: 0.05; pointer-events: none;
-        }
-        .progress-container { height: 10px; background: #000; margin: 15px 0 5px 0; border-radius: 10px; overflow: hidden; }
-        .progress-fill { height: 100%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        .vault-container { border: 1px solid var(--inventory); background: rgba(255, 121, 198, 0.05); padding: 12px; text-align: center; margin-bottom: 15px; }
 
-        /* --- CALENDAR --- */
-        .calendar-box { background: var(--panel); padding: 20px; border: 1px solid #222; margin-bottom: 30px; }
-        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-        .day-cell { 
-            aspect-ratio: 1; background: #080a0f; border: 1px solid #1a1a1a; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 0.8rem; color: #555; cursor: pointer; transition: 0.2s;
-        }
-        .day-cell.today { border-color: var(--mana); color: var(--mana); box-shadow: inset 0 0 10px var(--mana); }
-        .day-cell.has-completed { border-color: var(--gold); color: var(--gold); background: rgba(255,215,0,0.05); }
+        .quest-card { background: var(--panel); border: 1px solid #333; padding: 18px; margin-bottom: 15px; position: relative; clip-path: polygon(0 0, 100% 0, 100% 88%, 96% 100%, 0 100%); transition: 0.3s; }
+        .quest-locked { opacity: 0.3; filter: grayscale(1); }
+        .quest-title { font-weight: 900; font-size: 1.05rem; color: #fff; margin-bottom: 10px; text-transform: uppercase; }
+        .quest-status { font-family: monospace; font-size: 0.85rem; display: flex; justify-content: space-between; }
+        .progress-container { height: 6px; background: #000; margin: 15px 0 5px 0; border: 1px solid #222; overflow: hidden; }
+        .progress-fill { height: 100%; transition: width 1s ease-out; box-shadow: 0 0 15px var(--mana); }
+        .discard-btn { position: absolute; right: 15px; top: 15px; background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; z-index: 10; }
+        .rank-badge-card { font-weight: 900; font-style: italic; font-size: 2rem; opacity: 0.1; position: absolute; right: 15px; bottom: 10px; pointer-events: none; }
 
-        /* --- NOTIFICATIONS --- */
-        #systemNotice {
-            display: none; position: fixed; inset: 0; background: rgba(0, 5, 15, 0.95); 
-            z-index: 60000; justify-content: center; align-items: center; backdrop-filter: blur(10px);
-        }
-        .notice-window { 
-            border: 2px solid var(--mana); background: #080a0f; padding: 40px; 
-            text-align: center; width: 85%; max-width: 450px;
-            box-shadow: 0 0 100px rgba(0,210,255,0.2);
-        }
+        .calendar-box { background: var(--panel); padding: 15px; border: 1px solid #222; margin-bottom: 20px; }
+        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .day-cell { aspect-ratio: 1; background: #080a0f; border: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: #444; cursor: pointer; }
+        .day-cell.has-completed { border-color: var(--gold); color: var(--gold); background: rgba(255, 215, 0, 0.03); }
+        .day-cell.today { border-color: var(--mana); color: var(--mana); font-weight: bold; box-shadow: inset 0 0 5px var(--mana); }
 
-        input { 
-            width: 100%; padding: 18px; margin-bottom: 15px; background: #0c1018; 
-            border: 1px solid #333; color: white; font-size: 1rem; outline: none;
-        }
-        input:focus { border-color: var(--mana); }
-
-        .discard-btn { 
-            position: absolute; right: 15px; top: 15px; background: none; 
-            border: 1px solid var(--danger); color: var(--danger); 
-            font-size: 0.7rem; padding: 5px 10px; cursor: pointer; font-weight: bold;
-        }
+        .full-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .back-btn { color: var(--mana); border: 1px solid var(--mana); padding: 10px 20px; display: inline-block; cursor: pointer; margin-bottom: 25px; font-size: 0.8rem; letter-spacing: 2px; }
+        input { width: 100%; padding: 15px; margin-bottom: 12px; background: #080a0f; border: 1px solid #333; color: white; box-sizing: border-box; font-size: 1rem; }
+        .usd-text { color: var(--success); font-family: monospace; font-weight: bold; }
+        .archive-stat { text-align: center; color: #444; font-size: 0.65rem; margin-top: 30px; padding: 15px; border-top: 1px solid #222; letter-spacing: 2px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <div id="systemNotice">
-        <div class="notice-window">
-            <div style="color: var(--mana); font-size: 0.7rem; letter-spacing: 5px; margin-bottom: 20px;">SYSTEM NOTIFICATION</div>
-            <div id="noticeMsg" style="font-size: 1.3rem; font-weight: 900; text-transform: uppercase;">INITIALIZING...</div>
-        </div>
-    </div>
-
     <div id="authOverlay">
         <div class="login-card">
-            <h1 style="color: var(--mana); letter-spacing: 8px; margin: 0; font-size: 1.8rem;">SYSTEM</h1>
-            <p style="font-size: 0.75rem; color: var(--mana); opacity: 0.5; margin-top: 10px;">LEVELING SYSTEM ACCESS</p>
-            <button class="btn-google" id="loginBtn">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="22">
-                CONTINUE WITH GOOGLE
-            </button>
+            <div class="notice-header">SYSTEM AUTHENTICATION</div>
+            <button class="btn-system" id="loginBtn" style="background: white; color: black; border: none; margin-top: 20px;">IDENTIFY PLAYER (GOOGLE)</button>
         </div>
     </div>
 
-    <div id="mainContainer">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <div id="userName" style="color: var(--mana); font-size: 0.75rem; font-weight: 900; letter-spacing: 2px;">PLAYER: ---</div>
-            <button onclick="logout()" style="color: var(--danger); background: none; border: 1px solid var(--danger); font-size: 0.7rem; padding: 6px 15px; font-weight: 900; cursor: pointer; letter-spacing: 1px;">LOGOUT</button>
+    <div id="systemNotice">
+        <div class="notice-window">
+            <div class="notice-header">SYSTEM NOTIFICATION</div>
+            <div class="notice-body" id="noticeMsg">Accessing system data...</div>
         </div>
+    </div>
 
+    <div id="mainView" style="display: none;">
         <div class="system-header">
             <div class="rank-tag" id="playerRankDisplay">RANK E</div>
-            <div style="font-size: 0.65rem; color: var(--mana); letter-spacing: 4px; border-bottom: 1px solid rgba(0,210,255,0.2); padding-bottom: 8px; margin-bottom: 15px;">PLAYER STATUS</div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                <div>
-                    <div style="color: #666; font-size: 0.6rem; margin-bottom: 2px;">IDENTIFICATION</div>
-                    <div id="displayPlayerName" style="font-weight: 900; font-size: 1.3rem; text-shadow: 0 0 10px var(--mana);">---</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="color: #666; font-size: 0.6rem; margin-bottom: 2px;">LEVEL</div>
-                    <div style="color: var(--mana); font-weight: 900; font-size: 1.3rem; font-family: monospace;">LVL <span id="mainLvl">1</span></div>
-                </div>
+            <div class="system-title">PLAYER STATUS</div>
+            <div class="player-info">
+                <div class="name-box" id="displayUserName">NAME: ---</div>
+                <div class="lvl-box">LVL: <span id="mainLvl">1</span></div>
             </div>
             <span class="gold-main" id="totalAssets">0</span>
-            <div style="text-align: center; color: var(--success); font-weight: 900; font-family: monospace; font-size: 1.4rem; letter-spacing: 1px;" id="totalUSD">$0.00</div>
+            <span class="usd-sub" id="totalUSD">$0.00</span>
+            <button onclick="logout()" style="position: absolute; bottom: 5px; right: 5px; background: none; border: none; color: #444; font-size: 0.5rem; cursor: pointer;">LOGOUT</button>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px;">
-            <button class="btn-system" onclick="depositAssets()">+ Add Assets</button>
-            <button class="btn-system" style="border-color: var(--inventory); color: var(--inventory); position: relative;" id="vaultBtn">
-                Vault: 0
-            </button>
+        <div class="main-actions">
+            <button class="btn-system" onclick="startFlowDeposit()">+ Add Assets</button>
+            <button class="btn-system" onclick="openFullRankView()">Rank Table</button>
+            <button class="btn-system btn-withdraw" onclick="globalWithdraw()">Global Withdrawal</button>
+        </div>
+
+        <div class="vault-container">
+            <div style="font-size: 0.6rem; color: var(--inventory); letter-spacing: 3px; margin-bottom: 5px;">INVENTORY / VAULT</div>
+            <div id="vaultAmount" style="color: var(--inventory); font-weight: bold; font-size: 1.3rem; font-family: monospace;">0</div>
         </div>
 
         <div class="calendar-box">
-            <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center; border-bottom: 1px solid #222; padding-bottom: 10px;">
-                <button onclick="changeMonth(-1)" style="background:none; border:none; color:var(--mana); cursor:pointer; font-weight: 900;">&lt;</button>
-                <div id="monthDisplay" style="font-size:0.9rem; font-weight: 900; color: var(--mana); letter-spacing: 2px;">MONTH</div>
-                <button onclick="changeMonth(1)" style="background:none; border:none; color:var(--mana); cursor:pointer; font-weight: 900;">&gt;</button>
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px; align-items:center;">
+                <button onclick="changeMonth(-1)" style="background:none; border:none; color:var(--mana); cursor:pointer; font-size: 1.2rem;">&lt;</button>
+                <div id="monthDisplay" style="font-size:0.8rem; letter-spacing:2px; font-weight: bold; color: var(--mana);">MONTH</div>
+                <button onclick="changeMonth(1)" style="background:none; border:none; color:var(--mana); cursor:pointer; font-size: 1.2rem;">&gt;</button>
             </div>
             <div class="days-grid" id="daysGrid"></div>
         </div>
 
-        <div style="background: rgba(0, 210, 255, 0.03); padding: 25px; border: 1px solid #222; margin-bottom: 40px; position: relative;">
-            <div style="color: var(--mana); font-size: 0.7rem; margin-bottom: 20px; letter-spacing: 3px; font-weight: 900;">[ NEW DAILY QUEST ]</div>
-            <input type="text" id="qTitle" placeholder="Quest Objective Name">
-            <input type="number" id="qTarget" placeholder="Gold Reward Goal (e.g. 5000)">
-            <button class="btn-system" style="background: var(--mana); color: #000; border: none;" onclick="addNewQuest()">ACCEPT QUEST</button>
+        <div style="background:rgba(0, 210, 255, 0.02); padding:20px; border:1px solid #222;">
+            <div style="color:var(--mana); font-size:0.7rem; margin-bottom:15px; letter-spacing:2px;">[ DAILY QUEST REGISTRATION ]</div>
+            <input type="text" id="qTitle" placeholder="Enter Quest Title">
+            <input type="number" id="qTarget" placeholder="Target Goal (Multiples of 1000)">
+            <button class="btn-system" style="background: var(--mana); color: #000; border: none;" onclick="addNewQuest(null)">Accept Quest</button>
         </div>
 
-        <h3 style="color: var(--mana); font-size: 0.8rem; letter-spacing: 4px; border-left: 4px solid var(--mana); padding-left: 15px; margin-bottom: 25px; font-weight: 900;">ACTIVE QUEST LOG</h3>
+        <h3 style="color:var(--mana); font-size:0.75rem; margin:30px 0 15px 0; letter-spacing:3px; border-left: 3px solid var(--mana); padding-left: 10px;">ACTIVE QUEST LOG</h3>
         <div id="questList"></div>
-        
-        <div style="text-align: center; margin-top: 50px; opacity: 0.3; font-size: 0.6rem; letter-spacing: 5px;">SUNG JIN-WOO SYSTEM © 2025</div>
+
+        <div class="archive-stat" id="totalArchivedCountDisplay">TOTAL ARCHIVED QUESTS: 0</div>
+    </div>
+
+    <div id="dayView" class="full-view">
+        <div class="back-btn" onclick="closeFullViews()">[ BACK TO SYSTEM ]</div>
+        <h2 id="selectedDateTitle" style="color:var(--mana); font-size:1.2rem; letter-spacing:2px;">DATE</h2>
+        <div style="background:rgba(255,255,255,0.05); padding:20px; margin-bottom:25px; border: 1px solid #333;">
+            <input type="text" id="qTitleDay" placeholder="Quest Title">
+            <input type="number" id="qTargetDay" placeholder="Target">
+            <button class="btn-system" onclick="addNewQuestFromDay()">Register Quest</button>
+        </div>
+        <div id="dayArchiveList"></div>
+    </div>
+
+    <div id="rankView" class="full-view">
+        <div class="back-btn" onclick="closeFullViews()">[ BACK ]</div>
+        <h2 style="color:var(--gold);">RANKING CLASSIFICATION</h2>
+        <div style="line-height: 2.8; font-size: 1rem; color: #ddd; font-family: monospace;">
+            <b style="color:var(--rank-ss)">[SS] SOVEREIGN</b> (> 100M)<br>
+            <b style="color:var(--rank-s)">[S] NATIONAL</b> (50M - 100M)<br>
+            <b style="color:var(--rank-a)">[A] HIGH HUNTER</b> (10M - 50M)<br>
+            <b style="color:var(--rank-b)">[B] INTERMEDIATE</b> (2M - 10M)<br>
+            <b style="color:var(--rank-c)">[C] STANDARD</b> (400k - 2M)<br>
+            <b style="color:var(--rank-e)">[E] WEAKEST</b> (< 400k)
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD-j_kXAR8PqOPd1GBEst-sRWZNCpuFM7w",
@@ -216,61 +196,63 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        let system = { vault: 0, quests: [], dayArchives: {} };
-        let currentUser = null;
-        let navDate = new Date();
         const FIXED_RATE = 89000;
+        let system = { vault: 0, quests: [], dayArchives: {} };
+        let navDate = new Date();
+        let selectedDayKey = null;
+        let currentUser = null;
 
-        function getTodayStr() {
-            const d = new Date();
-            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-        }
+        // --- AUTH LOGIC ---
+        document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
+        window.logout = () => signOut(auth);
 
-        function showNotice(msg) {
-            const el = document.getElementById('systemNotice');
-            document.getElementById('noticeMsg').textContent = msg;
-            el.style.display = 'flex';
-            setTimeout(() => el.style.display = 'none', 1800);
-        }
-
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 document.getElementById('authOverlay').style.display = 'none';
-                document.getElementById('mainContainer').style.display = 'block';
-                document.getElementById('userName').textContent = "PLAYER: " + user.displayName.toUpperCase();
-                document.getElementById('displayPlayerName').textContent = user.displayName.toUpperCase();
+                document.getElementById('mainView').style.display = 'block';
+                document.getElementById('displayUserName').textContent = "NAME: " + user.displayName.toUpperCase();
                 
+                // Real-time Cloud Sync
                 onSnapshot(doc(db, "users", user.uid), (doc) => {
                     if (doc.exists()) {
                         system = doc.data();
                         render();
                     } else {
-                        saveToCloud();
+                        saveCloud();
                     }
                 });
+                showSystemNotice("Operational. Welcome, " + user.displayName.split(' ')[0]);
             } else {
                 document.getElementById('authOverlay').style.display = 'flex';
-                document.getElementById('mainContainer').style.display = 'none';
+                document.getElementById('mainView').style.display = 'none';
             }
         });
 
-        async function saveToCloud() {
+        async function saveCloud() {
             if (currentUser) await setDoc(doc(db, "users", currentUser.uid), system);
         }
 
-        window.depositAssets = () => {
-            let a = parseFloat(prompt("QUANTITY TO DEPOSIT:"));
-            if (a >= 1000 && a % 1000 === 0) {
-                applyTrickle(a);
-                showNotice("ASSETS ABSORBED");
-            }
+        // --- ALL ORIGINAL FUNCTIONS ---
+        window.formatVal = function(val) {
+            if (val >= 1000000) return (val / 1000000).toFixed(1) + "M";
+            if (val >= 1000) return (val / 1000) + "k";
+            return val;
         };
 
-        function applyTrickle(amount) {
-            const today = getTodayStr();
-            for (let q of system.quests) {
-                if (q.createdAt > today) continue;
+        window.showSystemNotice = function(message) {
+            const notice = document.getElementById('systemNotice');
+            const msgEl = document.getElementById('noticeMsg');
+            msgEl.textContent = message;
+            notice.style.display = 'flex';
+            setTimeout(() => { notice.style.display = 'none'; }, 1200);
+        };
+
+        window.applyTrickle = function(amount) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            for (let i = 0; i < system.quests.length; i++) {
+                let q = system.quests[i];
+                if (q.createdAt > todayStr) continue;
                 let needed = q.target - q.current;
                 if (needed > 0) {
                     if (amount >= needed) { q.current = q.target; amount -= needed; }
@@ -278,54 +260,131 @@
                 }
             }
             if (amount > 0) system.vault += amount;
-            checkAutoArchive();
-            saveToCloud();
-        }
+            checkAutoArchive(); render(); saveCloud();
+        };
 
-        window.addNewQuest = () => {
-            const title = document.getElementById('qTitle').value;
-            const target = parseFloat(document.getElementById('qTarget').value);
-            if (title && target >= 1000) {
-                system.quests.push({ 
-                    id: Date.now(), 
-                    title, 
-                    target, 
-                    current: 0, 
-                    createdAt: getTodayStr() 
-                });
-                document.getElementById('qTitle').value = '';
-                document.getElementById('qTarget').value = '';
-                if(system.vault > 0) {
-                    let v = system.vault; system.vault = 0;
-                    applyTrickle(v);
-                } else {
-                    saveToCloud();
+        window.startFlowDeposit = function() {
+            let a = parseFloat(prompt("Assets to Deposit:"));
+            if (a >= 1000 && a % 1000 === 0) applyTrickle(a);
+        };
+
+        window.globalWithdraw = function() {
+            let qSum = system.quests.reduce((s,q) => s + q.current, 0);
+            let arcSum = Object.values(system.dayArchives).flat().reduce((s,q)=>s+q.current,0);
+            let total = qSum + arcSum + system.vault;
+            let a = parseFloat(prompt(`Extract (Total: ${formatVal(total)}):`));
+            if (a >= 1000 && a % 1000 === 0 && a <= total) {
+                let rem = a;
+                if (system.vault >= rem) { system.vault -= rem; rem = 0; }
+                else { rem -= system.vault; system.vault = 0; }
+                if (rem > 0) {
+                    for (let i = system.quests.length - 1; i >= 0; i--) {
+                        let q = system.quests[i];
+                        if (q.current >= rem) { q.current -= rem; rem = 0; break; }
+                        else { rem -= q.current; q.current = 0; }
+                    }
                 }
-                showNotice("QUEST ACCEPTED");
+                if (rem > 0) {
+                    let dates = Object.keys(system.dayArchives).sort().reverse();
+                    for (let d of dates) {
+                        let list = system.dayArchives[d];
+                        for (let i = list.length - 1; i >= 0; i--) {
+                            let q = list[i];
+                            if (q.current >= rem) { q.current -= rem; rem = 0; }
+                            else { rem -= q.current; q.current = 0; }
+                            if (q.current < q.target) system.quests.unshift(list.splice(i, 1)[0]);
+                        }
+                    }
+                }
+                render(); saveCloud();
+            }
+        };
+
+        window.addNewQuest = function(customDate, customTitle, customTarget) {
+            const titleInput = document.getElementById('qTitle'), targetInput = document.getElementById('qTarget');
+            const title = customTitle || titleInput.value, target = customTarget || parseFloat(targetInput.value);
+            
+            if (title && target >= 1000 && target % 1000 === 0) {
+                const creationDate = customDate || new Date().toISOString().split('T')[0];
+                system.quests.push({ id: Date.now(), title, target, current: 0, createdAt: creationDate });
+                
+                showSystemNotice(`Quest Accepted: [${title}]`);
+                titleInput.value = ''; targetInput.value = '';
+                if (system.vault > 0) { let v = system.vault; system.vault = 0; applyTrickle(v); } 
+                else { render(); saveCloud(); }
+            }
+        };
+
+        window.addNewQuestFromDay = function() {
+            const titleI = document.getElementById('qTitleDay'), targetI = document.getElementById('qTargetDay');
+            if (titleI.value && parseFloat(targetI.value) >= 1000) {
+                addNewQuest(selectedDayKey, titleI.value, parseFloat(targetI.value));
+                closeFullViews();
             }
         };
 
         function checkAutoArchive() {
-            system.quests = system.quests.filter(q => {
-                if (q.current >= q.target) {
-                    const d = q.createdAt;
+            for (let i = 0; i < system.quests.length; i++) {
+                if (system.quests[i].current >= system.quests[i].target) {
+                    let d = system.quests[i].createdAt;
                     if (!system.dayArchives[d]) system.dayArchives[d] = [];
-                    system.dayArchives[d].push(q);
-                    return false;
+                    system.dayArchives[d].push(system.quests.splice(i, 1)[0]);
+                    i--;
                 }
-                return true;
-            });
+            }
         }
 
-        window.discardQuest = (id) => {
-            if(!confirm("Discard Quest?")) return;
-            const idx = system.quests.findIndex(q => q.id === id);
-            if (idx > -1) {
-                let refund = system.quests[idx].current;
-                system.quests.splice(idx, 1);
-                if (refund > 0) applyTrickle(refund);
-                else saveToCloud();
-            }
+        window.discardQuest = function(id) {
+            const idx = system.quests.findIndex(x => x.id === id);
+            const money = system.quests[idx].current;
+            system.quests.splice(idx, 1);
+            if (money > 0) applyTrickle(money); else { render(); saveCloud(); }
+        };
+
+        window.openDayView = function(date) {
+            selectedDayKey = date;
+            document.getElementById('mainView').style.display='none';
+            document.getElementById('dayView').style.display='block';
+            document.getElementById('selectedDateTitle').textContent = date;
+            const list = document.getElementById('dayArchiveList'); list.innerHTML = '';
+            const items = system.dayArchives[date] || [];
+            items.forEach(q => {
+                list.innerHTML += `<div class="quest-card" style="border-left:4px solid var(--gold);"><div class="quest-title">🏆 ${q.title}</div><div class="quest-status"><span>${formatVal(q.target)}</span><span class="usd-text">$${(q.target/FIXED_RATE).toFixed(2)}</span></div></div>`;
+            });
+        };
+
+        window.render = function() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const qSum = system.quests.reduce((s,q) => s + q.current, 0);
+            const allArchived = Object.values(system.dayArchives).flat();
+            const arcSum = allArchived.reduce((s,q)=>s+q.current,0);
+            const total = qSum + arcSum + system.vault;
+
+            document.getElementById('totalAssets').textContent = formatVal(total);
+            document.getElementById('totalUSD').textContent = "$" + (total / FIXED_RATE).toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('vaultAmount').textContent = formatVal(system.vault);
+            document.getElementById('mainLvl').textContent = Math.floor(total / 400000) + 1;
+            document.getElementById('totalArchivedCountDisplay').textContent = "TOTAL ARCHIVED QUESTS: " + allArchived.length;
+
+            const pRank = getRank(total);
+            const prd = document.getElementById('playerRankDisplay');
+            prd.textContent = "RANK " + pRank; prd.style.color = `var(--rank-${pRank.toLowerCase()})`; prd.style.borderColor = `var(--rank-${pRank.toLowerCase()})`;
+
+            const list = document.getElementById('questList'); list.innerHTML = '';
+            system.quests.forEach(q => {
+                const isLocked = q.createdAt > todayStr;
+                const p = ((q.current / q.target) * 100).toFixed(1);
+                const r = getRank(q.target);
+                list.innerHTML += `<div class="quest-card ${isLocked ? 'quest-locked' : ''}" style="border-left: 4px solid var(--rank-${r.toLowerCase()})">
+                    <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
+                    ${isLocked ? `<div style="font-size:0.65rem; color:var(--danger); margin-bottom:5px;">🔒 LOCKED UNTIL ${q.createdAt}</div>` : `<div style="font-size:0.6rem; color:#444; margin-bottom:5px;">ACTIVE DATE: ${q.createdAt}</div>`}
+                    <div class="rank-badge-card" style="color: var(--rank-${r.toLowerCase()})">${r}</div>
+                    <div class="quest-title">${q.title}</div>
+                    <div class="quest-status"><span>${formatVal(q.current)} / ${formatVal(q.target)}</span><span class="usd-text">$${(q.current/FIXED_RATE).toFixed(2)} / $${(q.target/FIXED_RATE).toFixed(2)}</span></div>
+                    <div class="progress-container"><div class="progress-fill" style="width:${p}%; background: var(--rank-${r.toLowerCase()});"></div></div>
+                </div>`;
+            });
+            drawCalendar();
         };
 
         function getRank(val) {
@@ -337,69 +396,28 @@
             return 'E';
         }
 
-        function render() {
-            const today = getTodayStr();
-            const qSum = system.quests.reduce((s,q) => s + q.current, 0);
-            const allArc = Object.values(system.dayArchives).flat();
-            const arcSum = allArc.reduce((s,q)=>s+q.current,0);
-            const total = qSum + arcSum + system.vault;
-
-            document.getElementById('totalAssets').textContent = total.toLocaleString();
-            document.getElementById('totalUSD').textContent = "$" + (total / FIXED_RATE).toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('mainLvl').textContent = Math.floor(total / 400000) + 1;
-            document.getElementById('vaultBtn').textContent = "VAULT: " + system.vault.toLocaleString();
-
-            const r = getRank(total);
-            const rDisplay = document.getElementById('playerRankDisplay');
-            rDisplay.textContent = "RANK " + r;
-            rDisplay.style.color = `var(--rank-${r.toLowerCase()})`;
-            rDisplay.style.borderColor = `var(--rank-${r.toLowerCase()})`;
-
-            const list = document.getElementById('questList');
-            list.innerHTML = '';
-            system.quests.forEach(q => {
-                const isLocked = q.createdAt > today;
-                const p = (q.current / q.target) * 100;
-                const qRank = getRank(q.target);
-                list.innerHTML += `
-                    <div class="quest-card ${isLocked ? 'quest-locked' : ''}" style="border-left: 4px solid var(--rank-${qRank.toLowerCase()})">
-                        <div class="rank-badge-watermark" style="color: var(--rank-${qRank.toLowerCase()})">${qRank}</div>
-                        <button class="discard-btn" onclick="discardQuest(${q.id})">DISCARD</button>
-                        <div style="font-size: 0.6rem; color: #666; margin-bottom: 8px; font-weight: 900; letter-spacing: 1px;">
-                            ${isLocked ? '🔒 UNLOCKS ON: ' + q.createdAt : 'SYSTEM ACTIVE'}
-                        </div>
-                        <div style="font-weight:900; text-transform:uppercase; font-size: 1.1rem; letter-spacing: 1px;">${q.title}</div>
-                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-family:monospace; margin-top:10px; font-weight:bold;">
-                            <span>${q.current.toLocaleString()} / ${q.target.toLocaleString()}</span>
-                            <span style="color:var(--success)">$${(q.current/FIXED_RATE).toFixed(2)}</span>
-                        </div>
-                        <div class="progress-container"><div class="progress-fill" style="width:${p}%; background:var(--rank-${qRank.toLowerCase()}); box-shadow: 0 0 15px var(--rank-${qRank.toLowerCase()})"></div></div>
-                    </div>`;
-            });
-            renderCalendar();
-        }
-
-        function renderCalendar() {
+        window.openFullRankView = function() { document.getElementById('mainView').style.display='none'; document.getElementById('rankView').style.display='block'; };
+        window.closeFullViews = function() { document.getElementById('mainView').style.display='block'; document.getElementById('dayView').style.display='none'; document.getElementById('rankView').style.display='none'; };
+        
+        function drawCalendar() {
             const grid = document.getElementById('daysGrid'); grid.innerHTML = '';
             const y = navDate.getFullYear(), m = navDate.getMonth();
-            document.getElementById('monthDisplay').textContent = navDate.toLocaleString('en-US', { month: 'LONG', year: 'NUMERIC' });
+            document.getElementById('monthDisplay').textContent = navDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
             const first = new Date(y, m, 1).getDay();
             const last = new Date(y, m + 1, 0).getDate();
-            const today = getTodayStr();
             for (let i = 0; i < first; i++) grid.innerHTML += '<div></div>';
             for (let i = 1; i <= last; i++) {
-                const dKey = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                const hasArc = system.dayArchives[dKey] && system.dayArchives[dKey].length > 0;
+                const dateKey = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                const hasArc = system.dayArchives && system.dayArchives[dateKey] && system.dayArchives[dateKey].length > 0;
                 const cell = document.createElement('div');
-                cell.className = `day-cell ${dKey === today ? 'today' : ''} ${hasArc ? 'has-completed' : ''}`;
+                cell.className = `day-cell ${hasArc ? 'has-completed' : ''}`;
+                if(new Date().toDateString() === new Date(y,m,i).toDateString()) cell.classList.add('today');
                 cell.textContent = i;
+                cell.onclick = () => openDayView(dateKey);
                 grid.appendChild(cell);
             }
         }
-
-        window.changeMonth = (val) => { navDate.setMonth(navDate.getMonth() + val); renderCalendar(); };
-        window.logout = () => signOut(auth);
-        document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
+        window.changeMonth = (s) => { navDate.setMonth(navDate.getMonth() + s); drawCalendar(); };
 
     </script>
 </body>
