@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DAILY QUEST | SUNG JIN-WOO SYSTEM</title>
     
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/solo-leveling-system/manifest.json">
     <meta name="theme-color" content="#00d2ff">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2592/2592201.png">
 
     <style>
         :root {
@@ -181,7 +181,6 @@
         let navDate = new Date();
         let selectedDayKey = null;
 
-        // دالة للحصول على تاريخ اليوم المحلي بصيغة YYYY-MM-DD لتجنب مشاكل المناطق الزمنية
         function getTodayLocal() {
             const d = new Date();
             return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -276,7 +275,6 @@
                 
                 showSystemNotice(`Quest Accepted: [${title}]`);
                 titleInput.value = ''; targetInput.value = '';
-                // تفريغ حقول نافذة اليوم أيضاً في حال استُخدمت
                 document.getElementById('qTitleDay').value = ''; 
                 document.getElementById('qTargetDay').value = '';
 
@@ -289,7 +287,7 @@
             const titleI = document.getElementById('qTitleDay'), targetI = document.getElementById('qTargetDay');
             if (titleI.value && parseFloat(targetI.value) >= 1000) {
                 addNewQuest(selectedDayKey, titleI.value, parseFloat(targetI.value));
-                closeFullViews(); // إغلاق النافذة للعودة للشاشة الرئيسية
+                closeFullViews();
             }
         }
 
@@ -306,6 +304,7 @@
 
         function discardQuest(id) {
             const idx = system.quests.findIndex(x => x.id === id);
+            if(idx === -1) return;
             const money = system.quests[idx].current;
             system.quests.splice(idx, 1);
             if (money > 0) applyTrickle(money); else { render(); save(); }
@@ -407,9 +406,9 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('SW Registered'))
-                    .catch(err => console.log('SW Error', err));
+                navigator.serviceWorker.register('/solo-leveling-system/sw.js')
+                    .then(reg => console.log('SW Registered for scope:', reg.scope))
+                    .catch(err => console.log('SW Registration Failed', err));
             });
         }
     </script>
