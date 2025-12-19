@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DAILY QUEST | SUNG JIN-WOO SYSTEM</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00d2ff">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.9); --mana: #00d2ff;
@@ -158,12 +163,11 @@
     </div>
 
     <script type="module">
-        // --------------------------------------------------------
-        // FIREBASE CONFIGURATION (INTEGRATED)
-        // --------------------------------------------------------
+        // 1. استيراد مكتبات Firebase عبر CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 
+        // 2. إعدادات Firebase الخاصة بك
         const firebaseConfig = {
             apiKey: "AIzaSyD-j_kXAR8PqOPd1GBEst-sRWZNCpuFM7w",
             authDomain: "my-system-leveling.firebaseapp.com",
@@ -174,15 +178,12 @@
             measurementId: "G-657E7Y5ZJN"
         };
 
-        // Initialize Firebase
+        // تهيئة Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
-        
-        console.log("Firebase has been initialized successfully!");
+        console.log("Firebase Active!");
 
-        // --------------------------------------------------------
-        // APP LOGIC
-        // --------------------------------------------------------
+        // 3. كود التطبيق (Logic)
         const FIXED_RATE = 89000;
         let system = { vault: 0, quests: [], dayArchives: {} };
         let navDate = new Date();
@@ -341,11 +342,7 @@
             document.getElementById('totalAssets').textContent = formatVal(total);
             document.getElementById('totalUSD').textContent = "$" + (total / FIXED_RATE).toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('vaultAmount').textContent = formatVal(system.vault);
-            
-            // نظام المستويات: كل 400 ألف = مستوى واحد
             document.getElementById('mainLvl').textContent = Math.floor(total / 400000) + 1;
-            
-            // إعادة إظهار عداد الأرشيف
             document.getElementById('totalArchivedCountDisplay').textContent = "TOTAL ARCHIVED QUESTS: " + allArchived.length;
 
             const pRank = getRank(total);
@@ -403,8 +400,7 @@
         }
         function changeMonth(s) { navDate.setMonth(navDate.getMonth() + s); renderCalendar(); }
 
-        // EXPOSE FUNCTIONS TO WINDOW
-        // بما أننا نستخدم type="module"، يجب ربط هذه الدوال بالـ Window لتراها أزرار HTML
+        // ربط الدوال بالـ Window لتعمل مع HTML onclick
         window.startFlowDeposit = startFlowDeposit;
         window.globalWithdraw = globalWithdraw;
         window.addNewQuest = addNewQuest;
@@ -414,8 +410,17 @@
         window.discardQuest = discardQuest;
         window.addNewQuestFromDay = addNewQuestFromDay;
 
-        // START APP
         init();
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Error', err));
+            });
+        }
     </script>
 </body>
 </html>
