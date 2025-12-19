@@ -1,0 +1,16 @@
+{
+  "name": "SUNG JIN-WOO SYSTEM",
+  "short_name": "System",
+  "description": "Daily Quest Tracking System",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#05070b",
+  "theme_color": "#00d2ff",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2586/2586717.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
