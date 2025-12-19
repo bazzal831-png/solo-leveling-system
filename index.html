@@ -24,7 +24,6 @@
             overflow-x: hidden; background-image: radial-gradient(circle at center, #101525 0%, #05070b 100%);
         }
 
-        /* شاشة تنبيه النظام السريع (1.2 ثانية) */
         #systemNotice {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 5, 15, 0.85); backdrop-filter: blur(8px);
@@ -40,7 +39,6 @@
 
         @keyframes noticePop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* حالة اللاعب */
         .system-header {
             border: 1px solid var(--mana); background: rgba(0, 210, 255, 0.05);
             padding: 15px; border-radius: 4px; margin-bottom: 20px;
@@ -61,7 +59,6 @@
 
         .vault-container { border: 1px solid var(--inventory); background: rgba(255, 121, 198, 0.05); padding: 12px; text-align: center; margin-bottom: 15px; }
 
-        /* بطاقات المهام */
         .quest-card { background: var(--panel); border: 1px solid #333; padding: 18px; margin-bottom: 15px; position: relative; clip-path: polygon(0 0, 100% 0, 100% 88%, 96% 100%, 0 100%); transition: 0.3s; }
         .quest-locked { opacity: 0.3; filter: grayscale(1); }
         .quest-title { font-weight: 900; font-size: 1.05rem; color: #fff; margin-bottom: 10px; text-transform: uppercase; }
@@ -163,11 +160,9 @@
     </div>
 
     <script type="module">
-        // 1. استيراد مكتبات Firebase عبر CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 
-        // 2. إعدادات Firebase الخاصة بك
         const firebaseConfig = {
             apiKey: "AIzaSyD-j_kXAR8PqOPd1GBEst-sRWZNCpuFM7w",
             authDomain: "my-system-leveling.firebaseapp.com",
@@ -178,16 +173,19 @@
             measurementId: "G-657E7Y5ZJN"
         };
 
-        // تهيئة Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
-        console.log("Firebase Active!");
 
-        // 3. كود التطبيق (Logic)
         const FIXED_RATE = 89000;
         let system = { vault: 0, quests: [], dayArchives: {} };
         let navDate = new Date();
         let selectedDayKey = null;
+
+        // دالة للحصول على تاريخ اليوم المحلي بصيغة YYYY-MM-DD لتجنب مشاكل المناطق الزمنية
+        function getTodayLocal() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
 
         function formatVal(val) {
             if (val >= 1000000) return (val / 1000000).toFixed(1) + "M";
@@ -206,25 +204,18 @@
         function init() {
             const saved = localStorage.getItem('SoloLeveling_Final_v8');
             if (saved) system = JSON.parse(saved);
-            
-            if (system.vault > 0) {
-                let v = system.vault; system.vault = 0; applyTrickle(v);
-            }
+            if (system.vault > 0) { let v = system.vault; system.vault = 0; applyTrickle(v); }
             render();
-
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = getTodayLocal();
             const activeQuests = system.quests.filter(q => q.createdAt <= todayStr).length;
-            if (activeQuests > 0) {
-                showSystemNotice(`Warning: ${activeQuests} uncompleted quests detected.`);
-            } else {
-                showSystemNotice("Operational. Welcome, Sung Jin-Woo.");
-            }
+            if (activeQuests > 0) showSystemNotice(`Warning: ${activeQuests} active quests detected.`);
+            else showSystemNotice("Operational. Welcome, Sung Jin-Woo.");
         }
 
         function save() { localStorage.setItem('SoloLeveling_Final_v8', JSON.stringify(system)); }
 
         function applyTrickle(amount) {
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = getTodayLocal();
             for (let i = 0; i < system.quests.length; i++) {
                 let q = system.quests[i];
                 if (q.createdAt > todayStr) continue;
@@ -280,17 +271,17 @@
             const title = customTitle || titleInput.value, target = customTarget || parseFloat(targetInput.value);
             
             if (title && target >= 1000 && target % 1000 === 0) {
-                const creationDate = customDate || new Date().toISOString().split('T')[0];
+                const creationDate = customDate || getTodayLocal();
                 system.quests.push({ id: Date.now(), title, target, current: 0, createdAt: creationDate });
                 
                 showSystemNotice(`Quest Accepted: [${title}]`);
                 titleInput.value = ''; targetInput.value = '';
+                // تفريغ حقول نافذة اليوم أيضاً في حال استُخدمت
+                document.getElementById('qTitleDay').value = ''; 
+                document.getElementById('qTargetDay').value = '';
 
-                if (system.vault > 0) { 
-                    let v = system.vault; system.vault = 0; applyTrickle(v); 
-                } else { 
-                    render(); save(); 
-                }
+                if (system.vault > 0) { let v = system.vault; system.vault = 0; applyTrickle(v); } 
+                else { render(); save(); }
             }
         }
 
@@ -298,7 +289,7 @@
             const titleI = document.getElementById('qTitleDay'), targetI = document.getElementById('qTargetDay');
             if (titleI.value && parseFloat(targetI.value) >= 1000) {
                 addNewQuest(selectedDayKey, titleI.value, parseFloat(targetI.value));
-                closeFullViews();
+                closeFullViews(); // إغلاق النافذة للعودة للشاشة الرئيسية
             }
         }
 
@@ -333,7 +324,7 @@
         }
 
         function render() {
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = getTodayLocal();
             const qSum = system.quests.reduce((s,q) => s + q.current, 0);
             const allArchived = Object.values(system.dayArchives).flat();
             const arcSum = allArchived.reduce((s,q)=>s+q.current,0);
@@ -386,13 +377,14 @@
             document.getElementById('monthDisplay').textContent = navDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
             const first = new Date(y, m, 1).getDay();
             const last = new Date(y, m + 1, 0).getDate();
+            const tDate = getTodayLocal();
             for (let i = 0; i < first; i++) grid.innerHTML += '<div></div>';
             for (let i = 1; i <= last; i++) {
                 const dateKey = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                 const hasArc = system.dayArchives[dateKey] && system.dayArchives[dateKey].length > 0;
                 const cell = document.createElement('div');
                 cell.className = `day-cell ${hasArc ? 'has-completed' : ''}`;
-                if(new Date().toDateString() === new Date(y,m,i).toDateString()) cell.classList.add('today');
+                if(tDate === dateKey) cell.classList.add('today');
                 cell.textContent = i;
                 cell.onclick = () => openDayView(dateKey);
                 grid.appendChild(cell);
@@ -400,7 +392,6 @@
         }
         function changeMonth(s) { navDate.setMonth(navDate.getMonth() + s); renderCalendar(); }
 
-        // ربط الدوال بالـ Window لتعمل مع HTML onclick
         window.startFlowDeposit = startFlowDeposit;
         window.globalWithdraw = globalWithdraw;
         window.addNewQuest = addNewQuest;
