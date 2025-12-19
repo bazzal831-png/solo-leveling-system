@@ -4,11 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DAILY QUEST | SUNG JIN-WOO SYSTEM</title>
-    
-    <!-- إضافة مكتبات Firebase (الضرورية للتشغيل) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.9); --mana: #00d2ff;
@@ -86,7 +81,6 @@
 </head>
 <body>
 
-    <!-- تنبيه النظام السريع (1.2 ثانية) -->
     <div id="systemNotice">
         <div class="notice-window">
             <div class="notice-header">SYSTEM NOTIFICATION</div>
@@ -139,7 +133,6 @@
         <div class="archive-stat" id="totalArchivedCountDisplay">TOTAL ARCHIVED QUESTS: 0</div>
     </div>
 
-    <!-- DAY VIEW -->
     <div id="dayView" class="full-view">
         <div class="back-btn" onclick="closeFullViews()">[ BACK TO SYSTEM ]</div>
         <h2 id="selectedDateTitle" style="color:var(--mana); font-size:1.2rem; letter-spacing:2px;">DATE</h2>
@@ -151,7 +144,6 @@
         <div id="dayArchiveList"></div>
     </div>
 
-    <!-- RANKING VIEW -->
     <div id="rankView" class="full-view">
         <div class="back-btn" onclick="closeFullViews()">[ BACK ]</div>
         <h2 style="color:var(--gold);">RANKING CLASSIFICATION</h2>
@@ -165,22 +157,32 @@
         </div>
     </div>
 
-    <script>
-        // --- إعدادات FIREBASE (استبدل هذه المعلومات ببيانات مشروعك) ---
+    <script type="module">
+        // --------------------------------------------------------
+        // FIREBASE CONFIGURATION (INTEGRATED)
+        // --------------------------------------------------------
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+
         const firebaseConfig = {
-            apiKey: "AIzaSy...", 
-            authDomain: "your-app.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-app.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef"
+            apiKey: "AIzaSyD-j_kXAR8PqOPd1GBEst-sRWZNCpuFM7w",
+            authDomain: "my-system-leveling.firebaseapp.com",
+            projectId: "my-system-leveling",
+            storageBucket: "my-system-leveling.firebasestorage.app",
+            messagingSenderId: "894105661320",
+            appId: "1:894105661320:web:beb8bdad2d4da8b97a943d",
+            measurementId: "G-657E7Y5ZJN"
         };
 
-        // تهيئة Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const DOC_ID = "player_sung_jin_woo"; // معرف ثابت لحفظ بياناتك
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        
+        console.log("Firebase has been initialized successfully!");
 
+        // --------------------------------------------------------
+        // APP LOGIC
+        // --------------------------------------------------------
         const FIXED_RATE = 89000;
         let system = { vault: 0, quests: [], dayArchives: {} };
         let navDate = new Date();
@@ -200,24 +202,9 @@
             setTimeout(() => { notice.style.display = 'none'; }, 1200);
         }
 
-        // --- تعديل دالة التحميل لتعمل مع Firebase ---
-        async function init() {
-            showSystemNotice("Syncing with System Core...");
-            
-            try {
-                const doc = await db.collection("system_data").doc(DOC_ID).get();
-                if (doc.exists) {
-                    system = doc.data();
-                } else {
-                    // إذا لم توجد بيانات في السحابة، ابحث في الذاكرة المحلية
-                    const saved = localStorage.getItem('SoloLeveling_Final_v8');
-                    if (saved) system = JSON.parse(saved);
-                }
-            } catch (e) {
-                console.error("Firebase Error:", e);
-                const saved = localStorage.getItem('SoloLeveling_Final_v8');
-                if (saved) system = JSON.parse(saved);
-            }
+        function init() {
+            const saved = localStorage.getItem('SoloLeveling_Final_v8');
+            if (saved) system = JSON.parse(saved);
             
             if (system.vault > 0) {
                 let v = system.vault; system.vault = 0; applyTrickle(v);
@@ -227,24 +214,13 @@
             const todayStr = new Date().toISOString().split('T')[0];
             const activeQuests = system.quests.filter(q => q.createdAt <= todayStr).length;
             if (activeQuests > 0) {
-                showSystemNotice(`Warning: ${activeQuests} uncompleted quests.`);
+                showSystemNotice(`Warning: ${activeQuests} uncompleted quests detected.`);
             } else {
                 showSystemNotice("Operational. Welcome, Sung Jin-Woo.");
             }
         }
 
-        // --- تعديل دالة الحفظ لتعمل مع Firebase ---
-        async function save() { 
-            // حفظ نسخة احتياطية محلية
-            localStorage.setItem('SoloLeveling_Final_v8', JSON.stringify(system)); 
-            
-            // حفظ في السحابة (Firebase)
-            try {
-                await db.collection("system_data").doc(DOC_ID).set(system);
-            } catch (e) {
-                console.error("Cloud Save Failed:", e);
-            }
-        }
+        function save() { localStorage.setItem('SoloLeveling_Final_v8', JSON.stringify(system)); }
 
         function applyTrickle(amount) {
             const todayStr = new Date().toISOString().split('T')[0];
@@ -366,7 +342,10 @@
             document.getElementById('totalUSD').textContent = "$" + (total / FIXED_RATE).toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('vaultAmount').textContent = formatVal(system.vault);
             
+            // نظام المستويات: كل 400 ألف = مستوى واحد
             document.getElementById('mainLvl').textContent = Math.floor(total / 400000) + 1;
+            
+            // إعادة إظهار عداد الأرشيف
             document.getElementById('totalArchivedCountDisplay').textContent = "TOTAL ARCHIVED QUESTS: " + allArchived.length;
 
             const pRank = getRank(total);
@@ -423,6 +402,19 @@
             }
         }
         function changeMonth(s) { navDate.setMonth(navDate.getMonth() + s); renderCalendar(); }
+
+        // EXPOSE FUNCTIONS TO WINDOW
+        // بما أننا نستخدم type="module"، يجب ربط هذه الدوال بالـ Window لتراها أزرار HTML
+        window.startFlowDeposit = startFlowDeposit;
+        window.globalWithdraw = globalWithdraw;
+        window.addNewQuest = addNewQuest;
+        window.openFullRankView = openFullRankView;
+        window.closeFullViews = closeFullViews;
+        window.changeMonth = changeMonth;
+        window.discardQuest = discardQuest;
+        window.addNewQuestFromDay = addNewQuestFromDay;
+
+        // START APP
         init();
     </script>
 </body>
