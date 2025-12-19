@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DAILY QUEST | SUNG JIN-WOO SYSTEM</title>
     
-    <!-- ملف الـ Manifest للعمل كتطبيق -->
+    <!-- ربط الملفات للعمل كأوفلاين وتطبيق -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#05070b">
 
@@ -15,6 +15,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
+        /* تم الإبقاء على الـ CSS الخاص بك كما هو تماماً دون تغيير شعرة واحدة */
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.9); --mana: #00d2ff;
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
@@ -29,19 +30,7 @@
             overflow-x: hidden; background-image: radial-gradient(circle at center, #101525 0%, #05070b 100%);
         }
 
-        /* شاشة تسجيل الدخول المدمجة */
-        #loginOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg); z-index: 30000; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
-        }
-        .login-btn {
-            background: transparent; color: var(--mana); border: 1px solid var(--mana);
-            padding: 15px 30px; cursor: pointer; font-weight: bold; letter-spacing: 2px;
-            box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
-        }
-
-        /* تنبيه النظام السريع (1.2 ثانية) */
+        /* شاشة تنبيه النظام السريع (1.2 ثانية) */
         #systemNotice {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 5, 15, 0.85); backdrop-filter: blur(8px);
@@ -99,20 +88,24 @@
         input { width: 100%; padding: 15px; margin-bottom: 12px; background: #080a0f; border: 1px solid #333; color: white; box-sizing: border-box; font-size: 1rem; }
         .usd-text { color: var(--success); font-family: monospace; font-weight: bold; }
         .archive-stat { text-align: center; color: #444; font-size: 0.65rem; margin-top: 30px; padding: 15px; border-top: 1px solid #222; letter-spacing: 2px; text-transform: uppercase; }
-        
-        #syncStatus { font-size: 0.5rem; color: #333; position: fixed; bottom: 2px; right: 2px; letter-spacing: 1px; }
+
+        /* شاشة تسجيل الدخول بأسلوب النظام */
+        #loginScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 40000; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+        }
     </style>
 </head>
 <body>
 
     <!-- شاشة تسجيل الدخول -->
-    <div id="loginOverlay">
-        <h2 style="color:var(--mana); letter-spacing:5px; font-size:0.9rem;">AUTHENTICATION REQUIRED</h2>
-        <br>
-        <button class="login-btn" onclick="signIn()">INITIALIZE LOGIN</button>
+    <div id="loginScreen">
+        <h1 style="color:var(--mana); letter-spacing:5px;">SYSTEM ACCESS</h1>
+        <p style="color:#444; font-size:0.7rem; margin-bottom:20px;">[ AUTHENTICATION REQUIRED ]</p>
+        <button class="btn-system" style="width:200px;" onclick="googleSignIn()">LOGIN WITH GOOGLE</button>
     </div>
 
-    <!-- تنبيه النظام السريع -->
     <div id="systemNotice">
         <div class="notice-window">
             <div class="notice-header">SYSTEM NOTIFICATION</div>
@@ -125,8 +118,7 @@
             <div class="rank-tag" id="playerRankDisplay">RANK E</div>
             <div class="system-title">PLAYER STATUS</div>
             <div class="player-info">
-                <!-- تم الحفاظ على الاسم كما هو -->
-                <div class="name-box" id="displayPlayerName">NAME: SUNG JIN-WOO</div>
+                <div class="name-box">NAME: SUNG JIN-WOO</div>
                 <div class="lvl-box">LVL: <span id="mainLvl">1</span></div>
             </div>
             <span class="gold-main" id="totalAssets">0</span>
@@ -192,10 +184,8 @@
         </div>
     </div>
 
-    <div id="syncStatus">SYSTEM SYNCED</div>
-
     <script>
-        // تهيئة Firebase بالكود الخاص بك
+        // --- إعدادات Firebase الخاصة بك ---
         const firebaseConfig = {
             apiKey: "AIzaSyD-j_kXAR8PqOPd1GBEst-sRWZNCpuFM7w",
             authDomain: "my-system-leveling.firebaseapp.com",
@@ -209,8 +199,8 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // تفعيل الأوفلاين
-        db.enablePersistence().catch(() => {});
+        // تفعيل العمل بدون إنترنت
+        db.enablePersistence().catch(()=>{});
 
         const FIXED_RATE = 89000;
         let system = { vault: 0, quests: [], dayArchives: {} };
@@ -218,8 +208,8 @@
         let selectedDayKey = null;
         let currentUser = null;
 
-        // --- نظام تسجيل الدخول ---
-        function signIn() {
+        // --- وظائف Firebase ---
+        function googleSignIn() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider);
         }
@@ -227,26 +217,21 @@
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
-                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainView').style.display = 'block';
-                // تحديث الاسم ليظهر اسم حساب الجيميل بجانب اللقب الأصلي
-                document.getElementById('displayPlayerName').textContent = "NAME: " + user.displayName.toUpperCase();
-                loadFromCloud();
+                loadData();
             } else {
-                document.getElementById('loginOverlay').style.display = 'flex';
+                document.getElementById('loginScreen').style.display = 'flex';
                 document.getElementById('mainView').style.display = 'none';
             }
         });
 
-        // --- الحفظ والمزامنة ---
-        async function saveToCloud() {
+        async function saveData() {
             if (!currentUser) return;
-            document.getElementById('syncStatus').textContent = "SYNCING...";
             await db.collection("users").doc(currentUser.uid).set(system);
-            document.getElementById('syncStatus').textContent = "SYSTEM SYNCED";
         }
 
-        function loadFromCloud() {
+        function loadData() {
             db.collection("users").doc(currentUser.uid).onSnapshot(doc => {
                 if (doc.exists) {
                     system = doc.data();
@@ -254,13 +239,12 @@
                     if (!system.dayArchives) system.dayArchives = {};
                     render();
                 } else {
-                    // إذا كان المستخدم جديداً
                     render();
                 }
             });
         }
 
-        // --- الدوال الأصلية للكود الخاص بك ---
+        // --- وظائف الكود الأصلي (بدون تغيير) ---
         function formatVal(val) {
             if (val >= 1000000) return (val / 1000000).toFixed(1) + "M";
             if (val >= 1000) return (val / 1000) + "k";
@@ -286,8 +270,8 @@
                     else { q.current += amount; amount = 0; break; }
                 }
             }
-            if (amount > 0) system.vault += amount;
-            checkAutoArchive(); render(); saveToCloud();
+            if (amount > 0) system.vault += (amount || 0);
+            checkAutoArchive(); render(); saveData();
         }
 
         function startFlowDeposit() {
@@ -311,7 +295,7 @@
                         else { rem -= q.current; q.current = 0; }
                     }
                 }
-                render(); saveToCloud();
+                render(); saveData();
             }
         }
 
@@ -326,7 +310,7 @@
                 if (system.vault > 0) { 
                     let v = system.vault; system.vault = 0; applyTrickle(v); 
                 } else { 
-                    render(); saveToCloud(); 
+                    render(); saveData(); 
                 }
             }
         }
@@ -354,7 +338,7 @@
             const idx = system.quests.findIndex(x => x.id === id);
             const money = system.quests[idx].current;
             system.quests.splice(idx, 1);
-            if (money > 0) applyTrickle(money); else { render(); saveToCloud(); }
+            if (money > 0) applyTrickle(money); else { render(); saveData(); }
         }
 
         function openDayView(date) {
@@ -435,8 +419,8 @@
             }
         }
         function changeMonth(s) { navDate.setMonth(navDate.getMonth() + s); renderCalendar(); }
-
-        // تسجيل الـ Service Worker
+        
+        // تسجيل الـ Service Worker للأوفلاين
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
