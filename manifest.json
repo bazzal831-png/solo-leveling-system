@@ -1,17 +1,21 @@
 {
-  "name": "SUNG JIN-WOO SYSTEM",
-  "short_name": "System",
-  "description": "Daily Quest Tracking System",
-  "start_url": "index.html",
+  "name": "Daily Quest | Sung Jin-Woo",
+  "short_name": "Solo Leveling",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#05070b",
   "theme_color": "#00d2ff",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2586/2586717.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ]
-
 }
