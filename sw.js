@@ -1,4 +1,4 @@
-const CACHE_NAME = 'leveling-system-v2';
+const CACHE_NAME = 'leveling-system-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -26,3 +26,4 @@ self.addEventListener('fetch', (event) => {
   );
 
 });
+
