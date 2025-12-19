@@ -1,25 +1,26 @@
 {
-  "name": "Daily Quest System",
   "short_name": "SoloLeveling",
-  "description": "Sung Jin-Woo Daily Quest & Asset Manager",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#05070b",
-  "theme_color": "#00d2ff",
-  "orientation": "portrait",
+  "name": "Daily Quest System",
+  "id": "solo-leveling-app",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/2592/2592201.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/2592/2592201.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
-  ]
+  ],
+  "start_url": "./index.html",
+  "background_color": "#05070b",
+  "display": "standalone",
+  "scope": "./",
+  "theme_color": "#00d2ff",
+  "description": "Sung Jin-Woo Daily Quest & Asset Manager",
+  "orientation": "portrait"
 }
-
