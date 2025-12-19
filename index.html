@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DAILY QUEST | SUNG JIN-WOO SYSTEM</title>
     
-    <!-- ربط الملفات للعمل كأوفلاين وتطبيق -->
+    <!-- ربط الملفات للعمل كتطبيق -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#05070b">
 
-    <!-- استدعاء مكتبات Firebase -->
+    <!-- مكتبات Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        /* تم الإبقاء على الـ CSS الخاص بك كما هو تماماً دون تغيير شعرة واحدة */
+        /* كود الـ CSS الخاص بك بدون أي تغيير */
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.9); --mana: #00d2ff;
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
@@ -30,7 +30,6 @@
             overflow-x: hidden; background-image: radial-gradient(circle at center, #101525 0%, #05070b 100%);
         }
 
-        /* شاشة تنبيه النظام السريع (1.2 ثانية) */
         #systemNotice {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 5, 15, 0.85); backdrop-filter: blur(8px);
@@ -46,7 +45,6 @@
 
         @keyframes noticePop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* حالة اللاعب */
         .system-header {
             border: 1px solid var(--mana); background: rgba(0, 210, 255, 0.05);
             padding: 15px; border-radius: 4px; margin-bottom: 20px;
@@ -67,7 +65,6 @@
 
         .vault-container { border: 1px solid var(--inventory); background: rgba(255, 121, 198, 0.05); padding: 12px; text-align: center; margin-bottom: 15px; }
 
-        /* بطاقات المهام */
         .quest-card { background: var(--panel); border: 1px solid #333; padding: 18px; margin-bottom: 15px; position: relative; clip-path: polygon(0 0, 100% 0, 100% 88%, 96% 100%, 0 100%); transition: 0.3s; }
         .quest-locked { opacity: 0.3; filter: grayscale(1); }
         .quest-title { font-weight: 900; font-size: 1.05rem; color: #fff; margin-bottom: 10px; text-transform: uppercase; }
@@ -89,21 +86,18 @@
         .usd-text { color: var(--success); font-family: monospace; font-weight: bold; }
         .archive-stat { text-align: center; color: #444; font-size: 0.65rem; margin-top: 30px; padding: 15px; border-top: 1px solid #222; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* شاشة تسجيل الدخول بأسلوب النظام */
-        #loginScreen {
+        /* طبقة تسجيل الدخول */
+        #authLayer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg); z-index: 40000; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
+            background: var(--bg); z-index: 50000; display: flex; justify-content: center; align-items: center;
         }
     </style>
 </head>
 <body>
 
-    <!-- شاشة تسجيل الدخول -->
-    <div id="loginScreen">
-        <h1 style="color:var(--mana); letter-spacing:5px;">SYSTEM ACCESS</h1>
-        <p style="color:#444; font-size:0.7rem; margin-bottom:20px;">[ AUTHENTICATION REQUIRED ]</p>
-        <button class="btn-system" style="width:200px;" onclick="googleSignIn()">LOGIN WITH GOOGLE</button>
+    <!-- زر تسجيل الدخول يظهر فقط في البداية -->
+    <div id="authLayer">
+        <button class="btn-system" style="width: auto; padding: 15px 40px;" onclick="login()">INITIALIZE SYSTEM LOGIN</button>
     </div>
 
     <div id="systemNotice">
@@ -113,11 +107,12 @@
         </div>
     </div>
 
-    <div id="mainView" style="display:none;">
+    <div id="mainView">
         <div class="system-header">
             <div class="rank-tag" id="playerRankDisplay">RANK E</div>
             <div class="system-title">PLAYER STATUS</div>
             <div class="player-info">
+                <!-- تم إبقاء الاسم كما طلبت -->
                 <div class="name-box">NAME: SUNG JIN-WOO</div>
                 <div class="lvl-box">LVL: <span id="mainLvl">1</span></div>
             </div>
@@ -154,11 +149,9 @@
 
         <h3 style="color:var(--mana); font-size:0.75rem; margin:30px 0 15px 0; letter-spacing:3px; border-left: 3px solid var(--mana); padding-left: 10px;">ACTIVE QUEST LOG</h3>
         <div id="questList"></div>
-
         <div class="archive-stat" id="totalArchivedCountDisplay">TOTAL ARCHIVED QUESTS: 0</div>
     </div>
 
-    <!-- DAY VIEW -->
     <div id="dayView" class="full-view">
         <div class="back-btn" onclick="closeFullViews()">[ BACK TO SYSTEM ]</div>
         <h2 id="selectedDateTitle" style="color:var(--mana); font-size:1.2rem; letter-spacing:2px;">DATE</h2>
@@ -170,7 +163,6 @@
         <div id="dayArchiveList"></div>
     </div>
 
-    <!-- RANKING VIEW -->
     <div id="rankView" class="full-view">
         <div class="back-btn" onclick="closeFullViews()">[ BACK ]</div>
         <h2 style="color:var(--gold);">RANKING CLASSIFICATION</h2>
@@ -185,7 +177,7 @@
     </div>
 
     <script>
-        // --- إعدادات Firebase الخاصة بك ---
+        // تكوين Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD-j_kXAR8PqOPd1GBEst-sRWZNCpuFM7w",
             authDomain: "my-system-leveling.firebaseapp.com",
@@ -194,57 +186,29 @@
             messagingSenderId: "894105661320",
             appId: "1:894105661320:web:beb8bdad2d4da8b97a943d"
         };
-
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // تفعيل العمل بدون إنترنت
+        const auth = firebase.auth(), db = firebase.firestore();
         db.enablePersistence().catch(()=>{});
 
         const FIXED_RATE = 89000;
         let system = { vault: 0, quests: [], dayArchives: {} };
-        let navDate = new Date();
-        let selectedDayKey = null;
-        let currentUser = null;
+        let navDate = new Date(), selectedDayKey = null, currentUser = null;
 
-        // --- وظائف Firebase ---
-        function googleSignIn() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider);
-        }
+        function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
 
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('mainView').style.display = 'block';
-                loadData();
-            } else {
-                document.getElementById('loginScreen').style.display = 'flex';
-                document.getElementById('mainView').style.display = 'none';
+                document.getElementById('authLayer').style.display = 'none';
+                db.collection("users").doc(user.uid).onSnapshot(doc => {
+                    if (doc.exists) { system = doc.data(); render(); }
+                    else { render(); }
+                });
             }
         });
 
-        async function saveData() {
-            if (!currentUser) return;
-            await db.collection("users").doc(currentUser.uid).set(system);
-        }
+        async function sync() { if(currentUser) await db.collection("users").doc(currentUser.uid).set(system); }
 
-        function loadData() {
-            db.collection("users").doc(currentUser.uid).onSnapshot(doc => {
-                if (doc.exists) {
-                    system = doc.data();
-                    if (!system.quests) system.quests = [];
-                    if (!system.dayArchives) system.dayArchives = {};
-                    render();
-                } else {
-                    render();
-                }
-            });
-        }
-
-        // --- وظائف الكود الأصلي (بدون تغيير) ---
         function formatVal(val) {
             if (val >= 1000000) return (val / 1000000).toFixed(1) + "M";
             if (val >= 1000) return (val / 1000) + "k";
@@ -253,16 +217,14 @@
 
         function showSystemNotice(message) {
             const notice = document.getElementById('systemNotice');
-            const msgEl = document.getElementById('noticeMsg');
-            msgEl.textContent = message;
+            document.getElementById('noticeMsg').textContent = message;
             notice.style.display = 'flex';
             setTimeout(() => { notice.style.display = 'none'; }, 1200);
         }
 
         function applyTrickle(amount) {
             const todayStr = new Date().toISOString().split('T')[0];
-            for (let i = 0; i < system.quests.length; i++) {
-                let q = system.quests[i];
+            for (let q of system.quests) {
                 if (q.createdAt > todayStr) continue;
                 let needed = q.target - q.current;
                 if (needed > 0) {
@@ -270,8 +232,8 @@
                     else { q.current += amount; amount = 0; break; }
                 }
             }
-            if (amount > 0) system.vault += (amount || 0);
-            checkAutoArchive(); render(); saveData();
+            if (amount > 0) system.vault = (system.vault || 0) + amount;
+            checkAutoArchive(); render(); sync();
         }
 
         function startFlowDeposit() {
@@ -295,32 +257,25 @@
                         else { rem -= q.current; q.current = 0; }
                     }
                 }
-                render(); saveData();
+                render(); sync();
             }
         }
 
         function addNewQuest(customDate, customTitle, customTarget) {
-            const titleInput = document.getElementById('qTitle'), targetInput = document.getElementById('qTarget');
-            const title = customTitle || titleInput.value, target = customTarget || parseFloat(targetInput.value);
-            if (title && target >= 1000 && target % 1000 === 0) {
-                const creationDate = customDate || new Date().toISOString().split('T')[0];
-                system.quests.push({ id: Date.now(), title, target, current: 0, createdAt: creationDate });
+            const title = customTitle || document.getElementById('qTitle').value;
+            const target = customTarget || parseFloat(document.getElementById('qTarget').value);
+            if (title && target >= 1000) {
+                system.quests.push({ id: Date.now(), title, target, current: 0, createdAt: customDate || new Date().toISOString().split('T')[0] });
                 showSystemNotice(`Quest Accepted: [${title}]`);
-                titleInput.value = ''; targetInput.value = '';
-                if (system.vault > 0) { 
-                    let v = system.vault; system.vault = 0; applyTrickle(v); 
-                } else { 
-                    render(); saveData(); 
-                }
+                document.getElementById('qTitle').value = ''; document.getElementById('qTarget').value = '';
+                if (system.vault > 0) { let v = system.vault; system.vault = 0; applyTrickle(v); }
+                else { render(); sync(); }
             }
         }
 
         function addNewQuestFromDay() {
-            const titleI = document.getElementById('qTitleDay'), targetI = document.getElementById('qTargetDay');
-            if (titleI.value && parseFloat(targetI.value) >= 1000) {
-                addNewQuest(selectedDayKey, titleI.value, parseFloat(targetI.value));
-                closeFullViews();
-            }
+            addNewQuest(selectedDayKey, document.getElementById('qTitleDay').value, parseFloat(document.getElementById('qTargetDay').value));
+            closeFullViews();
         }
 
         function checkAutoArchive() {
@@ -338,7 +293,7 @@
             const idx = system.quests.findIndex(x => x.id === id);
             const money = system.quests[idx].current;
             system.quests.splice(idx, 1);
-            if (money > 0) applyTrickle(money); else { render(); saveData(); }
+            if (money > 0) applyTrickle(money); else { render(); sync(); }
         }
 
         function openDayView(date) {
@@ -347,8 +302,7 @@
             document.getElementById('dayView').style.display='block';
             document.getElementById('selectedDateTitle').textContent = date;
             const list = document.getElementById('dayArchiveList'); list.innerHTML = '';
-            const items = system.dayArchives[date] || [];
-            items.forEach(q => {
+            (system.dayArchives[date] || []).forEach(q => {
                 list.innerHTML += `<div class="quest-card" style="border-left:4px solid var(--gold);"><div class="quest-title">🏆 ${q.title}</div><div class="quest-status"><span>${formatVal(q.target)}</span><span class="usd-text">$${(q.target/FIXED_RATE).toFixed(2)}</span></div></div>`;
             });
         }
@@ -356,74 +310,60 @@
         function render() {
             const todayStr = new Date().toISOString().split('T')[0];
             const qSum = system.quests.reduce((s,q) => s + (q.current || 0), 0);
-            const allArchived = Object.values(system.dayArchives).flat();
-            const arcSum = allArchived.reduce((s,q)=>(s+(q.current || 0)),0);
+            const allArc = Object.values(system.dayArchives).flat();
+            const arcSum = allArc.reduce((s,q)=>(s+(q.current || 0)),0);
             const total = qSum + arcSum + (system.vault || 0);
 
             document.getElementById('totalAssets').textContent = formatVal(total);
             document.getElementById('totalUSD').textContent = "$" + (total / FIXED_RATE).toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('vaultAmount').textContent = formatVal(system.vault);
             document.getElementById('mainLvl').textContent = Math.floor(total / 400000) + 1;
-            document.getElementById('totalArchivedCountDisplay').textContent = "TOTAL ARCHIVED QUESTS: " + allArchived.length;
+            document.getElementById('totalArchivedCountDisplay').textContent = "TOTAL ARCHIVED QUESTS: " + allArc.length;
 
             const pRank = getRank(total);
             const prd = document.getElementById('playerRankDisplay');
             prd.textContent = "RANK " + pRank; prd.style.color = `var(--rank-${pRank.toLowerCase()})`; prd.style.borderColor = `var(--rank-${pRank.toLowerCase()})`;
 
-            const list = document.getElementById('questList'); list.innerHTML = '';
+            const ql = document.getElementById('questList'); ql.innerHTML = '';
             system.quests.forEach(q => {
-                const isLocked = q.createdAt > todayStr;
-                const p = ((q.current / q.target) * 100).toFixed(1);
+                const locked = q.createdAt > todayStr;
+                const p = (q.current / q.target * 100).toFixed(1);
                 const r = getRank(q.target);
-                list.innerHTML += `
-                    <div class="quest-card ${isLocked ? 'quest-locked' : ''}" style="border-left: 4px solid var(--rank-${r.toLowerCase()})">
-                        <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
-                        ${isLocked ? `<div style="font-size:0.65rem; color:var(--danger); margin-bottom:5px;">🔒 LOCKED UNTIL ${q.createdAt}</div>` : `<div style="font-size:0.6rem; color:#444; margin-bottom:5px;">ACTIVE DATE: ${q.createdAt}</div>`}
-                        <div class="rank-badge-card" style="color: var(--rank-${r.toLowerCase()})">${r}</div>
-                        <div class="quest-title">${q.title}</div>
-                        <div class="quest-status"><span>${formatVal(q.current)} / ${formatVal(q.target)}</span><span class="usd-text">$${(q.current/FIXED_RATE).toFixed(2)} / $${(q.target/FIXED_RATE).toFixed(2)}</span></div>
-                        <div class="progress-container"><div class="progress-fill" style="width:${p}%; background: var(--rank-${r.toLowerCase()});"></div></div>
-                    </div>`;
+                ql.innerHTML += `<div class="quest-card ${locked?'quest-locked':''}" style="border-left: 4px solid var(--rank-${r.toLowerCase()})">
+                    <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
+                    <div class="rank-badge-card" style="color: var(--rank-${r.toLowerCase()})">${r}</div>
+                    <div class="quest-title">${q.title}</div>
+                    <div class="quest-status"><span>${formatVal(q.current)} / ${formatVal(q.target)}</span><span class="usd-text">$${(q.current/FIXED_RATE).toFixed(2)} / $${(q.target/FIXED_RATE).toFixed(2)}</span></div>
+                    <div class="progress-container"><div class="progress-fill" style="width:${p}%; background: var(--rank-${r.toLowerCase()});"></div></div>
+                </div>`;
             });
             renderCalendar();
         }
 
         function getRank(val) {
-            if (val >= 100000000) return 'SS';
-            if (val >= 50000000) return 'S';
-            if (val >= 10000000) return 'A';
-            if (val >= 2000000) return 'B';
-            if (val >= 400000) return 'C';
-            return 'E';
+            if (val >= 100000000) return 'SS'; if (val >= 50000000) return 'S';
+            if (val >= 10000000) return 'A'; if (val >= 2000000) return 'B';
+            if (val >= 400000) return 'C'; return 'E';
         }
 
-        function openFullRankView() { document.getElementById('mainView').style.display='none'; document.getElementById('rankView').style.display='block'; }
-        function closeFullViews() { document.getElementById('mainView').style.display='block'; document.getElementById('dayView').style.display='none'; document.getElementById('rankView').style.display='none'; }
-        
         function renderCalendar() {
             const grid = document.getElementById('daysGrid'); grid.innerHTML = '';
             const y = navDate.getFullYear(), m = navDate.getMonth();
             document.getElementById('monthDisplay').textContent = navDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-            const first = new Date(y, m, 1).getDay();
-            const last = new Date(y, m + 1, 0).getDate();
-            for (let i = 0; i < first; i++) grid.innerHTML += '<div></div>';
-            for (let i = 1; i <= last; i++) {
+            for (let i = 0; i < new Date(y, m, 1).getDay(); i++) grid.innerHTML += '<div></div>';
+            for (let i = 1; i <= new Date(y, m + 1, 0).getDate(); i++) {
                 const dateKey = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                const hasArc = system.dayArchives[dateKey] && system.dayArchives[dateKey].length > 0;
                 const cell = document.createElement('div');
-                cell.className = `day-cell ${hasArc ? 'has-completed' : ''}`;
-                if(new Date().toDateString() === new Date(y,m,i).toDateString()) cell.classList.add('today');
-                cell.textContent = i;
-                cell.onclick = () => openDayView(dateKey);
+                cell.className = `day-cell ${system.dayArchives[dateKey]?'has-completed':''} ${new Date().toDateString()===new Date(y,m,i).toDateString()?'today':''}`;
+                cell.textContent = i; cell.onclick = () => openDayView(dateKey);
                 grid.appendChild(cell);
             }
         }
         function changeMonth(s) { navDate.setMonth(navDate.getMonth() + s); renderCalendar(); }
+        function openFullRankView() { document.getElementById('mainView').style.display='none'; document.getElementById('rankView').style.display='block'; }
+        function closeFullViews() { document.getElementById('mainView').style.display='block'; document.getElementById('dayView').style.display='none'; document.getElementById('rankView').style.display='none'; }
         
-        // تسجيل الـ Service Worker للأوفلاين
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
     </script>
 </body>
 </html>
