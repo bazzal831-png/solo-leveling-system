@@ -1,5 +1,5 @@
 // اسم الكاش - قم بتغيير الرقم (v3) عند تحديث الكود لفرض التحديث على الهواتف
-const CACHE_NAME = "solo-leveling-system-v3";
+const CACHE_NAME = "solo-leveling-system-v4";
 
 // قائمة الملفات المطلوب حفظها للعمل بدون إنترنت (Offline)
 // يجب كتابة المسار الكامل للمجلد في GitHub Pages
@@ -50,4 +50,5 @@ self.addEventListener("fetch", (event) => {
         })
     );
 });
+
 
