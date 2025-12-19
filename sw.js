@@ -1,4 +1,4 @@
-const CACHE_NAME = "solo-leveling-v1";
+const CACHE_NAME = "solo-leveling-v2";
 const ASSETS_TO_CACHE = [
     "./",
     "./index.html",
@@ -40,3 +40,4 @@ self.addEventListener("fetch", (event) => {
         })
     );
 });
+
