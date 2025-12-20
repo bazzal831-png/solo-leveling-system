@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#00d2ff">
 
     <style>
-        /* --- نفس التنسيقات الأصلية بالكامل بدون حذف أي سطر --- */
+        /* --- نفس التنسيقات الأصلية بالكامل --- */
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.9); --mana: #00d2ff;
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
@@ -24,7 +24,7 @@
             overflow-x: hidden; background-image: radial-gradient(circle at center, #101525 0%, #05070b 100%);
         }
 
-        /* شاشة الدخول (إضافة جديدة للسحاب) */
+        /* شاشة الدخول */
         #authOverlay {
             position: fixed; inset: 0; background: var(--bg); z-index: 50000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -233,7 +233,7 @@
             if (currentUser) await setDoc(doc(db, "users", currentUser.uid), system);
         }
 
-        // --- ALL ORIGINAL FUNCTIONS ---
+        // --- CORE FUNCTIONS ---
         window.formatVal = function(val) {
             if (val >= 1000000) return (val / 1000000).toFixed(1) + "M";
             if (val >= 1000) return (val / 1000) + "k";
@@ -315,13 +315,18 @@
             }
         };
 
+        // --- THIS IS THE UPDATED FUNCTION ---
         window.addNewQuestFromDay = function() {
             const titleI = document.getElementById('qTitleDay'), targetI = document.getElementById('qTargetDay');
             if (titleI.value && parseFloat(targetI.value) >= 1000) {
                 addNewQuest(selectedDayKey, titleI.value, parseFloat(targetI.value));
+                // Clear the inputs so they don't persist
+                titleI.value = '';
+                targetI.value = '';
                 closeFullViews();
             }
         };
+        // ------------------------------------
 
         function checkAutoArchive() {
             for (let i = 0; i < system.quests.length; i++) {
