@@ -9,11 +9,11 @@
     <meta name="theme-color" content="#00d2ff">
 
     <style>
-        /* --- التنسيقات الأصلية --- */
+        /* --- التنسيقات الأساسية --- */
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.9); --mana: #00d2ff;
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
-            --inventory: #ff79c6;
+            --inventory: #ff79c6; --debt-color: #bc13fe;
             --rank-ss: #ffcc00; --rank-s: #ff3131; --rank-a: #bc13fe;
             --rank-b: #00d2ff; --rank-c: #4caf50; --rank-e: #9e9e9e;
         }
@@ -24,7 +24,6 @@
             overflow-x: hidden; background-image: radial-gradient(circle at center, #101525 0%, #05070b 100%);
         }
 
-        /* شاشة الدخول */
         #authOverlay {
             position: fixed; inset: 0; background: var(--bg); z-index: 50000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -62,6 +61,13 @@
         }
         .logout-link { color: var(--danger); text-decoration: none; cursor: pointer; font-weight: bold; }
 
+        /* Salary Section */
+        .salary-container {
+            border: 1px solid var(--success); background: rgba(80, 250, 123, 0.05);
+            padding: 12px; margin-bottom: 15px; border-radius: 4px; text-align: center;
+        }
+        .salary-value { font-size: 1.8rem; color: var(--success); font-weight: bold; font-family: monospace; display: block; }
+
         .system-title { color: var(--mana); font-weight: bold; font-size: 0.7rem; letter-spacing: 3px; margin-bottom: 15px; text-transform: uppercase; }
         .player-info { display: flex; justify-content: space-between; align-items: flex-end; }
         .name-box { font-size: 1.15rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--mana); }
@@ -73,19 +79,19 @@
         .main-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .btn-system { background: rgba(0, 0, 0, 0.7); border: 1px solid var(--mana); color: var(--mana); padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; transition: 0.2s; letter-spacing: 1px; width: 100%; }
         .btn-system:active { transform: scale(0.95); background: var(--mana); color: #000; }
-        .btn-salary { border-color: var(--gold); color: var(--gold); grid-column: span 2; margin-bottom: 5px; }
         .btn-withdraw { border-color: var(--danger); color: var(--danger); grid-column: span 2; margin-top: 5px; }
 
         .vault-container { border: 1px solid var(--inventory); background: rgba(255, 121, 198, 0.05); padding: 12px; text-align: center; margin-bottom: 15px; }
 
         .quest-card { background: var(--panel); border: 1px solid #333; padding: 18px; margin-bottom: 15px; position: relative; clip-path: polygon(0 0, 100% 0, 100% 88%, 96% 100%, 0 100%); transition: 0.3s; }
         .quest-locked { opacity: 0.3; filter: grayscale(1); }
-        .penalty-quest { border-left: 4px solid var(--danger) !important; background: rgba(255, 49, 49, 0.05); }
+        .debt-card { border-left: 4px solid var(--debt-color) !important; background: rgba(188, 19, 254, 0.05); }
         .quest-title { font-weight: 900; font-size: 1.05rem; color: #fff; margin-bottom: 10px; text-transform: uppercase; }
         .quest-status { font-family: monospace; font-size: 0.85rem; display: flex; justify-content: space-between; }
         .progress-container { height: 6px; background: #000; margin: 15px 0 5px 0; border: 1px solid #222; overflow: hidden; }
         .progress-fill { height: 100%; transition: width 1s ease-out; box-shadow: 0 0 15px var(--mana); }
-        .discard-btn { position: absolute; right: 15px; top: 15px; background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; z-index: 10; }
+        .finish-btn { position: absolute; right: 15px; top: 15px; background: var(--success); color: #000; border: none; padding: 5px 12px; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
+        .discard-btn { position: absolute; right: 85px; top: 15px; background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; cursor: pointer; z-index: 10; }
         .rank-badge-card { font-weight: 900; font-style: italic; font-size: 2rem; opacity: 0.1; position: absolute; right: 15px; bottom: 10px; pointer-events: none; }
 
         .calendar-box { background: var(--panel); padding: 15px; border: 1px solid #222; margin-bottom: 20px; }
@@ -98,18 +104,7 @@
         .back-btn { color: var(--mana); border: 1px solid var(--mana); padding: 10px 20px; display: inline-block; cursor: pointer; margin-bottom: 25px; font-size: 0.8rem; letter-spacing: 2px; }
         input { width: 100%; padding: 15px; margin-bottom: 12px; background: #080a0f; border: 1px solid #333; color: white; box-sizing: border-box; font-size: 1rem; }
         .usd-text { color: var(--success); font-family: monospace; font-weight: bold; }
-        .archive-stat { text-align: center; color: #444; font-size: 0.65rem; margin-top: 30px; padding: 15px; border-top: 1px solid #222; letter-spacing: 2px; text-transform: uppercase; }
-
-        /* Salary Modal Custom */
-        .salary-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 30000;
-            display: none; justify-content: center; align-items: center; padding: 20px;
-        }
-        .salary-card {
-            width: 100%; max-width: 400px; border: 1px solid var(--gold); background: #0a0d14; padding: 25px;
-        }
-        .salary-title { color: var(--gold); font-size: 0.8rem; letter-spacing: 3px; margin-bottom: 20px; text-align: center; }
-        .split-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: #888; margin-top: 10px; }
+        .archive-stat { text-align: center; color: #444; font-size: 0.65rem; margin-top: 20px; letter-spacing: 1px; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -121,24 +116,6 @@
         </div>
     </div>
 
-    <div id="salaryModal" class="salary-modal">
-        <div class="salary-card">
-            <div class="salary-title">RESOURCE ALLOCATION PROTOCOL</div>
-            <label style="font-size: 0.7rem; color: var(--mana);">TOTAL INCOME ($)</label>
-            <input type="number" id="salaryInput" placeholder="Enter Amount (e.g. 700)" style="border-color: var(--gold);">
-            
-            <label style="font-size: 0.7rem; color: var(--mana);">DISTRIBUTION RATIO (DEBT VS QUESTS)</label>
-            <input type="range" id="salarySplit" min="0" max="100" value="50" style="margin: 20px 0;">
-            <div class="split-labels">
-                <span id="debtSplitLabel">DEBT: 50%</span>
-                <span id="questSplitLabel">QUESTS: 50%</span>
-            </div>
-            
-            <button class="btn-system" style="background: var(--gold); color: #000; border: none; margin-top: 25px;" onclick="confirmSalaryDeposit()">EXECUTE ALLOCATION</button>
-            <button class="btn-system" style="border: none; color: #666; font-size: 0.6rem;" onclick="closeSalaryModal()">CANCEL</button>
-        </div>
-    </div>
-
     <div id="systemNotice">
         <div class="notice-window">
             <div class="notice-header">SYSTEM NOTIFICATION</div>
@@ -147,6 +124,15 @@
     </div>
 
     <div id="mainView" style="display: none;">
+        <div class="salary-container">
+            <div style="font-size: 0.6rem; color: var(--success); letter-spacing: 3px; margin-bottom: 5px;">MONTHLY SALARY WALLET</div>
+            <span class="salary-value" id="salaryDisplay">$0.00</span>
+            <div style="display: flex; gap: 5px; margin-top: 10px;">
+                <button class="btn-system" style="border-color: var(--success); color: var(--success); flex:1;" onclick="addSalary()">+ Add Salary</button>
+                <button class="btn-system" style="border-color: var(--mana); color: var(--mana); flex:1;" onclick="salaryToVault()">Transfer to Vault</button>
+            </div>
+        </div>
+
         <div class="system-header">
             <div class="user-auth-bar">
                 <span id="userEmailDisplay">EMAIL: ---</span>
@@ -164,7 +150,6 @@
         </div>
 
         <div class="main-actions">
-            <button class="btn-system btn-salary" onclick="openSalaryModal()">Salary Deposit Protocol</button>
             <button class="btn-system" onclick="startFlowDeposit()">+ Add Assets</button>
             <button class="btn-system" onclick="openFullRankView()">Rank Table</button>
             <button class="btn-system btn-withdraw" onclick="globalWithdraw()">Global Withdrawal</button>
@@ -186,25 +171,26 @@
 
         <div style="background:rgba(0, 210, 255, 0.02); padding:20px; border:1px solid #222;">
             <div style="color:var(--mana); font-size:0.7rem; margin-bottom:15px; letter-spacing:2px;">[ DAILY QUEST REGISTRATION ]</div>
-            <input type="text" id="qTitle" placeholder="Quest Title (Add 'Debt' for red)">
+            <input type="text" id="qTitle" placeholder="Enter Quest Title">
             <input type="number" id="qTarget" placeholder="Target Goal (Multiples of 1000)">
-            <button class="btn-system" style="background: var(--mana); color: #000; border: none;" onclick="addNewQuest(null)">Accept Quest</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-system" style="background: var(--mana); color: #000; border: none; flex: 1;" onclick="addNewQuest(null, false)">Accept Quest</button>
+                <button class="btn-system" style="background: var(--debt-color); color: #fff; border: none; flex: 1;" onclick="addNewQuest(null, true)">Accept Debt</button>
+            </div>
         </div>
 
         <h3 style="color:var(--mana); font-size:0.75rem; margin:30px 0 15px 0; letter-spacing:3px; border-left: 3px solid var(--mana); padding-left: 10px;">ACTIVE QUEST LOG</h3>
         <div id="questList"></div>
 
-        <div class="archive-stat" id="totalArchivedCountDisplay">TOTAL ARCHIVED QUESTS: 0</div>
+        <div style="padding: 15px; background: rgba(0,0,0,0.5); border: 1px solid #222;">
+            <div class="archive-stat" id="statNormal" style="color: var(--mana);">NORMAL ARCHIVED: 0</div>
+            <div class="archive-stat" id="statDebt" style="color: var(--debt-color); margin-top: 5px;">DEBT ARCHIVED: 0</div>
+        </div>
     </div>
 
     <div id="dayView" class="full-view">
         <div class="back-btn" onclick="closeFullViews()">[ BACK TO SYSTEM ]</div>
         <h2 id="selectedDateTitle" style="color:var(--mana); font-size:1.2rem; letter-spacing:2px;">DATE</h2>
-        <div style="background:rgba(255,255,255,0.05); padding:20px; margin-bottom:25px; border: 1px solid #333;">
-            <input type="text" id="qTitleDay" placeholder="Quest Title">
-            <input type="number" id="qTargetDay" placeholder="Target">
-            <button class="btn-system" onclick="addNewQuestFromDay()">Register Quest</button>
-        </div>
         <div id="dayArchiveList"></div>
     </div>
 
@@ -241,19 +227,14 @@
         const provider = new GoogleAuthProvider();
 
         const FIXED_RATE = 89000;
-        let system = { vault: 0, quests: [], dayArchives: {} };
+        let system = { vault: 0, salary: 0, quests: [], dayArchives: {} };
         let navDate = new Date();
         let selectedDayKey = null;
         let currentUser = null;
 
-        // --- AUTH LOGIC ---
+        // --- AUTH ---
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
-        
-        window.logout = () => {
-            if(confirm("Are you sure you want to disconnect from the System?")) {
-                signOut(auth).then(() => { location.reload(); });
-            }
-        };
+        window.logout = () => { if(confirm("Disconnect from System?")) signOut(auth).then(() => location.reload()); };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -262,103 +243,60 @@
                 document.getElementById('mainView').style.display = 'block';
                 document.getElementById('displayUserName').textContent = "NAME: " + (user.displayName ? user.displayName.toUpperCase() : "UNKNOWN");
                 document.getElementById('userEmailDisplay').textContent = user.email.toLowerCase();
-                
                 onSnapshot(doc(db, "users", user.uid), (doc) => {
-                    if (doc.exists()) {
-                        system = doc.data();
-                        render();
-                    } else { saveCloud(); }
+                    if (doc.exists()) { system = doc.data(); render(); } else { saveCloud(); }
                 });
-                showSystemNotice("Operational. Welcome, " + (user.displayName ? user.displayName.split(' ')[0] : "Player"));
             } else {
                 document.getElementById('authOverlay').style.display = 'flex';
                 document.getElementById('mainView').style.display = 'none';
             }
         });
 
-        async function saveCloud() {
-            if (currentUser) await setDoc(doc(db, "users", currentUser.uid), system);
-        }
+        async function saveCloud() { if (currentUser) await setDoc(doc(db, "users", currentUser.uid), system); }
 
-        // --- SALARY SYSTEM ---
-        window.openSalaryModal = () => { document.getElementById('salaryModal').style.display = 'flex'; };
-        window.closeSalaryModal = () => { document.getElementById('salaryModal').style.display = 'none'; };
-
-        const splitSlider = document.getElementById('salarySplit');
-        splitSlider.oninput = function() {
-            document.getElementById('debtSplitLabel').textContent = `DEBT: ${this.value}%`;
-            document.getElementById('questSplitLabel').textContent = `QUESTS: ${100 - this.value}%`;
+        // --- SALARY MANAGEMENT ---
+        window.addSalary = () => {
+            let a = parseFloat(prompt("Enter Monthly Salary ($):"));
+            if (a > 0) { system.salary = (system.salary || 0) + a; saveCloud(); }
         };
 
-        window.confirmSalaryDeposit = function() {
-            const amountUSD = parseFloat(document.getElementById('salaryInput').value);
-            if (!amountUSD || amountUSD <= 0) return alert("Enter valid salary amount");
-            
-            const totalGold = amountUSD * FIXED_RATE;
-            const debtPercentage = document.getElementById('salarySplit').value / 100;
-            const questPercentage = 1 - debtPercentage;
-
-            let debtBudget = totalGold * debtPercentage;
-            let questBudget = totalGold * questPercentage;
-
-            // 1. Fill Debts first
-            system.quests.forEach(q => {
-                if (isDebt(q.title) && debtBudget > 0) {
-                    let needed = q.target - q.current;
-                    let payment = Math.min(needed, debtBudget);
-                    q.current += payment;
-                    debtBudget -= payment;
-                }
-            });
-
-            // 2. Remaining debt budget goes to vault
-            system.vault += debtBudget;
-
-            // 3. Fill normal quests with quest budget
-            system.quests.forEach(q => {
-                if (!isDebt(q.title) && questBudget > 0) {
-                    let needed = q.target - q.current;
-                    let payment = Math.min(needed, questBudget);
-                    q.current += payment;
-                    questBudget -= payment;
-                }
-            });
-
-            // 4. Remaining quest budget goes to vault
-            system.vault += questBudget;
-
-            showSystemNotice("Salary Protocol Complete");
-            closeSalaryModal();
-            checkAutoArchive();
-            render();
-            saveCloud();
+        window.salaryToVault = () => {
+            let a = parseFloat(prompt(`Transfer from Salary to Vault (Available: $${system.salary}):`));
+            if (a > 0 && a <= system.salary) {
+                system.salary -= a;
+                applyTrickle(a * FIXED_RATE);
+            }
         };
 
-        function isDebt(title) {
-            const t = title.toLowerCase();
-            return t.includes('debt') || t.includes('دين') || t.includes('loan');
-        }
-
-        // --- CORE FUNCTIONS ---
-        window.formatVal = function(val) {
+        // --- CORE LOGIC ---
+        window.formatVal = (val) => {
             if (val >= 1000000) return (val / 1000000).toFixed(1) + "M";
             if (val >= 1000) return (val / 1000) + "k";
             return Math.floor(val);
         };
 
-        window.showSystemNotice = function(message) {
-            const notice = document.getElementById('systemNotice');
-            const msgEl = document.getElementById('noticeMsg');
-            msgEl.textContent = message;
-            notice.style.display = 'flex';
-            setTimeout(() => { notice.style.display = 'none'; }, 1200);
+        window.showSystemNotice = (m) => {
+            const n = document.getElementById('systemNotice');
+            document.getElementById('noticeMsg').textContent = m;
+            n.style.display = 'flex'; setTimeout(() => n.style.display = 'none', 1200);
         };
 
-        window.applyTrickle = function(amount) {
-            const todayStr = new Date().toISOString().split('T')[0];
-            for (let i = 0; i < system.quests.length; i++) {
-                let q = system.quests[i];
-                if (q.createdAt > todayStr) continue;
+        window.addNewQuest = (customDate, isDebt) => {
+            const tEl = document.getElementById('qTitle'), vEl = document.getElementById('qTarget');
+            const title = tEl.value, target = parseFloat(vEl.value);
+            if (title && target > 0) {
+                const date = customDate || new Date().toISOString().split('T')[0];
+                system.quests.push({ id: Date.now(), title, target, current: 0, createdAt: date, isDebt: isDebt });
+                tEl.value = ''; vEl.value = '';
+                if (!isDebt && system.vault > 0) { let v = system.vault; system.vault = 0; applyTrickle(v); }
+                else { render(); saveCloud(); }
+            }
+        };
+
+        window.applyTrickle = (amount) => {
+            const today = new Date().toISOString().split('T')[0];
+            for (let q of system.quests) {
+                if (q.isDebt || q.createdAt > today) continue;
                 let needed = q.target - q.current;
                 if (needed > 0) {
                     if (amount >= needed) { q.current = q.target; amount -= needed; }
@@ -369,51 +307,20 @@
             checkAutoArchive(); render(); saveCloud();
         };
 
-        window.startFlowDeposit = function() {
-            let a = parseFloat(prompt("Assets to Deposit (In Gold/Assets):"));
-            if (a > 0) applyTrickle(a);
-        };
-
-        window.globalWithdraw = function() {
-            let qSum = system.quests.reduce((s,q) => s + q.current, 0);
-            let arcSum = Object.values(system.dayArchives).flat().reduce((s,q)=>s+q.current,0);
-            let total = qSum + arcSum + system.vault;
-            let a = parseFloat(prompt(`Extract (Total: ${formatVal(total)}):`));
-            if (a > 0 && a <= total) {
-                let rem = a;
-                if (system.vault >= rem) { system.vault -= rem; rem = 0; }
-                else { rem -= system.vault; system.vault = 0; }
-                if (rem > 0) {
-                    for (let i = system.quests.length - 1; i >= 0; i--) {
-                        let q = system.quests[i];
-                        if (q.current >= rem) { q.current -= rem; rem = 0; break; }
-                        else { rem -= q.current; q.current = 0; }
-                    }
+        window.finishDebt = (id) => {
+            const idx = system.quests.findIndex(x => x.id === id);
+            const q = system.quests[idx];
+            const costUSD = q.target / FIXED_RATE;
+            if (system.salary >= costUSD) {
+                if(confirm(`Pay $${costUSD.toFixed(2)} from Salary to clear this Debt?`)) {
+                    system.salary -= costUSD;
+                    q.current = q.target;
+                    checkAutoArchive();
+                    render();
+                    saveCloud();
                 }
-                render(); saveCloud();
-            }
-        };
-
-        window.addNewQuest = function(customDate, customTitle, customTarget) {
-            const titleInput = document.getElementById('qTitle'), targetInput = document.getElementById('qTarget');
-            const title = customTitle || titleInput.value, target = customTarget || parseFloat(targetInput.value);
-            
-            if (title && target > 0) {
-                const creationDate = customDate || new Date().toISOString().split('T')[0];
-                system.quests.push({ id: Date.now(), title, target, current: 0, createdAt: creationDate });
-                
-                showSystemNotice(`Quest Accepted: [${title}]`);
-                titleInput.value = ''; targetInput.value = '';
-                if (system.vault > 0) { let v = system.vault; system.vault = 0; applyTrickle(v); } 
-                else { render(); saveCloud(); }
-            }
-        };
-
-        window.addNewQuestFromDay = function() {
-            const titleI = document.getElementById('qTitleDay'), targetI = document.getElementById('qTargetDay');
-            if (titleI.value && parseFloat(targetI.value) > 0) {
-                addNewQuest(selectedDayKey, titleI.value, parseFloat(targetI.value));
-                titleI.value = ''; targetI.value = ''; closeFullViews();
+            } else {
+                alert("Insufficient Salary Balance!");
             }
         };
 
@@ -428,93 +335,115 @@
             }
         }
 
-        window.discardQuest = function(id) {
+        window.discardQuest = (id) => {
             const idx = system.quests.findIndex(x => x.id === id);
-            const money = system.quests[idx].current;
-            system.quests.splice(idx, 1);
-            if (money > 0) applyTrickle(money); else { render(); saveCloud(); }
+            const q = system.quests[idx];
+            if (!q.isDebt && q.current > 0) { applyTrickle(q.current); system.quests.splice(idx, 1); }
+            else { system.quests.splice(idx, 1); render(); saveCloud(); }
         };
 
-        window.openDayView = function(date) {
-            selectedDayKey = date;
-            document.getElementById('mainView').style.display='none';
-            document.getElementById('dayView').style.display='block';
-            document.getElementById('selectedDateTitle').textContent = date;
-            const list = document.getElementById('dayArchiveList'); list.innerHTML = '';
-            const items = system.dayArchives[date] || [];
-            items.forEach(q => {
-                const isD = isDebt(q.title);
-                list.innerHTML += `<div class="quest-card" style="border-left:4px solid ${isD ? 'var(--danger)' : 'var(--gold)'};"><div class="quest-title">${isD ? '💀' : '🏆'} ${q.title}</div><div class="quest-status"><span>${formatVal(q.target)}</span><span class="usd-text">$${(q.target/FIXED_RATE).toFixed(2)}</span></div></div>`;
-            });
-        };
-
-        window.render = function() {
-            const todayStr = new Date().toISOString().split('T')[0];
-            const qSum = system.quests.reduce((s,q) => s + q.current, 0);
+        window.render = () => {
+            const qSum = system.quests.filter(q=>!q.isDebt).reduce((s,q) => s + q.current, 0);
             const allArchived = Object.values(system.dayArchives).flat();
-            const arcSum = allArchived.reduce((s,q)=>s+q.current,0);
+            const arcSum = allArchived.filter(q=>!q.isDebt).reduce((s,q)=>s+q.current,0);
             const total = qSum + arcSum + system.vault;
 
+            document.getElementById('salaryDisplay').textContent = "$" + (system.salary || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('totalAssets').textContent = formatVal(total);
             document.getElementById('totalUSD').textContent = "$" + (total / FIXED_RATE).toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('vaultAmount').textContent = formatVal(system.vault);
             document.getElementById('mainLvl').textContent = Math.floor(total / 400000) + 1;
-            document.getElementById('totalArchivedCountDisplay').textContent = "TOTAL ARCHIVED QUESTS: " + allArchived.length;
+            
+            document.getElementById('statNormal').textContent = "NORMAL ARCHIVED: " + allArchived.filter(q=>!q.isDebt).length;
+            document.getElementById('statDebt').textContent = "DEBT ARCHIVED: " + allArchived.filter(q=>q.isDebt).length;
 
             const pRank = getRank(total);
             const prd = document.getElementById('playerRankDisplay');
             prd.textContent = "RANK " + pRank; prd.style.color = `var(--rank-${pRank.toLowerCase()})`; prd.style.borderColor = `var(--rank-${pRank.toLowerCase()})`;
 
             const list = document.getElementById('questList'); list.innerHTML = '';
+            const todayStr = new Date().toISOString().split('T')[0];
+
             system.quests.forEach(q => {
-                const isLocked = q.createdAt > todayStr;
-                const isD = isDebt(q.title);
-                const p = ((q.current / q.target) * 100).toFixed(1);
+                const isLocked = !q.isDebt && q.createdAt > todayStr;
                 const r = getRank(q.target);
-                list.innerHTML += `<div class="quest-card ${isLocked ? 'quest-locked' : ''} ${isD ? 'penalty-quest' : ''}" style="border-left: 4px solid var(--rank-${r.toLowerCase()})">
+                const p = ((q.current / q.target) * 100).toFixed(1);
+                
+                list.innerHTML += `
+                <div class="quest-card ${isLocked ? 'quest-locked' : ''} ${q.isDebt ? 'debt-card' : ''}" style="border-left: 4px solid var(--rank-${r.toLowerCase()})">
                     <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
-                    ${isLocked ? `<div style="font-size:0.65rem; color:var(--danger); margin-bottom:5px;">🔒 LOCKED UNTIL ${q.createdAt}</div>` : `<div style="font-size:0.6rem; color:#444; margin-bottom:5px;">${isD ? 'PENALTY' : 'ACTIVE'} DATE: ${q.createdAt}</div>`}
+                    ${q.isDebt ? `<button class="finish-btn" onclick="finishDebt(${q.id})">FINISH</button>` : ''}
+                    <div style="font-size:0.6rem; color:#666; margin-bottom:5px;">DATE: ${q.createdAt} ${q.isDebt ? '| DEBT' : ''}</div>
                     <div class="rank-badge-card" style="color: var(--rank-${r.toLowerCase()})">${r}</div>
-                    <div class="quest-title">${isD ? '💀' : ''} ${q.title}</div>
-                    <div class="quest-status"><span>${formatVal(q.current)} / ${formatVal(q.target)}</span><span class="usd-text">$${(q.current/FIXED_RATE).toFixed(2)} / $${(q.target/FIXED_RATE).toFixed(2)}</span></div>
-                    <div class="progress-container"><div class="progress-fill" style="width:${p}%; background: ${isD ? 'var(--danger)' : `var(--rank-${r.toLowerCase()})`};"></div></div>
+                    <div class="quest-title">${q.title}</div>
+                    <div class="quest-status">
+                        <span>${formatVal(q.current)} / ${formatVal(q.target)}</span>
+                        <span class="usd-text">$${(q.target/FIXED_RATE).toFixed(2)}</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-fill" style="width:${p}%; background: ${q.isDebt ? 'var(--debt-color)' : `var(--rank-${r.toLowerCase()})`};"></div>
+                    </div>
                 </div>`;
             });
             drawCalendar();
         };
 
-        function getRank(val) {
-            if (val >= 100000000) return 'SS';
-            if (val >= 50000000) return 'S';
-            if (val >= 10000000) return 'A';
-            if (val >= 2000000) return 'B';
-            if (val >= 400000) return 'C';
-            return 'E';
+        function getRank(v) {
+            if (v >= 100000000) return 'SS'; if (v >= 50000000) return 'S';
+            if (v >= 10000000) return 'A'; if (v >= 2000000) return 'B';
+            if (v >= 400000) return 'C'; return 'E';
         }
 
-        window.openFullRankView = function() { document.getElementById('mainView').style.display='none'; document.getElementById('rankView').style.display='block'; };
-        window.closeFullViews = function() { document.getElementById('mainView').style.display='block'; document.getElementById('dayView').style.display='none'; document.getElementById('rankView').style.display='none'; };
-        
+        window.openDayView = (d) => {
+            selectedDayKey = d;
+            document.getElementById('mainView').style.display='none';
+            document.getElementById('dayView').style.display='block';
+            document.getElementById('selectedDateTitle').textContent = d;
+            const list = document.getElementById('dayArchiveList'); list.innerHTML = '';
+            (system.dayArchives[d] || []).forEach(q => {
+                list.innerHTML += `<div class="quest-card ${q.isDebt ? 'debt-card' : ''}">
+                    <div class="quest-title">${q.isDebt ? '💀' : '🏆'} ${q.title}</div>
+                    <div class="quest-status"><span>${formatVal(q.target)}</span><span class="usd-text">$${(q.target/FIXED_RATE).toFixed(2)}</span></div>
+                </div>`;
+            });
+        };
+
         function drawCalendar() {
             const grid = document.getElementById('daysGrid'); grid.innerHTML = '';
             const y = navDate.getFullYear(), m = navDate.getMonth();
             document.getElementById('monthDisplay').textContent = navDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-            const first = new Date(y, m, 1).getDay();
-            const last = new Date(y, m + 1, 0).getDate();
+            const first = new Date(y, m, 1).getDay(), last = new Date(y, m + 1, 0).getDate();
             for (let i = 0; i < first; i++) grid.innerHTML += '<div></div>';
             for (let i = 1; i <= last; i++) {
-                const dateKey = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                const hasArc = system.dayArchives && system.dayArchives[dateKey] && system.dayArchives[dateKey].length > 0;
+                const dk = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                const has = system.dayArchives && system.dayArchives[dk] && system.dayArchives[dk].length > 0;
                 const cell = document.createElement('div');
-                cell.className = `day-cell ${hasArc ? 'has-completed' : ''}`;
+                cell.className = `day-cell ${has ? 'has-completed' : ''}`;
                 if(new Date().toDateString() === new Date(y,m,i).toDateString()) cell.classList.add('today');
-                cell.textContent = i;
-                cell.onclick = () => openDayView(dateKey);
+                cell.textContent = i; cell.onclick = () => openDayView(dk);
                 grid.appendChild(cell);
             }
         }
-        window.changeMonth = (s) => { navDate.setMonth(navDate.getMonth() + s); drawCalendar(); };
 
+        window.startFlowDeposit = () => { let a = parseFloat(prompt("Assets to Deposit:")); if(a > 0) applyTrickle(a); };
+        window.changeMonth = (s) => { navDate.setMonth(navDate.getMonth() + s); drawCalendar(); };
+        window.openFullRankView = () => { document.getElementById('mainView').style.display='none'; document.getElementById('rankView').style.display='block'; };
+        window.closeFullViews = () => { document.getElementById('mainView').style.display='block'; document.getElementById('dayView').style.display='none'; document.getElementById('rankView').style.display='none'; };
+        window.globalWithdraw = () => {
+            let qSum = system.quests.filter(q=>!q.isDebt).reduce((s,q) => s + q.current, 0);
+            let total = qSum + system.vault;
+            let a = parseFloat(prompt(`Extract from Vault/Quests (Max: ${formatVal(total)}):`));
+            if (a > 0 && a <= total) {
+                if (system.vault >= a) system.vault -= a;
+                else { let rem = a - system.vault; system.vault = 0; 
+                    for (let i = system.quests.length-1; i>=0; i--) {
+                        let q = system.quests[i]; if(q.isDebt) continue;
+                        if(q.current >= rem) { q.current -= rem; break; } else { rem -= q.current; q.current = 0; }
+                    }
+                }
+                saveCloud(); render();
+            }
+        };
     </script>
 </body>
 </html>
