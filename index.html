@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V6.1 (CLOUD RANKING)</title>
+    <title>SUNG JIN-WOO SYSTEM | V6.2 (ZERO BUTTON)</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
             
             /* Logic Colors */
-            --mana: #00d2ff;      /* Current Quest */
-            --debt-color: #bc13fe; /* Current Debt */
+            --mana: #00d2ff;      
+            --debt-color: #bc13fe; 
             --future-quest: #f1c40f; 
             --future-debt: #e74c3c;  
 
@@ -44,7 +44,7 @@
             padding: 40px 20px; text-align: center; background: rgba(0, 30, 50, 0.3);
         }
 
-        /* HEADER & RANK STYLES */
+        /* HEADER */
         .system-header { 
             border: 1px solid var(--mana); background: rgba(0, 210, 255, 0.05); 
             padding: 15px; border-radius: 4px; margin-bottom: 20px; 
@@ -66,14 +66,11 @@
         }
 
         .level-text { font-family: monospace; font-size: 0.9rem; color: var(--mana); }
-        
         .gold-main { font-size: 2.4rem; color: var(--gold); display: block; font-weight: bold; text-align: center; margin: 5px 0; font-family: monospace; }
         
         /* CARDS */
         .quest-card { background: var(--panel); border: 1px solid #333; padding: 15px; margin-bottom: 15px; position: relative; clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%); transition: 0.3s; overflow: hidden; }
         .locked-card { opacity: 0.7; filter: grayscale(0.2); border: 1px dashed #555; }
-        
-        /* Rank Badge inside Card */
         .card-rank-badge {
             position: absolute; right: 10px; top: 10px; 
             font-size: 2.5rem; font-weight: 900; font-style: italic;
@@ -85,7 +82,15 @@
         .btn-system:active { transform: scale(0.95); background: var(--mana); color:black; }
         .btn-pay { background: var(--success); color: black; border: none; padding: 8px 15px; font-weight: bold; font-size: 0.75rem; cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 0 10px rgba(80, 250, 123, 0.3); position: relative; z-index: 2; }
         .discard-btn { color: var(--danger); background: none; border: 1px solid rgba(255,49,49,0.2); padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 10px; display: inline-block; position: relative; z-index: 2; }
-        .btn-zero { background: var(--danger); color: white; border: none; padding: 5px 10px; font-size: 0.65rem; font-weight: bold; cursor: pointer; border-radius: 3px; margin-top: 8px; display: none; }
+        
+        /* زر التصفير (أحمر) */
+        .btn-zero { 
+            background: var(--danger); color: white; border: none; 
+            padding: 6px 12px; font-size: 0.7rem; font-weight: bold; 
+            cursor: pointer; border-radius: 4px; margin-top: 8px; 
+            display: none; /* مخفي افتراضياً */
+            box-shadow: 0 0 8px var(--danger);
+        }
 
         .salary-container { border: 1px solid var(--success); background: rgba(80, 250, 123, 0.05); padding: 12px; margin-bottom: 15px; text-align: center; border-radius: 4px; }
         .salary-value { font-size: 1.8rem; color: var(--success); font-weight: bold; font-family: monospace; display: block; }
@@ -124,7 +129,8 @@
             <div style="font-size:0.6rem; color:var(--success); letter-spacing:2px;">SALARY WALLET (NOT RANKED)</div>
             <span class="salary-value" id="salaryDisplay">$0.00</span>
             <div style="font-size:0.7rem; color:#888;">≈ <span id="salaryGoldDisplay">0</span> Gold</div>
-            <button id="zeroSalary" class="btn-zero" onclick="confirmZero('salary')">Zero Fraction</button>
+            <!-- زر التصفير الخاص بالمعاش -->
+            <button id="zeroSalary" class="btn-zero" onclick="confirmZero('salary')">Zero Remainder (<1k)</button>
             <div style="display:flex; gap:5px; margin-top:10px;">
                 <button class="btn-system" style="border-color:var(--success); color:var(--success); flex:1;" onclick="addSalary()">+ Income</button>
                 <button class="btn-system" style="border-color:var(--mana); color:var(--mana); flex:1;" onclick="salaryToVault()">Transfer</button>
@@ -155,7 +161,8 @@
         <div class="vault-container" style="border:1px solid var(--inventory); padding:12px; text-align:center; margin-bottom:15px;">
             <div style="font-size:0.6rem; color:var(--inventory); letter-spacing:1px;">STORAGE VAULT</div>
             <div id="vaultAmount" style="font-size:1.5rem; color:var(--inventory); font-weight:bold; font-family:monospace;">0</div>
-            <button id="zeroVault" class="btn-zero" onclick="confirmZero('vault')">Zero Fraction</button>
+            <!-- زر التصفير الخاص بالمستودع -->
+            <button id="zeroVault" class="btn-zero" onclick="confirmZero('vault')">Zero Remainder (<1k)</button>
         </div>
 
         <div class="calendar-box">
@@ -316,8 +323,9 @@
             if(a) distribute(parseWish(a)); 
         };
 
+        // --- ZERO BUTTON LOGIC ---
         window.confirmZero = (type) => {
-            if(confirm(`Wipe fraction from ${type}?`)) {
+            if(confirm(`Clean up the remaining fraction (less than 1000) from ${type}?`)) {
                 if(type === 'salary') system.salary = 0; else system.vault = 0;
                 save();
             }
@@ -498,9 +506,12 @@
             document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             document.getElementById('salaryGoldDisplay').textContent = formatVal((system.salary||0)*RATE);
             
+            // Button Logic: Show ONLY if > 0.1 AND < 1000
             const salInGold = (system.salary || 0) * RATE;
+            const vaultInGold = system.vault || 0;
+            
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
-            document.getElementById('zeroVault').style.display = (system.vault > 0.1 && system.vault < 1000) ? 'inline-block' : 'none';
+            document.getElementById('zeroVault').style.display = (vaultInGold > 0.1 && vaultInGold < 1000) ? 'inline-block' : 'none';
 
             // Archive Stats
             document.getElementById('totalArchivedDebts').textContent = Object.values(system.dayArchives).flat().filter(q => q.isDebt).length;
