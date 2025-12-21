@@ -3,77 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V4.9 FINAL</title>
+    <title>SUNG JIN-WOO SYSTEM | V4.7</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.9); --mana: #00d2ff;
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
             --inventory: #ff79c6; --debt-color: #bc13fe;
-            --rank-ss: #ffcc00; --rank-s: #ff3131; --rank-a: #bc13fe;
-            --rank-b: #00d2ff; --rank-c: #4caf50; --rank-e: #9e9e9e;
         }
 
         body { 
             background-color: var(--bg); color: var(--text); 
             font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; 
             background-image: radial-gradient(circle at center, #101525 0%, #05070b 100%);
-            -webkit-tap-highlight-color: transparent; overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Headers & Auth */
         .system-header { border: 1px solid var(--mana); background: rgba(0, 210, 255, 0.05); padding: 15px; border-radius: 4px; margin-bottom: 20px; position: relative; }
         .user-auth-bar { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--mana); margin-bottom: 10px; border-bottom: 1px solid rgba(0, 210, 255, 0.2); padding-bottom: 5px; }
         
         /* Salary Section */
         .salary-container { border: 1px solid var(--success); background: rgba(80, 250, 123, 0.05); padding: 12px; margin-bottom: 15px; text-align: center; border-radius: 4px; }
         .salary-value { font-size: 1.8rem; color: var(--success); font-weight: bold; font-family: monospace; display: block; }
-        .salary-sub { font-size: 0.8rem; color: #888; font-family: monospace; display: block; margin-bottom: 5px; }
+        .salary-sub { font-size: 0.8rem; color: #888; font-family: monospace; margin-bottom: 5px; display: block; }
         
-        /* Main Assets Display */
-        .gold-main { font-size: 2.6rem; color: var(--gold); display: block; font-weight: bold; text-align: center; margin: 10px 0; font-family: monospace; text-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
-        .usd-sub { font-size: 1.1rem; color: var(--success); text-align: center; display: block; font-weight: bold; margin-bottom: 10px; }
-
-        .btn-system { background: rgba(0, 0, 0, 0.7); border: 1px solid var(--mana); color: var(--mana); padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; width: 100%; transition: 0.2s; }
-        .btn-system:active { background: var(--mana); color: #000; }
+        .gold-main { font-size: 2.4rem; color: var(--gold); display: block; font-weight: bold; text-align: center; margin: 10px 0; font-family: monospace; }
+        .btn-system { background: rgba(0, 0, 0, 0.7); border: 1px solid var(--mana); color: var(--mana); padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; }
         .btn-zero { background: var(--danger); color: white; border: none; padding: 5px 10px; font-size: 0.65rem; font-weight: bold; cursor: pointer; border-radius: 3px; margin-top: 8px; display: none; }
 
-        /* Quests & Cards */
-        .quest-card { background: var(--panel); border: 1px solid #333; padding: 18px; margin-bottom: 15px; position: relative; clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%); }
+        .quest-card { background: var(--panel); border: 1px solid #333; padding: 15px; margin-bottom: 15px; position: relative; clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%); }
         .debt-card { border-left: 4px solid var(--debt-color) !important; background: rgba(188, 19, 254, 0.05); }
-        .rank-badge-card { font-weight: 900; font-style: italic; font-size: 1.8rem; opacity: 0.1; position: absolute; right: 15px; bottom: 10px; pointer-events: none; }
-        .finish-btn { position: absolute; right: 10px; top: 10px; background: var(--success); color: #000; border: none; padding: 5px 10px; font-weight: bold; cursor: pointer; font-size: 0.65rem; z-index: 10; }
+        .finish-btn { position: absolute; right: 10px; top: 10px; background: var(--success); color: #000; border: none; padding: 5px 10px; font-weight: bold; cursor: pointer; font-size: 0.7rem; z-index: 10; }
         .discard-btn { color: var(--danger); background: none; border: 1px solid rgba(255,49,49,0.2); padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 10px; display: inline-block; }
 
         .progress-container { height: 6px; background: #000; margin-top: 15px; border: 1px solid #222; }
-        .progress-fill { height: 100%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .progress-fill { height: 100%; transition: width 0.5s; }
 
-        /* Calendar */
+        .full-view { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 9999; padding: 20px; overflow-y: auto; }
+        input { width: 100%; padding: 15px; margin-bottom: 10px; background: #080a0f; border: 1px solid #333; color: white; box-sizing: border-box; }
+        
         .calendar-box { background: var(--panel); padding: 15px; border: 1px solid #222; margin-bottom: 20px; }
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .day-cell { aspect-ratio: 1; background: #080a0f; border: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: #444; cursor: pointer; }
-        .day-cell.has-completed { border-color: var(--gold); color: var(--gold); background: rgba(255, 215, 0, 0.03); }
-        .day-cell.today { border-color: var(--mana); color: var(--mana); box-shadow: inset 0 0 5px var(--mana); }
-
-        /* Full Views */
-        .full-view { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 9999; padding: 20px; overflow-y: auto; box-sizing: border-box; }
-        input { width: 100%; padding: 15px; margin-bottom: 12px; background: #080a0f; border: 1px solid #333; color: white; box-sizing: border-box; font-size: 1rem; }
-        
-        .archive-stat { text-align: center; color: #555; font-size: 0.65rem; margin-top: 30px; padding: 15px; border-top: 1px solid #222; letter-spacing: 2px; line-height: 2; }
+        .day-cell { aspect-ratio: 1; background: #080a0f; border: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; cursor: pointer; }
+        .day-cell.has-completed { border-color: var(--gold); color: var(--gold); }
     </style>
 </head>
 <body>
 
     <div id="authOverlay" style="position:fixed; inset:0; background:var(--bg); z-index:50000; display:flex; justify-content:center; align-items:center;">
-        <button class="btn-system" id="loginBtn" style="width: auto; padding: 20px 40px; border-radius: 4px;">INITIALIZE SYSTEM ACCESS</button>
+        <button class="btn-system" id="loginBtn">INITIALIZE SYSTEM ACCESS</button>
     </div>
 
     <div id="mainView" style="display: none;">
         <div class="salary-container">
             <div style="font-size:0.6rem; color:var(--success); letter-spacing:2px;">RESOURCE: SALARY WALLET</div>
             <span class="salary-value" id="salaryDisplay">$0.00</span>
-            <span class="salary-sub" id="salaryGoldSub">≈ 0 Gold</span>
+            <span class="salary-sub" id="salaryGoldDisplay">≈ 0 Gold</span>
             <button id="zeroSalary" class="btn-zero" onclick="confirmZero('salary')">Zero Salary Fraction (<1k)</button>
-            <div style="display:flex; gap:8px; margin-top:10px;">
+            <div style="display:flex; gap:5px; margin-top:10px;">
                 <button class="btn-system" style="border-color:var(--success); color:var(--success); flex:1;" onclick="addSalary()">+ Add Income</button>
                 <button class="btn-system" style="border-color:var(--mana); color:var(--mana); flex:1;" onclick="salaryToVault()">Transfer</button>
             </div>
@@ -84,67 +70,48 @@
                 <span id="userEmailDisplay">---</span>
                 <span style="color:var(--danger); cursor:pointer;" onclick="logout()">[ DISCONNECT ]</span>
             </div>
-            <div class="rank-tag" id="playerRankDisplay" style="position:absolute; top:-10px; right:10px; background:var(--bg); border:1px solid var(--mana); padding:3px 12px; font-size:0.75rem; font-weight:bold;">RANK E</div>
+            <div class="rank-tag" id="rankDisplay">RANK E</div>
             <span class="gold-main" id="totalAssets">0</span>
-            <span class="usd-sub" id="totalUSD">$0.00</span>
+            <span id="totalUSD" style="text-align:center; display:block; color:var(--success); font-weight:bold; font-size:1.1rem;">$0.00</span>
         </div>
 
         <div class="main-actions" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
             <button class="btn-system" onclick="startFlowDeposit()">+ Add Assets</button>
-            <button class="btn-system" onclick="openFullRankView()">Rank Table</button>
+            <button class="btn-system" onclick="openRankView()">Rank Table</button>
             <button class="btn-system" onclick="globalWithdraw()" style="grid-column:span 2; border-color:var(--danger); color:var(--danger);">Withdrawal</button>
         </div>
 
-        <div class="vault-container" style="border:1px solid var(--inventory); padding:12px; text-align:center; margin-bottom:15px; background:rgba(255,121,198,0.05);">
-            <div style="font-size:0.6rem; color:var(--inventory); letter-spacing:2px;">STORAGE VAULT</div>
-            <div id="vaultAmount" style="font-size:1.6rem; color:var(--inventory); font-weight:bold; font-family:monospace;">0</div>
+        <div class="vault-container" style="border:1px solid var(--inventory); padding:12px; text-align:center; margin-bottom:15px;">
+            <div style="font-size:0.6rem; color:var(--inventory); letter-spacing:1px;">STORAGE VAULT</div>
+            <div id="vaultAmount" style="font-size:1.5rem; color:var(--inventory); font-weight:bold; font-family:monospace;">0</div>
             <button id="zeroVault" class="btn-zero" onclick="confirmZero('vault')">Zero Vault Fraction (<1k)</button>
         </div>
 
         <div class="calendar-box">
-            <div style="display:flex; justify-content:space-between; margin-bottom:12px; align-items:center;">
-                <button onclick="changeMonth(-1)" style="background:none; border:none; color:var(--mana); cursor:pointer;">&lt;</button>
-                <div id="monthTitle" style="font-size:0.8rem; letter-spacing:2px; color:var(--mana); font-weight:bold;">MONTH</div>
-                <button onclick="changeMonth(1)" style="background:none; border:none; color:var(--mana); cursor:pointer;">&gt;</button>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:var(--mana); font-size:0.8rem;">
+                <button onclick="changeMonth(-1)" style="background:none; border:none; color:inherit; cursor:pointer;">&lt;</button>
+                <span id="monthTitle">MONTH</span>
+                <button onclick="changeMonth(1)" style="background:none; border:none; color:inherit; cursor:pointer;">&gt;</button>
             </div>
             <div class="days-grid" id="daysGrid"></div>
         </div>
 
-        <div style="background:rgba(0, 210, 255, 0.03); padding:20px; border:1px solid #222;">
-            <div style="color:var(--mana); font-size:0.7rem; margin-bottom:15px; letter-spacing:2px;">[ NEW OBJECTIVE REGISTRATION ]</div>
+        <div style="background:rgba(0, 210, 255, 0.03); padding:15px; border:1px solid #222;">
             <input type="text" id="qTitle" placeholder="Objective Title">
-            <input type="text" id="qTarget" placeholder="Target Goal (e.g. 5$, 100k, 1m)">
+            <input type="text" id="qTarget" placeholder="Target (e.g. 5$ or 50k, 1m)">
             <div style="display:flex; gap:10px;">
-                <button class="btn-system" style="background:var(--mana); color:#000; flex:1; border:none;" onclick="registerQuest(false)">Accept Quest</button>
-                <button class="btn-system" style="background:var(--debt-color); color:#fff; flex:1; border:none;" onclick="registerQuest(true)">Record Debt</button>
+                <button class="btn-system" style="background:var(--mana); color:#000; flex:1; border:none;" onclick="registerQuest(false)">Quest</button>
+                <button class="btn-system" style="background:var(--debt-color); color:#fff; flex:1; border:none;" onclick="registerQuest(true)">Debt</button>
             </div>
         </div>
 
-        <h3 style="color:var(--mana); font-size:0.75rem; margin:30px 0 15px 0; letter-spacing:3px; border-left: 3px solid var(--mana); padding-left: 10px;">ACTIVE LOG</h3>
-        <div id="questList"></div>
-
-        <div class="archive-stat" id="archiveSplitDisplay">
-            TOTAL ARCHIVED: 0 QUESTS | 0 DEBTS
-        </div>
+        <div id="questList" style="margin-top:20px;"></div>
     </div>
 
     <div id="dayView" class="full-view">
-        <button class="btn-system" onclick="closeViews()" style="width:auto; margin-bottom:20px;">[ BACK TO SYSTEM ]</button>
-        <h2 id="dayTitle" style="color:var(--mana); letter-spacing:2px;"></h2>
+        <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
+        <h2 id="dayTitle" style="color:var(--mana); margin-top:20px;"></h2>
         <div id="dayList"></div>
-    </div>
-
-    <div id="rankView" class="full-view">
-        <button class="btn-system" onclick="closeViews()" style="width:auto; margin-bottom:20px;">[ BACK ]</button>
-        <h2 style="color:var(--gold); letter-spacing:2px;">RANKING CLASSIFICATION</h2>
-        <div style="line-height: 3; font-size: 1rem; color: #ddd; font-family: monospace;">
-            <b style="color:var(--rank-ss)">[SS] SOVEREIGN</b> (> 100M)<br>
-            <b style="color:var(--rank-s)">[S] NATIONAL</b> (50M - 100M)<br>
-            <b style="color:var(--rank-a)">[A] HIGH HUNTER</b> (10M - 50M)<br>
-            <b style="color:var(--rank-b)">[B] INTERMEDIATE</b> (2M - 10M)<br>
-            <b style="color:var(--rank-c)">[C] STANDARD</b> (400k - 2M)<br>
-            <b style="color:var(--rank-e)">[E] WEAKEST</b> (< 400k)
-        </div>
     </div>
 
     <script type="module">
@@ -163,6 +130,7 @@
         let currentUser = null;
         let navDate = new Date();
 
+        // Updated Parsing Function (Handles $, k, m)
         function parseWish(val) {
             if (!val) return 0;
             val = String(val).toLowerCase().trim();
@@ -173,18 +141,9 @@
         }
 
         function formatVal(v) {
-            if (v >= 1000000) return (v / 1000000).toFixed(2) + "m";
+            if (v >= 1000000) return (v / 1000000).toFixed(2) + "m"; // Changed to lower 'm'
             if (v >= 1000) return (v / 1000).toFixed(1) + "k";
             return Math.floor(v);
-        }
-
-        function getRank(val) {
-            if (val >= 100000000) return 'SS';
-            if (val >= 50000000) return 'S';
-            if (val >= 10000000) return 'A';
-            if (val >= 2000000) return 'B';
-            if (val >= 400000) return 'C';
-            return 'E';
         }
 
         onAuthStateChanged(auth, (user) => {
@@ -192,7 +151,7 @@
                 currentUser = user;
                 document.getElementById('authOverlay').style.display = 'none';
                 document.getElementById('mainView').style.display = 'block';
-                document.getElementById('userEmailDisplay').textContent = user.email.toLowerCase();
+                document.getElementById('userEmailDisplay').textContent = user.email;
                 onSnapshot(doc(db, "users", user.uid), (d) => { if(d.exists()){ system = d.data(); render(); } else save(); });
             }
         });
@@ -201,29 +160,40 @@
         window.logout = () => signOut(auth).then(() => location.reload());
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
 
+        // 1. Add Salary
         window.addSalary = () => {
-            let a = prompt("Add Salary Income (e.g. 100$):");
+            let a = prompt("Add Salary Income (e.g. 500$):");
             if(a) { system.salary = (system.salary || 0) + (parseWish(a) / RATE); save(); }
         };
 
+        // 2. Transfer with k/m/$ Support
         window.salaryToVault = () => {
             let a = prompt("Amount to transfer (e.g. 50k, 1m, 10$):");
             if(!a) return;
-            let gold = parseWish(a);
-            let usd = gold / RATE;
-            if(gold >= 1000 && (system.salary || 0) >= (usd - 0.0001)) {
-                system.salary -= usd; distribute(gold);
-            } else alert("Insufficient salary or invalid amount (Min 1k)");
+
+            // Convert whatever input (k, m, $) into Total Gold Amount
+            let goldAmount = parseWish(a);
+            
+            // Calculate USD Cost of that gold
+            let costInUSD = goldAmount / RATE;
+
+            if(goldAmount >= 1000 && (system.salary || 0) >= costInUSD) {
+                system.salary -= costInUSD; // Deduct USD
+                distribute(goldAmount); // Add Gold to System (Fill quests first, then vault)
+            } else {
+                alert("Insufficient funds or invalid amount (Min 1k)");
+            }
         };
 
         window.confirmZero = (type) => {
-            if(confirm(`Erase the small fraction from ${type}?`)) {
+            if(confirm(`Wipe the fraction from ${type}?`)) {
                 if(type === 'salary') system.salary = 0; else system.vault = 0;
                 save();
             }
         };
 
         function distribute(amount) {
+            if(amount < 1) return;
             const today = new Date().toISOString().split('T')[0];
             for (let q of system.quests) {
                 if(q.isDebt || q.createdAt > today) continue;
@@ -251,27 +221,24 @@
         window.finishDebt = (id) => {
             let q = system.quests.find(x => x.id === id);
             let costUSD = q.target / RATE;
-            if(system.salary >= (costUSD - 0.0001)) {
-                if(confirm(`Pay $${costUSD.toFixed(2)} to clear this debt?`)) { system.salary -= costUSD; q.current = q.target; archiveCheck(); save(); }
-            } else alert("Insufficient salary to clear this debt.");
+            if(system.salary >= costUSD) {
+                if(confirm(`Pay $${costUSD.toFixed(2)} to clear?`)) { system.salary -= costUSD; q.current = q.target; archiveCheck(); save(); }
+            }
         };
 
-        // --- التعديل هنا لخاصية حذف الديون ---
+        // 3. Discard Logic: Returns money directly to Vault
         window.discardQuest = (id) => {
             let idx = system.quests.findIndex(x => x.id === id);
-            if (idx === -1) return;
+            if(idx === -1) return;
             
             let q = system.quests[idx];
-            
-            if(q.isDebt) {
-                // إذا كان ديناً: احذفه فقط دون المساس بالراتب أو المستودع
-                if(confirm("Discard this debt? No salary will be returned.")) {
-                    system.quests.splice(idx, 1);
-                }
-            } else {
-                // إذا كانت مهمة عادية: أرجع الذهب الذي تم تجميعه فيها إلى المستودع
-                if(q.current > 0) system.vault = (system.vault || 0) + q.current;
-                system.quests.splice(idx, 1);
+            let refundAmount = q.current || 0; 
+
+            system.quests.splice(idx,1);
+
+            // Refund Logic: Direct to Vault if valid amount and not Debt
+            if(!q.isDebt && refundAmount > 0) {
+                system.vault = (system.vault || 0) + refundAmount;
             }
             save();
         };
@@ -280,14 +247,44 @@
             let normalQuests = system.quests.filter(q => !q.isDebt);
             let archived = Object.values(system.dayArchives).flat().filter(q => !q.isDebt);
             let total = (system.vault || 0) + normalQuests.reduce((s,q)=>s+q.current,0) + archived.reduce((s,q)=>s+q.current,0);
-            let a = prompt(`Withdraw Assets (Max ${formatVal(total)}):`);
+            
+            let a = prompt(`Withdraw (Max ${formatVal(total)}):`);
             if(a) {
                 let rem = parseWish(a);
                 if(rem >= 1000 && rem <= total) {
                     if(system.vault >= rem) { system.vault -= rem; rem = 0; }
                     else { rem -= system.vault; system.vault = 0; }
+                    
+                    if(rem > 0) {
+                        for(let i=system.quests.length-1; i>=0; i--) {
+                            let q = system.quests[i]; if(q.isDebt) continue;
+                            if(q.current >= rem) { q.current -= rem; rem = 0; break; }
+                            else { rem -= q.current; q.current = 0; }
+                        }
+                    }
+                    if(rem > 0) {
+                        let dates = Object.keys(system.dayArchives).sort().reverse();
+                        for(let d of dates) {
+                            let list = system.dayArchives[d];
+                            for(let i=list.length-1; i>=0; i--) {
+                                let q = list[i]; if(q.isDebt) continue;
+                                if(q.current >= rem) { q.current -= rem; rem = 0; }
+                                else { rem -= q.current; q.current = 0; }
+                                if(q.current < q.target) system.quests.unshift(list.splice(i,1)[0]);
+                                if(rem <= 0) break;
+                            }
+                            if(rem <= 0) break;
+                        }
+                    }
                     save();
                 }
+            }
+        };
+
+        window.deleteArchivedDebt = (date, id) => {
+            if(confirm("Permanently delete this Debt record? (No refund)")) {
+                system.dayArchives[date] = system.dayArchives[date].filter(q => q.id !== id);
+                save(); openDay(date);
             }
         };
 
@@ -303,47 +300,35 @@
         }
 
         function render() {
-            const todayStr = new Date().toISOString().split('T')[0];
             const normalQuests = system.quests.filter(q => !q.isDebt);
-            const allArchived = Object.values(system.dayArchives).flat();
-            const arcQuests = allArchived.filter(q => !q.isDebt).length;
-            const arcDebts = allArchived.filter(q => q.isDebt).length;
-            
-            const totalGold = (system.vault || 0) + normalQuests.reduce((s,q)=>s+q.current,0) + allArchived.filter(q=>!q.isDebt).reduce((s,q)=>s+q.current,0);
+            const archived = Object.values(system.dayArchives).flat().filter(q => !q.isDebt);
+            const total = normalQuests.reduce((s,q)=>s+q.current,0) + archived.reduce((s,q)=>s+q.current,0) + (system.vault || 0);
 
-            document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2})}`;
-            document.getElementById('salaryGoldSub').textContent = `≈ ${formatVal((system.salary||0)*RATE)} Gold`;
-            document.getElementById('totalAssets').textContent = formatVal(totalGold);
-            document.getElementById('totalUSD').textContent = `$${(totalGold/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            // Show gold equivalent of salary
+            document.getElementById('salaryGoldDisplay').textContent = `≈ ${formatVal((system.salary||0)*RATE)}`;
+
+            document.getElementById('totalAssets').textContent = formatVal(total);
+            document.getElementById('totalUSD').textContent = `$${(total/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             document.getElementById('vaultAmount').textContent = formatVal(system.vault || 0);
-            
-            const globalRank = getRank(totalGold);
-            const rTag = document.getElementById('playerRankDisplay');
-            rTag.textContent = "RANK " + globalRank;
-            rTag.style.color = `var(--rank-${globalRank.toLowerCase()})`;
-            rTag.style.borderColor = `var(--rank-${globalRank.toLowerCase()})`;
 
-            document.getElementById('archiveSplitDisplay').innerHTML = `ARCHIVED: ${arcQuests} QUESTS | ${arcDebts} DEBTS`;
-
-            document.getElementById('zeroSalary').style.display = ((system.salary*RATE) > 0.1 && (system.salary*RATE) < 1000) ? 'inline-block' : 'none';
+            // 4. Zero Salary Logic: Show button if salary in gold is < 1000 and > 0
+            const salInGold = (system.salary || 0) * RATE;
+            document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (system.vault > 0.1 && system.vault < 1000) ? 'inline-block' : 'none';
 
             const list = document.getElementById('questList'); list.innerHTML = '';
             system.quests.forEach(q => {
-                const perc = Math.min(100, (q.current/q.target*100)).toFixed(0);
-                const r = getRank(q.target);
-                const isLocked = q.createdAt > todayStr;
-                
-                list.innerHTML += `<div class="quest-card ${q.isDebt?'debt-card':''}" style="${!q.isDebt?'border-left:4px solid var(--rank-'+r.toLowerCase()+')':''}; ${isLocked?'opacity:0.4;':''}">
-                    ${q.isDebt ? `<button class="finish-btn" onclick="finishDebt(${q.id})">PAY DEBT</button>` : ''}
-                    <div class="rank-badge-card" style="color: var(--rank-${q.isDebt?'e':r.toLowerCase()})">${q.isDebt?'DEBT':r}</div>
-                    <div style="font-size:0.6rem; color:#666;">${q.createdAt} ${isLocked?'[LOCKED]':''}</div>
-                    <div style="font-weight:bold; color:white; font-size:1.1rem; margin:5px 0;">${q.isDebt?'💀':''} ${q.title}</div>
-                    <div style="font-size:0.85rem; font-family:monospace; display:flex; justify-content:space-between;">
+                const perc = (q.current/q.target*100).toFixed(0);
+                list.innerHTML += `<div class="quest-card ${q.isDebt?'debt-card':''}">
+                    ${q.isDebt && q.current < q.target ? `<button class="finish-btn" onclick="finishDebt(${q.id})">FINISH</button>` : ''}
+                    <div style="font-size:0.6rem; color:#666;">${q.createdAt}</div>
+                    <div style="font-weight:bold; color:white;">${q.title}</div>
+                    <div style="font-size:0.8rem; font-family:monospace; display:flex; justify-content:space-between;">
                         <span>${formatVal(q.current)} / ${formatVal(q.target)}</span>
-                        <span style="color:var(--success)">$${(q.target/RATE).toFixed(2)}</span>
+                        <span>$${(q.target/RATE).toFixed(1)}</span>
                     </div>
-                    <div class="progress-container"><div class="progress-fill" style="width:${perc}%; background:${q.isDebt?'var(--debt-color)':'var(--rank-'+r.toLowerCase()+')'}"></div></div>
+                    <div class="progress-container"><div class="progress-fill" style="width:${perc}%; background:${q.isDebt?'var(--debt-color)':'var(--mana)'}"></div></div>
                     <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
                 </div>`;
             });
@@ -361,7 +346,6 @@
                 const has = system.dayArchives[dk] && system.dayArchives[dk].length > 0;
                 const cell = document.createElement('div');
                 cell.className = `day-cell ${has?'has-completed':''}`;
-                if(new Date().toISOString().split('T')[0] === dk) cell.classList.add('today');
                 cell.textContent = i; cell.onclick = () => openDay(dk);
                 grid.appendChild(cell);
             }
@@ -373,17 +357,16 @@
             const l = document.getElementById('dayList'); l.innerHTML = '';
             (system.dayArchives[d] || []).forEach(q => {
                 l.innerHTML += `<div class="quest-card ${q.isDebt?'debt-card':''}">
-                    <div style="font-weight:bold; color:white;">${q.isDebt?'💀 DEBT':'🏆 QUEST'}: ${q.title}</div>
-                    <div style="font-family:monospace; color:#888;">Value: ${formatVal(q.target)} ($${(q.target/RATE).toFixed(2)})</div>
+                    <div class="quest-title">${q.isDebt?'💀 DEBT':'🏆 QUEST'}: ${q.title}</div>
+                    <div>Target: ${formatVal(q.target)}</div>
+                    ${q.isDebt ? `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Delete Debt Record</button>` : ''}
                 </div>`;
             });
         };
 
-        window.openFullRankView = () => document.getElementById('rankView').style.display='block';
-        window.closeViews = () => { document.getElementById('dayView').style.display='none'; document.getElementById('rankView').style.display='none'; };
+        window.closeViews = () => document.querySelectorAll('.full-view').forEach(v => v.style.display='none');
         window.changeMonth = (s) => { navDate.setMonth(navDate.getMonth()+s); drawCalendar(); };
-        window.startFlowDeposit = () => { let a = prompt("Add Gold Assets (e.g. 100k, 1m, 5$):"); if(a) distribute(parseWish(a)); };
-
+        window.startFlowDeposit = () => { let a = prompt("Deposit Assets (e.g. 50$ or 100k):"); if(a) distribute(parseWish(a)); };
     </script>
 </body>
 </html>
