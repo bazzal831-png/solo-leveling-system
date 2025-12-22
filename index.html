@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V7.1 (FINAL INTEGRATION)</title>
+    <title>SUNG JIN-WOO SYSTEM | V7.3 (HP CHART)</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -11,7 +11,8 @@
             /* Logic Colors */
             --mana: #00d2ff;      
             --debt-color: #bc13fe; 
-            --hp-color: #ff3131; /* Health Red */
+            --hp-color: #ff3131; 
+            --hp-success: #2ecc71; /* Green for completed months */
             --future-quest: #f1c40f; 
             --future-debt: #e74c3c;  
 
@@ -59,6 +60,15 @@
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 10px var(--hp-color);
         }
+
+        /* CHART STYLES (NEW) */
+        .chart-container { margin-top: 20px; }
+        .chart-row { margin-bottom: 15px; }
+        .chart-label { font-size: 0.7rem; color: #888; margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .chart-bar-bg { height: 25px; background: #111; border: 1px solid #333; border-radius: 4px; position: relative; overflow: hidden; }
+        .chart-bar-fill { height: 100%; transition: width 1s; display: flex; align-items: center; padding-left: 10px; font-size: 0.65rem; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; }
+        .status-success { background: var(--hp-success); box-shadow: 0 0 10px var(--hp-success); }
+        .status-fail { background: var(--hp-color); box-shadow: 0 0 10px var(--hp-color); }
 
         /* AUTH OVERLAY */
         #authOverlay {
@@ -122,12 +132,13 @@
         .day-cell.today { border: 2px solid #fff !important; color: #fff !important; font-weight: 900; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); transform: scale(1.05); z-index: 2; }
         .day-cell.today.has-completed { border-color: #fff !important; color: var(--gold) !important; background: rgba(255, 215, 0, 0.15); }
 
-        /* Stats Footer (3 Cols) */
-        .stats-footer { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
-        .stat-box { background: rgba(0,0,0,0.5); padding: 8px 4px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; min-height: 70px; }
-        .stat-title { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
+        /* Stats Footer (4 Cols) */
+        .stats-footer { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
+        .stat-box { background: rgba(0,0,0,0.5); padding: 8px 4px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; min-height: 70px; cursor: pointer; transition: 0.2s; }
+        .stat-box:active { background: rgba(255,255,255,0.1); }
+        .stat-title { font-size: 0.5rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
         .stat-val { font-size: 1.1rem; font-weight: bold; }
-        .stat-sub { font-size: 0.75rem; color:var(--success); font-family: monospace; margin-top: 2px; font-weight:bold; }
+        .stat-sub { font-size: 0.65rem; color:var(--success); font-family: monospace; margin-top: 2px; font-weight:bold; }
 
         .archive-debt { border-left: 4px solid var(--debt-color) !important; }
         .archive-quest { border-left: 4px solid var(--mana) !important; }
@@ -219,26 +230,32 @@
 
         <div id="questList" style="margin-top:20px;"></div>
 
-        <!-- STATS -->
+        <!-- STATS FOOTER (4 COLS including HP RECORD) -->
         <div class="stats-footer">
             <div class="stat-box" style="color:var(--debt-color); border-color:var(--debt-color);">
-                <div class="stat-title">PAID DEBTS</div>
+                <div class="stat-title">PAID</div>
                 <div class="stat-val" id="countPaidDebts">0</div>
-                <div class="stat-sub" id="valPaidDebts">$0.00</div>
+                <div class="stat-sub" id="valPaidDebts">$0</div>
             </div>
             <div class="stat-box" style="color:var(--future-debt); border-color:var(--future-debt);">
-                <div class="stat-title">UNPAID DEBTS</div>
+                <div class="stat-title">UNPAID</div>
                 <div class="stat-val" id="countUnpaidDebts">0</div>
-                <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
+                <div class="stat-sub" id="valUnpaidDebts">$0</div>
             </div>
             <div class="stat-box" style="color:var(--mana); border-color:var(--mana);">
-                <div class="stat-title">DONE QUESTS</div>
+                <div class="stat-title">DONE</div>
                 <div class="stat-val" id="countDoneQuests">0</div>
-                <div class="stat-sub" id="valDoneQuests">$0.00</div>
+                <div class="stat-sub" id="valDoneQuests">$0</div>
+            </div>
+            <!-- HP RECORD BUTTON -->
+            <div class="stat-box" style="color:var(--hp-color); border-color:var(--hp-color);" onclick="openHpView()">
+                <div class="stat-title">HP REC</div>
+                <div class="stat-val" style="font-size:1.5rem;">📊</div>
             </div>
         </div>
     </div>
 
+    <!-- DAY VIEW -->
     <div id="dayView" class="full-view">
         <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
         <h2 id="dayTitle" style="color:var(--mana); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;"></h2>
@@ -255,6 +272,20 @@
 
         <h3 style="color:#666; font-size:0.7rem; margin-top:20px;">ARCHIVED / COMPLETED</h3>
         <div id="dayList"></div>
+    </div>
+
+    <!-- HP REPORT VIEW (CHART) -->
+    <div id="hpView" class="full-view">
+        <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
+        <h2 style="color:var(--hp-color); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">HEALTH GROWTH CHART</h2>
+        
+        <div id="hpChartContent" class="chart-container">
+            <!-- Bars will go here -->
+        </div>
+        
+        <div style="margin-top:30px; font-size:0.7rem; color:#666; text-align:center;">
+            Past months are archived here. Green bars mean you hit the target. Red bars mean debt was carried over.
+        </div>
     </div>
 
     <script type="module">
@@ -279,7 +310,9 @@
         const RATE = 89000;
         const BASE_HP_TARGET_USD = 15;
 
-        let system = { vault: 0, salary: 0, quests: [], dayArchives: {}, hp: { current:0, debt:0, lastMonth:"" } };
+        // system.hp structure update: { current:0, debt:0, lastMonth:"", archives: [] }
+        let system = { vault: 0, salary: 0, quests: [], dayArchives: {}, hp: { current:0, debt:0, lastMonth:"", archives:[] } };
+        
         let navDate = new Date();
         let currentOpenDate = null;
         let currentUser = null;
@@ -297,11 +330,12 @@
                 onSnapshot(doc(db, "users", user.uid), (doc) => {
                     if (doc.exists()) {
                         system = doc.data();
-                        if(!system.hp) system.hp = { current:0, debt:0, lastMonth:"" };
+                        if(!system.hp) system.hp = { current:0, debt:0, lastMonth:"", archives:[] };
+                        if(!system.hp.archives) system.hp.archives = [];
                         checkMonthRollover();
                         render();
                     } else {
-                        system.hp = { current:0, debt:0, lastMonth: getCurrentMonthKey() };
+                        system.hp = { current:0, debt:0, lastMonth: getCurrentMonthKey(), archives:[] };
                         save();
                     }
                 });
@@ -317,7 +351,7 @@
             }
         }
 
-        // --- CORE FUNCTIONS ---
+        // --- FUNCTIONS ---
         function parseWish(val) {
             if (!val) return 0;
             val = String(val).toLowerCase().trim();
@@ -333,7 +367,6 @@
             return Math.floor(v);
         }
 
-        // FIX: LOCAL TIME FUNCTION
         function getLocalTodayStr() {
             const d = new Date();
             const year = d.getFullYear();
@@ -344,7 +377,8 @@
 
         function getCurrentMonthKey() {
             const d = new Date();
-            return `${d.getFullYear()}-${d.getMonth() + 1}`;
+            // Using full month name for Chart later
+            return d.toLocaleString('default', { month: 'long', year: 'numeric' });
         }
 
         function getRankInfo(val) {
@@ -358,15 +392,29 @@
 
         function checkMonthRollover() {
             const currentMonth = getCurrentMonthKey();
+            
+            // Only runs if month changes (e.g. November -> December)
             if (system.hp.lastMonth !== currentMonth) {
                 if(system.hp.lastMonth !== "") {
+                    // Logic for old month
                     const targetWas = (BASE_HP_TARGET_USD * RATE) + (system.hp.debt || 0);
                     const deposited = system.hp.current || 0;
                     const missing = Math.max(0, targetWas - deposited);
+                    
+                    // SAVE ARCHIVE RECORD FOR CHART
+                    system.hp.archives.push({
+                        month: system.hp.lastMonth,
+                        collected: deposited,
+                        target: targetWas
+                    });
+
+                    // Set debt for new month
                     system.hp.debt = missing; 
                 } else {
                     system.hp.debt = 0;
                 }
+                
+                // Reset for new month
                 system.hp.current = 0; 
                 system.hp.lastMonth = currentMonth;
                 save();
@@ -384,6 +432,40 @@
                     save();
                 }
             }
+        };
+
+        window.openHpView = () => {
+            const container = document.getElementById('hpChartContent');
+            container.innerHTML = '';
+            document.getElementById('hpView').style.display = 'block';
+
+            if(system.hp.archives.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#555;">No records yet. Wait for a month to complete.</div>';
+                return;
+            }
+
+            // Render Charts
+            system.hp.archives.forEach(rec => {
+                const perc = Math.min(100, (rec.collected / rec.target) * 100);
+                const isSuccess = rec.collected >= rec.target - 100; // tolerance
+                const barClass = isSuccess ? 'status-success' : 'status-fail';
+                
+                const valUSD = (rec.collected/RATE).toFixed(2);
+                const targetUSD = (rec.target/RATE).toFixed(2);
+
+                container.innerHTML += `
+                <div class="chart-row">
+                    <div class="chart-label">
+                        <span>${rec.month}</span>
+                        <span>$${valUSD} / $${targetUSD}</span>
+                    </div>
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill ${barClass}" style="width:${perc}%">
+                            ${Math.round(perc)}%
+                        </div>
+                    </div>
+                </div>`;
+            });
         };
 
         window.addSalary = () => {
