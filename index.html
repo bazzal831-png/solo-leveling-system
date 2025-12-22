@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V7.6 (STRICT LOCK)</title>
+    <title>SUNG JIN-WOO SYSTEM | MONTHLY TASK</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -12,7 +12,7 @@
             --mana: #00d2ff;      
             --debt-color: #bc13fe; 
             --hp-color: #ff3131; 
-            --hp-done: #27ae60; /* Green when completed */
+            --hp-done: #27ae60; 
             --future-quest: #f1c40f; 
             --future-debt: #e74c3c;  
 
@@ -59,12 +59,6 @@
             justify-content: center; align-items: center;
             font-size: 0.65rem; font-weight: bold; color: white; text-shadow: 1px 1px 2px black;
             transform: skewX(10deg);
-        }
-        .btn-hp-add {
-            background: var(--hp-color); color: white; border: none;
-            width: 30px; height: 30px; font-weight: bold; font-size: 1.2rem;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 5px var(--hp-color);
         }
 
         /* CHART STYLES */
@@ -161,14 +155,14 @@
 
     <div id="mainView" style="display: none;">
         
-        <!-- HP SYSTEM -->
+        <!-- HP SYSTEM (Monthly Task) -->
         <div class="hp-section">
             <div style="font-size:0.8rem; font-weight:bold; color:var(--hp-color);">HP</div>
             <div class="hp-bar-container">
                 <div class="hp-fill" id="hpFill"></div>
                 <div class="hp-text" id="hpText">Loading...</div>
             </div>
-            <button class="btn-hp-add" onclick="addHealth()">+</button>
+            <!-- Removed the + Button as requested -->
         </div>
 
         <!-- SALARY -->
@@ -283,12 +277,12 @@
     <!-- HP REPORT VIEW (CHART) -->
     <div id="hpView" class="full-view">
         <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
-        <h2 style="color:var(--hp-color); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">HEALTH GROWTH CHART</h2>
+        <h2 style="color:var(--hp-color); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">MONTHLY PERFORMANCE</h2>
         
         <div id="hpChartContent" class="chart-container"></div>
         
         <div style="margin-top:30px; font-size:0.7rem; color:#666; text-align:center;">
-            Month resets target to 0 (Surplus doesn't carry over). Deficit carries over as Debt.
+            System resets HP progress to 0 each month. Unpaid balance carries over as Debt.
         </div>
     </div>
 
@@ -403,42 +397,31 @@
                     const deposited = system.hp.current || 0;
                     
                     let missing = 0;
+                    // Deficit becomes debt for new month
                     if(deposited < targetWas) {
-                        missing = targetWas - deposited; // Deficit rolls over
+                        missing = targetWas - deposited; 
                     }
-                    // Surplus is IGNORED (deposited > targetWas -> missing = 0)
-
-                    // Archive
+                    
+                    // Archive Record
                     system.hp.archives.push({
                         month: system.hp.lastMonth,
                         collected: deposited,
                         target: targetWas
                     });
 
+                    // Carry over debt
                     system.hp.debt = missing; 
                 } else {
                     system.hp.debt = 0;
                 }
                 
-                // NEW MONTH: ALWAYS START FRESH
+                // NEW MONTH: RESET COUNTER TO 0
+                // Wealth stays in Vault, but HP task resets for new input
                 system.hp.current = 0; 
                 system.hp.lastMonth = currentMonth;
                 save();
             }
         }
-
-        // --- HP BUTTON ---
-        window.addHealth = () => {
-            let a = prompt("Add to Health (Deposit):");
-            if(a) {
-                let val = parseWish(a);
-                if(val > 0) {
-                    system.vault += val;
-                    system.hp.current += val;
-                    save();
-                }
-            }
-        };
 
         window.openHpView = () => {
             const container = document.getElementById('hpChartContent');
@@ -493,7 +476,7 @@
         };
 
         window.startFlowDeposit = () => { 
-            let a = prompt("Deposit Assets (e.g. 50$ or 100k):"); 
+            let a = prompt("Add Assets (e.g. 50$ or 100k):"); 
             if(a) distribute(parseWish(a)); 
         };
 
@@ -503,6 +486,31 @@
                 save();
             }
         };
+
+        // UPDATED: Distribute adds to Vault first, then fills HP STRICTLY to target
+        function distribute(amount) {
+            if(amount < 0.1) return;
+            
+            // 1. Add to total Vault (Wealth)
+            system.vault = (system.vault || 0) + amount;
+
+            // 2. Calculate HP target
+            const hpBase = BASE_HP_TARGET_USD * RATE; // 15$
+            const hpTarget = hpBase + (system.hp.debt || 0);
+            
+            // 3. Update HP current strictly (Cap at Target)
+            const spaceInHp = hpTarget - (system.hp.current || 0);
+            
+            if (spaceInHp > 0) {
+                // Fill HP with amount OR remaining space, whichever is smaller
+                const fill = Math.min(amount, spaceInHp);
+                system.hp.current = (system.hp.current || 0) + fill;
+            }
+            // Remainder stays in Vault automatically
+            
+            archiveCheck(); 
+            save();
+        }
 
         window.payDebt = (id) => {
             let q = system.quests.find(x => x.id === id);
@@ -521,29 +529,6 @@
                 alert(`Insufficient Salary! Need $${costUSD.toFixed(2)}`);
             }
         };
-
-        function distribute(amount) {
-            if(amount < 1) return;
-            
-            // HP Current fills up (logic handled in render for cap)
-            system.hp.current += amount; 
-
-            const today = getLocalTodayStr(); 
-            system.quests.sort((a,b) => a.id - b.id);
-            for (let q of system.quests) {
-                if(q.isDebt) continue; 
-                if(q.targetDate > today) continue;
-                let needed = q.target - q.current;
-                if(needed > 0) {
-                    let fill = Math.min(amount, needed);
-                    q.current += fill;
-                    amount -= fill;
-                }
-                if(amount <= 0) break;
-            }
-            if(amount > 0) system.vault = (system.vault || 0) + amount;
-            archiveCheck(); save();
-        }
 
         window.registerQuest = (isDebt) => {
             let t = document.getElementById('qTitle').value, g = document.getElementById('qTarget').value;
@@ -575,12 +560,7 @@
                 isDebt: isDebt, 
                 targetDate: date 
             });
-            const today = getLocalTodayStr(); 
-            if(!isDebt && date <= today && (system.vault || 0) >= 1) { 
-                let v = system.vault; system.vault = 0; distribute(v); 
-            } else {
-                save();
-            }
+            save();
         }
 
         window.discardQuest = (id) => {
@@ -593,6 +573,7 @@
             save();
         };
 
+        // UPDATED: Withdrawal logic syncs with HP
         window.globalWithdraw = () => {
             let withdrawableQuests = system.quests.filter(q => !q.isDebt);
             let withdrawableArchived = Object.values(system.dayArchives).flat().filter(q => !q.isDebt);
@@ -606,22 +587,21 @@
                 if(rem > totalAvailable) { alert("Funds tied in Debts cannot be withdrawn."); return; }
                 if(rem >= 1000) {
                     
-                    // --- FIFO LOGIC FOR HP ---
-                    let currentHP = system.hp.current || 0;
-                    let totalVault = system.vault || 0; 
-                    
-                    // Old money available = Total Vault - Money deposited this month
-                    let buffer = Math.max(0, totalVault - currentHP);
-                    
-                    // If withdrawal exceeds old money, we eat into new money -> Reduce HP
-                    if(rem > buffer) {
-                        let damage = rem - buffer;
-                        system.hp.current = Math.max(0, system.hp.current - damage);
+                    // 1. Take from Vault first
+                    if(system.vault >= rem) {
+                        system.vault -= rem;
+                        rem = 0;
+                    } else {
+                        rem -= system.vault;
+                        system.vault = 0;
                     }
 
-                    if(system.vault >= rem) { system.vault -= rem; rem = 0; }
-                    else { rem -= system.vault; system.vault = 0; }
+                    // 2. SYNC: HP cannot exceed Vault balance
+                    if ((system.hp.current || 0) > system.vault) {
+                        system.hp.current = system.vault;
+                    }
                     
+                    // 3. Take from Quests if still needed
                     if(rem > 0) {
                         let reverseQuests = [...system.quests].reverse();
                         for(let q of reverseQuests) {
@@ -630,6 +610,8 @@
                             else { rem -= q.current; q.current = 0; }
                         }
                     }
+                    
+                    // 4. Take from Archive
                     if(rem > 0) {
                         let dates = Object.keys(system.dayArchives).sort().reverse();
                         for(let d of dates) {
@@ -672,30 +654,27 @@
         function render() {
             const todayStr = getLocalTodayStr(); 
             
-            // HP DISPLAY LOGIC (STRICT LOCK)
+            // HP DISPLAY LOGIC (STRICT CAP)
             const hpDebt = system.hp.debt || 0;
             const hpBase = BASE_HP_TARGET_USD * RATE;
             const hpTargetGold = hpBase + hpDebt;
-            const hpCurrentGold = system.hp.current || 0;
             
-            // Cap visual percentage at 100%
-            let hpPerc = (hpCurrentGold / hpTargetGold) * 100;
-            let isComplete = false;
-            if(hpPerc >= 100) {
-                hpPerc = 100;
-                isComplete = true;
-            }
+            // Visual Cap: Ensure we don't show more than the target
+            const visualCurrent = Math.min(system.hp.current || 0, hpTargetGold);
+            
+            let hpPerc = (visualCurrent / hpTargetGold) * 100;
+            let isComplete = (visualCurrent >= hpTargetGold - 100); 
 
             let hpDisplayString = "";
             if(hpDebt > 0) {
-                hpDisplayString = `$${(hpCurrentGold/RATE).toFixed(2)} / $15 + $${(hpDebt/RATE).toFixed(2)} (DEBT)`;
+                hpDisplayString = `$${(visualCurrent/RATE).toFixed(2)} / $15 + Debt: $${(hpDebt/RATE).toFixed(2)}`;
             } else {
-                hpDisplayString = `$${(hpCurrentGold/RATE).toFixed(2)} / $15`;
+                hpDisplayString = `$${(visualCurrent/RATE).toFixed(2)} / $15`;
             }
             
             const fillEl = document.getElementById('hpFill');
             fillEl.style.width = hpPerc + "%";
-            fillEl.className = isComplete ? "hp-fill complete" : "hp-fill"; // Green if locked
+            fillEl.className = isComplete ? "hp-fill complete" : "hp-fill"; 
             document.getElementById('hpText').textContent = hpDisplayString;
 
             // WEALTH
