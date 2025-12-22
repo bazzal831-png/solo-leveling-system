@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V7.3 (HP CHART)</title>
+    <title>SUNG JIN-WOO SYSTEM | V7.4 (HP BOOST)</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -12,14 +12,9 @@
             --mana: #00d2ff;      
             --debt-color: #bc13fe; 
             --hp-color: #ff3131; 
-            --hp-success: #2ecc71; /* Green for completed months */
-            --future-quest: #f1c40f; 
-            --future-debt: #e74c3c;  
-
-            /* Rank Colors */
-            --rank-ss: #ffcc00; --rank-s: #ff3131; --rank-a: #bc13fe;
-            --rank-b: #00d2ff; --rank-c: #4caf50; --rank-e: #9e9e9e;
-
+            --hp-boost: #f1c40f; /* Yellow for Boost */
+            --hp-success: #2ecc71;
+            
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
             --inventory: #ff79c6; 
         }
@@ -32,36 +27,58 @@
             padding-bottom: 90px;
         }
 
-        /* HP BAR SECTION */
+        /* HP SECTION START */
         .hp-section {
-            display: flex; align-items: center; gap: 10px; margin-bottom: 15px;
+            margin-bottom: 15px;
             background: rgba(255, 49, 49, 0.05); padding: 10px; border: 1px solid rgba(255, 49, 49, 0.3);
             border-radius: 4px;
         }
+        
+        /* Main HP Bar */
+        .hp-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .hp-label { font-size: 0.7rem; font-weight:bold; color:var(--hp-color); width: 30px; }
+        
         .hp-bar-container {
-            flex-grow: 1; height: 20px; background: #1a0505; 
+            flex-grow: 1; height: 18px; background: #1a0505; 
             border: 1px solid var(--hp-color); position: relative;
             transform: skewX(-10deg);
         }
         .hp-fill {
             height: 100%; background: var(--hp-color); width: 0%;
-            transition: width 0.5s ease-out;
-            box-shadow: 0 0 10px var(--hp-color);
+            transition: width 0.5s ease-out; box-shadow: 0 0 10px var(--hp-color);
         }
         .hp-text {
             position: absolute; inset: 0; display: flex; 
             justify-content: center; align-items: center;
-            font-size: 0.7rem; font-weight: bold; color: white; text-shadow: 1px 1px 2px black;
+            font-size: 0.65rem; font-weight: bold; color: white; text-shadow: 1px 1px 2px black;
             transform: skewX(10deg);
         }
-        .btn-hp-add {
-            background: var(--hp-color); color: white; border: none;
-            width: 30px; height: 30px; font-weight: bold; font-size: 1.2rem;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 10px var(--hp-color);
+        
+        /* Extra/Boost Bar */
+        .hp-extra-container {
+            margin-top: 5px; padding-top: 5px; border-top: 1px dashed rgba(255,255,255,0.1);
+        }
+        .extra-item {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(241, 196, 15, 0.1); border: 1px solid var(--hp-boost);
+            padding: 3px 8px; margin-top: 3px; border-radius: 4px;
+        }
+        .extra-val { color: var(--hp-boost); font-weight: bold; font-size: 0.75rem; }
+        .extra-del { 
+            color: var(--danger); cursor: pointer; font-weight: bold; font-size: 0.8rem; padding: 0 5px;
         }
 
-        /* CHART STYLES (NEW) */
+        .btn-hp-action {
+            width: 25px; height: 25px; border: none; font-weight: bold; font-size: 1rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            border-radius: 2px;
+        }
+        .btn-main-add { background: var(--hp-color); color: white; box-shadow: 0 0 5px var(--hp-color); }
+        .btn-boost-add { background: var(--hp-boost); color: black; box-shadow: 0 0 5px var(--hp-boost); margin-left: 5px; font-size: 0.6rem; width: auto; padding: 0 8px; }
+
+        /* HP SECTION END */
+
+        /* CHART STYLES */
         .chart-container { margin-top: 20px; }
         .chart-row { margin-bottom: 15px; }
         .chart-label { font-size: 0.7rem; color: #888; margin-bottom: 5px; display: flex; justify-content: space-between; }
@@ -155,14 +172,25 @@
 
     <div id="mainView" style="display: none;">
         
-        <!-- HP SYSTEM -->
+        <!-- HP SYSTEM & BOOST -->
         <div class="hp-section">
-            <div style="font-size:0.8rem; font-weight:bold; color:var(--hp-color);">HP</div>
-            <div class="hp-bar-container">
-                <div class="hp-fill" id="hpFill"></div>
-                <div class="hp-text" id="hpText">0 / 15$</div>
+            <!-- Main HP Bar -->
+            <div class="hp-row">
+                <div class="hp-label">HP</div>
+                <div class="hp-bar-container">
+                    <div class="hp-fill" id="hpFill"></div>
+                    <div class="hp-text" id="hpText">0 / 15$</div>
+                </div>
+                <button class="btn-hp-action btn-main-add" onclick="addHealth()">+</button>
             </div>
-            <button class="btn-hp-add" onclick="addHealth()">+</button>
+            
+            <!-- Boost Section -->
+            <div class="hp-row" style="justify-content: flex-end;">
+                <button class="btn-hp-action btn-boost-add" onclick="addBoost()">+ BOOST (EXTRA)</button>
+            </div>
+
+            <!-- Extra/Boost Container -->
+            <div id="hpExtrasContainer" class="hp-extra-container" style="display:none;"></div>
         </div>
 
         <!-- SALARY -->
@@ -230,7 +258,7 @@
 
         <div id="questList" style="margin-top:20px;"></div>
 
-        <!-- STATS FOOTER (4 COLS including HP RECORD) -->
+        <!-- STATS FOOTER -->
         <div class="stats-footer">
             <div class="stat-box" style="color:var(--debt-color); border-color:var(--debt-color);">
                 <div class="stat-title">PAID</div>
@@ -279,12 +307,10 @@
         <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
         <h2 style="color:var(--hp-color); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">HEALTH GROWTH CHART</h2>
         
-        <div id="hpChartContent" class="chart-container">
-            <!-- Bars will go here -->
-        </div>
+        <div id="hpChartContent" class="chart-container"></div>
         
         <div style="margin-top:30px; font-size:0.7rem; color:#666; text-align:center;">
-            Past months are archived here. Green bars mean you hit the target. Red bars mean debt was carried over.
+            Past months are archived here. Boosts are merged at month end.
         </div>
     </div>
 
@@ -310,8 +336,8 @@
         const RATE = 89000;
         const BASE_HP_TARGET_USD = 15;
 
-        // system.hp structure update: { current:0, debt:0, lastMonth:"", archives: [] }
-        let system = { vault: 0, salary: 0, quests: [], dayArchives: {}, hp: { current:0, debt:0, lastMonth:"", archives:[] } };
+        // system.hp structure: { current:0, debt:0, lastMonth:"", archives: [], extras: [] }
+        let system = { vault: 0, salary: 0, quests: [], dayArchives: {}, hp: { current:0, debt:0, lastMonth:"", archives:[], extras:[] } };
         
         let navDate = new Date();
         let currentOpenDate = null;
@@ -330,12 +356,13 @@
                 onSnapshot(doc(db, "users", user.uid), (doc) => {
                     if (doc.exists()) {
                         system = doc.data();
-                        if(!system.hp) system.hp = { current:0, debt:0, lastMonth:"", archives:[] };
+                        if(!system.hp) system.hp = { current:0, debt:0, lastMonth:"", archives:[], extras:[] };
                         if(!system.hp.archives) system.hp.archives = [];
+                        if(!system.hp.extras) system.hp.extras = [];
                         checkMonthRollover();
                         render();
                     } else {
-                        system.hp = { current:0, debt:0, lastMonth: getCurrentMonthKey(), archives:[] };
+                        system.hp = { current:0, debt:0, lastMonth: getCurrentMonthKey(), archives:[], extras:[] };
                         save();
                     }
                 });
@@ -351,7 +378,7 @@
             }
         }
 
-        // --- FUNCTIONS ---
+        // --- CORE FUNCTIONS ---
         function parseWish(val) {
             if (!val) return 0;
             val = String(val).toLowerCase().trim();
@@ -377,7 +404,6 @@
 
         function getCurrentMonthKey() {
             const d = new Date();
-            // Using full month name for Chart later
             return d.toLocaleString('default', { month: 'long', year: 'numeric' });
         }
 
@@ -392,38 +418,39 @@
 
         function checkMonthRollover() {
             const currentMonth = getCurrentMonthKey();
-            
-            // Only runs if month changes (e.g. November -> December)
             if (system.hp.lastMonth !== currentMonth) {
                 if(system.hp.lastMonth !== "") {
-                    // Logic for old month
-                    const targetWas = (BASE_HP_TARGET_USD * RATE) + (system.hp.debt || 0);
-                    const deposited = system.hp.current || 0;
-                    const missing = Math.max(0, targetWas - deposited);
+                    // Combine Main Current + Extras
+                    const totalExtras = (system.hp.extras || []).reduce((sum, item) => sum + item.amount, 0);
+                    const totalCollected = (system.hp.current || 0) + totalExtras;
                     
-                    // SAVE ARCHIVE RECORD FOR CHART
+                    const targetWas = (BASE_HP_TARGET_USD * RATE) + (system.hp.debt || 0);
+                    
+                    // Archive
                     system.hp.archives.push({
                         month: system.hp.lastMonth,
-                        collected: deposited,
+                        collected: totalCollected,
                         target: targetWas
                     });
 
-                    // Set debt for new month
+                    // Calc Debt for next month (ignores surplus)
+                    const missing = Math.max(0, targetWas - totalCollected);
                     system.hp.debt = missing; 
                 } else {
                     system.hp.debt = 0;
                 }
                 
-                // Reset for new month
+                // Reset
                 system.hp.current = 0; 
+                system.hp.extras = []; // clear boosts
                 system.hp.lastMonth = currentMonth;
                 save();
             }
         }
 
-        // --- BUTTONS LOGIC ---
+        // --- HP BUTTONS (Main & Boost) ---
         window.addHealth = () => {
-            let a = prompt("Add to Health (Deposit):");
+            let a = prompt("Add to Standard HP ($15 Target):");
             if(a) {
                 let val = parseWish(a);
                 if(val > 0) {
@@ -434,22 +461,44 @@
             }
         };
 
+        window.addBoost = () => {
+            let a = prompt("Add EXTRA Boost (Separate Strip):");
+            if(a) {
+                let val = parseWish(a);
+                if(val > 0) {
+                    system.vault += val;
+                    if(!system.hp.extras) system.hp.extras = [];
+                    system.hp.extras.push({ id: Date.now(), amount: val });
+                    save();
+                }
+            }
+        };
+
+        window.deleteBoost = (id) => {
+            if(!confirm("Remove this Boost? (Refunds to Vault if possible)")) return;
+            const item = system.hp.extras.find(x => x.id === id);
+            if(item) {
+                // Assuming money exists in vault to refund (simplification)
+                system.vault -= item.amount;
+                system.hp.extras = system.hp.extras.filter(x => x.id !== id);
+                save();
+            }
+        };
+
         window.openHpView = () => {
             const container = document.getElementById('hpChartContent');
             container.innerHTML = '';
             document.getElementById('hpView').style.display = 'block';
 
             if(system.hp.archives.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#555;">No records yet. Wait for a month to complete.</div>';
+                container.innerHTML = '<div style="text-align:center; color:#555;">No records yet.</div>';
                 return;
             }
 
-            // Render Charts
             system.hp.archives.forEach(rec => {
                 const perc = Math.min(100, (rec.collected / rec.target) * 100);
-                const isSuccess = rec.collected >= rec.target - 100; // tolerance
+                const isSuccess = rec.collected >= rec.target - 100;
                 const barClass = isSuccess ? 'status-success' : 'status-fail';
-                
                 const valUSD = (rec.collected/RATE).toFixed(2);
                 const targetUSD = (rec.target/RATE).toFixed(2);
 
@@ -468,6 +517,7 @@
             });
         };
 
+        // --- GLOBAL LOGIC ---
         window.addSalary = () => {
             let a = prompt("Add Salary Income (e.g. 500$):");
             if(a) { system.salary = (system.salary || 0) + (parseWish(a) / RATE); save(); }
@@ -520,6 +570,7 @@
         function distribute(amount) {
             if(amount < 1) return;
             
+            // NOTE: Normal deposits fill Main HP bar, NOT Boosts.
             system.hp.current += amount; 
 
             const today = getLocalTodayStr(); 
@@ -602,6 +653,9 @@
                     
                     let currentHP = system.hp.current || 0;
                     let totalVault = system.vault || 0; 
+                    
+                    // Note: Boosts are separate. Withdrawal logic affects Main HP primarily.
+                    // Buffer = Total Vault - Current Month Main Deposit
                     let buffer = Math.max(0, totalVault - currentHP);
                     
                     if(rem > buffer) {
@@ -662,13 +716,29 @@
         function render() {
             const todayStr = getLocalTodayStr(); 
             
-            // HP
+            // HP (Main)
             const hpTargetGold = (BASE_HP_TARGET_USD * RATE) + (system.hp.debt || 0);
             const hpCurrentGold = system.hp.current || 0;
             const hpPerc = Math.min(100, (hpCurrentGold / hpTargetGold) * 100);
             
             document.getElementById('hpFill').style.width = hpPerc + "%";
             document.getElementById('hpText').textContent = `$${(hpCurrentGold/RATE).toFixed(2)} / $${(hpTargetGold/RATE).toFixed(2)}`;
+
+            // HP Extras (Boosts)
+            const extrasContainer = document.getElementById('hpExtrasContainer');
+            if(system.hp.extras && system.hp.extras.length > 0) {
+                extrasContainer.style.display = 'block';
+                extrasContainer.innerHTML = '';
+                system.hp.extras.forEach(ex => {
+                    extrasContainer.innerHTML += `
+                    <div class="extra-item">
+                        <span class="extra-val">+ $${(ex.amount/RATE).toFixed(2)} BOOST</span>
+                        <span class="extra-del" onclick="deleteBoost(${ex.id})">X</span>
+                    </div>`;
+                });
+            } else {
+                extrasContainer.style.display = 'none';
+            }
 
             // WEALTH
             const vaultVal = (system.vault || 0);
