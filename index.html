@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V7.5 (STRICT HP)</title>
+    <title>SUNG JIN-WOO SYSTEM | V7.6 (STRICT LOCK)</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -12,6 +12,7 @@
             --mana: #00d2ff;      
             --debt-color: #bc13fe; 
             --hp-color: #ff3131; 
+            --hp-done: #27ae60; /* Green when completed */
             --future-quest: #f1c40f; 
             --future-debt: #e74c3c;  
 
@@ -47,13 +48,18 @@
             height: 100%; background: var(--hp-color); width: 0%;
             transition: width 0.5s ease-out; box-shadow: 0 0 10px var(--hp-color);
         }
+        /* Green when locked/full */
+        .hp-fill.complete {
+            background: var(--hp-done);
+            box-shadow: 0 0 15px var(--hp-done);
+        }
+
         .hp-text {
             position: absolute; inset: 0; display: flex; 
             justify-content: center; align-items: center;
             font-size: 0.65rem; font-weight: bold; color: white; text-shadow: 1px 1px 2px black;
             transform: skewX(10deg);
         }
-        /* زر (+) فقط للصحة */
         .btn-hp-add {
             background: var(--hp-color); color: white; border: none;
             width: 30px; height: 30px; font-weight: bold; font-size: 1.2rem;
@@ -155,7 +161,7 @@
 
     <div id="mainView" style="display: none;">
         
-        <!-- STRICT HP SYSTEM -->
+        <!-- HP SYSTEM -->
         <div class="hp-section">
             <div style="font-size:0.8rem; font-weight:bold; color:var(--hp-color);">HP</div>
             <div class="hp-bar-container">
@@ -235,17 +241,17 @@
             <div class="stat-box" style="color:var(--debt-color); border-color:var(--debt-color);">
                 <div class="stat-title">PAID</div>
                 <div class="stat-val" id="countPaidDebts">0</div>
-                <div class="stat-sub" id="valPaidDebts">$0</div>
+                <div class="stat-sub" id="valPaidDebts">$0.00</div>
             </div>
             <div class="stat-box" style="color:var(--future-debt); border-color:var(--future-debt);">
                 <div class="stat-title">UNPAID</div>
                 <div class="stat-val" id="countUnpaidDebts">0</div>
-                <div class="stat-sub" id="valUnpaidDebts">$0</div>
+                <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
             </div>
             <div class="stat-box" style="color:var(--mana); border-color:var(--mana);">
                 <div class="stat-title">DONE</div>
                 <div class="stat-val" id="countDoneQuests">0</div>
-                <div class="stat-sub" id="valDoneQuests">$0</div>
+                <div class="stat-sub" id="valDoneQuests">$0.00</div>
             </div>
             <!-- HP RECORD BUTTON -->
             <div class="stat-box" style="color:var(--hp-color); border-color:var(--hp-color);" onclick="openHpView()">
@@ -282,7 +288,7 @@
         <div id="hpChartContent" class="chart-container"></div>
         
         <div style="margin-top:30px; font-size:0.7rem; color:#666; text-align:center;">
-            Shows strictly monthly performance. Unpaid amounts roll over to the next month's target.
+            Month resets target to 0 (Surplus doesn't carry over). Deficit carries over as Debt.
         </div>
     </div>
 
@@ -387,38 +393,34 @@
             return { r: 'E', c: 'var(--rank-e)' };
         }
 
-        // --- STRICT HP ROLLOVER LOGIC ---
+        // --- STRICT HP MONTHLY LOGIC ---
         function checkMonthRollover() {
             const currentMonth = getCurrentMonthKey();
             if (system.hp.lastMonth !== currentMonth) {
                 if(system.hp.lastMonth !== "") {
-                    // Logic for old month
+                    // Previous month logic
                     const targetWas = (BASE_HP_TARGET_USD * RATE) + (system.hp.debt || 0);
                     const deposited = system.hp.current || 0;
                     
-                    // Surplus logic: It's ignored. Does NOT carry over.
-                    // Deficit logic: Rolled over.
-                    
                     let missing = 0;
                     if(deposited < targetWas) {
-                        missing = targetWas - deposited;
+                        missing = targetWas - deposited; // Deficit rolls over
                     }
-                    // If deposited > targetWas, missing is 0 (surplus lost for next month)
+                    // Surplus is IGNORED (deposited > targetWas -> missing = 0)
 
-                    // Archive Record
+                    // Archive
                     system.hp.archives.push({
                         month: system.hp.lastMonth,
                         collected: deposited,
                         target: targetWas
                     });
 
-                    // Set cumulative debt for new month
                     system.hp.debt = missing; 
                 } else {
                     system.hp.debt = 0;
                 }
                 
-                // Reset Current to 0 (Fresh Start)
+                // NEW MONTH: ALWAYS START FRESH
                 system.hp.current = 0; 
                 system.hp.lastMonth = currentMonth;
                 save();
@@ -523,8 +525,7 @@
         function distribute(amount) {
             if(amount < 1) return;
             
-            // HP Current fills up, but logic limits it to 100% in display
-            // and resets to 0 next month.
+            // HP Current fills up (logic handled in render for cap)
             system.hp.current += amount; 
 
             const today = getLocalTodayStr(); 
@@ -605,12 +606,14 @@
                 if(rem > totalAvailable) { alert("Funds tied in Debts cannot be withdrawn."); return; }
                 if(rem >= 1000) {
                     
+                    // --- FIFO LOGIC FOR HP ---
                     let currentHP = system.hp.current || 0;
                     let totalVault = system.vault || 0; 
                     
-                    // FIFO Logic for HP
+                    // Old money available = Total Vault - Money deposited this month
                     let buffer = Math.max(0, totalVault - currentHP);
                     
+                    // If withdrawal exceeds old money, we eat into new money -> Reduce HP
                     if(rem > buffer) {
                         let damage = rem - buffer;
                         system.hp.current = Math.max(0, system.hp.current - damage);
@@ -669,23 +672,30 @@
         function render() {
             const todayStr = getLocalTodayStr(); 
             
-            // HP Logic (Display Cap 100%)
+            // HP DISPLAY LOGIC (STRICT LOCK)
             const hpDebt = system.hp.debt || 0;
             const hpBase = BASE_HP_TARGET_USD * RATE;
             const hpTargetGold = hpBase + hpDebt;
             const hpCurrentGold = system.hp.current || 0;
             
-            // Strict text formatting
+            // Cap visual percentage at 100%
+            let hpPerc = (hpCurrentGold / hpTargetGold) * 100;
+            let isComplete = false;
+            if(hpPerc >= 100) {
+                hpPerc = 100;
+                isComplete = true;
+            }
+
             let hpDisplayString = "";
             if(hpDebt > 0) {
                 hpDisplayString = `$${(hpCurrentGold/RATE).toFixed(2)} / $15 + $${(hpDebt/RATE).toFixed(2)} (DEBT)`;
             } else {
                 hpDisplayString = `$${(hpCurrentGold/RATE).toFixed(2)} / $15`;
             }
-
-            const hpPerc = Math.min(100, (hpCurrentGold / hpTargetGold) * 100);
             
-            document.getElementById('hpFill').style.width = hpPerc + "%";
+            const fillEl = document.getElementById('hpFill');
+            fillEl.style.width = hpPerc + "%";
+            fillEl.className = isComplete ? "hp-fill complete" : "hp-fill"; // Green if locked
             document.getElementById('hpText').textContent = hpDisplayString;
 
             // WEALTH
@@ -713,7 +723,7 @@
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (system.vault > 0.1 && system.vault < 1000) ? 'inline-block' : 'none';
 
-            // STATS
+            // STATS USD
             const archivedDebts = Object.values(system.dayArchives).flat().filter(q => q.isDebt);
             document.getElementById('countPaidDebts').textContent = archivedDebts.length;
             const sumPaid = archivedDebts.reduce((acc,q)=>acc+q.target,0);
