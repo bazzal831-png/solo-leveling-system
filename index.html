@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | MONTHLY TASK</title>
+    <title>SUNG JIN-WOO SYSTEM | V6.4 (USD STATS)</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
             
             /* Logic Colors */
-            --mana: #00d2ff;      
-            --debt-color: #bc13fe; 
-            --hp-color: #ff3131; 
-            --hp-done: #27ae60; 
+            --mana: #00d2ff;      /* Current Quest */
+            --debt-color: #bc13fe; /* Current Debt */
             --future-quest: #f1c40f; 
             --future-debt: #e74c3c;  
 
@@ -31,44 +29,6 @@
             -webkit-tap-highlight-color: transparent;
             padding-bottom: 90px;
         }
-
-        /* HP SECTION */
-        .hp-section {
-            margin-bottom: 15px;
-            background: rgba(255, 49, 49, 0.05); padding: 10px; border: 1px solid rgba(255, 49, 49, 0.3);
-            border-radius: 4px; display: flex; align-items: center; gap: 10px;
-        }
-        
-        .hp-bar-container {
-            flex-grow: 1; height: 22px; background: #1a0505; 
-            border: 1px solid var(--hp-color); position: relative;
-            transform: skewX(-10deg);
-        }
-        .hp-fill {
-            height: 100%; background: var(--hp-color); width: 0%;
-            transition: width 0.5s ease-out; box-shadow: 0 0 10px var(--hp-color);
-        }
-        /* Green when locked/full */
-        .hp-fill.complete {
-            background: var(--hp-done);
-            box-shadow: 0 0 15px var(--hp-done);
-        }
-
-        .hp-text {
-            position: absolute; inset: 0; display: flex; 
-            justify-content: center; align-items: center;
-            font-size: 0.65rem; font-weight: bold; color: white; text-shadow: 1px 1px 2px black;
-            transform: skewX(10deg);
-        }
-
-        /* CHART STYLES */
-        .chart-container { margin-top: 20px; }
-        .chart-row { margin-bottom: 15px; }
-        .chart-label { font-size: 0.7rem; color: #888; margin-bottom: 5px; display: flex; justify-content: space-between; }
-        .chart-bar-bg { height: 25px; background: #111; border: 1px solid #333; border-radius: 4px; position: relative; overflow: hidden; }
-        .chart-bar-fill { height: 100%; transition: width 1s; display: flex; align-items: center; padding-left: 10px; font-size: 0.65rem; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; }
-        .status-success { background: #2ecc71; box-shadow: 0 0 10px #2ecc71; }
-        .status-fail { background: var(--hp-color); box-shadow: 0 0 10px var(--hp-color); }
 
         /* AUTH OVERLAY */
         #authOverlay {
@@ -132,13 +92,11 @@
         .day-cell.today { border: 2px solid #fff !important; color: #fff !important; font-weight: 900; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); transform: scale(1.05); z-index: 2; }
         .day-cell.today.has-completed { border-color: #fff !important; color: var(--gold) !important; background: rgba(255, 215, 0, 0.15); }
 
-        /* Stats Footer (4 Cols) */
-        .stats-footer { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
-        .stat-box { background: rgba(0,0,0,0.5); padding: 8px 4px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; min-height: 70px; cursor: pointer; transition: 0.2s; }
-        .stat-box:active { background: rgba(255,255,255,0.1); }
-        .stat-title { font-size: 0.5rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
+        .stats-footer { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
+        .stat-box { background: rgba(0,0,0,0.5); padding: 8px 4px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; min-height: 70px; }
+        .stat-title { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
         .stat-val { font-size: 1.1rem; font-weight: bold; }
-        .stat-sub { font-size: 0.65rem; color:var(--success); font-family: monospace; margin-top: 2px; font-weight:bold; }
+        .stat-sub { font-size: 0.75rem; color:var(--success); font-family: monospace; margin-top: 2px; font-weight:bold; }
 
         .archive-debt { border-left: 4px solid var(--debt-color) !important; }
         .archive-quest { border-left: 4px solid var(--mana) !important; }
@@ -154,18 +112,6 @@
     </div>
 
     <div id="mainView" style="display: none;">
-        
-        <!-- HP SYSTEM (Monthly Task) -->
-        <div class="hp-section">
-            <div style="font-size:0.8rem; font-weight:bold; color:var(--hp-color);">HP</div>
-            <div class="hp-bar-container">
-                <div class="hp-fill" id="hpFill"></div>
-                <div class="hp-text" id="hpText">Loading...</div>
-            </div>
-            <!-- Removed the + Button as requested -->
-        </div>
-
-        <!-- SALARY -->
         <div class="salary-container">
             <div style="font-size:0.6rem; color:var(--success); letter-spacing:2px;">SALARY WALLET</div>
             <span class="salary-value" id="salaryDisplay">$0.00</span>
@@ -177,7 +123,6 @@
             </div>
         </div>
 
-        <!-- HEADER -->
         <div class="system-header">
             <div class="user-auth-bar">
                 <span id="userEmailDisplay">---</span>
@@ -194,20 +139,17 @@
             <span id="totalUSD" style="text-align:center; display:block; color:var(--success); font-weight:bold; font-size:1.1rem;">$0.00</span>
         </div>
 
-        <!-- ACTIONS -->
         <div class="main-actions" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
             <button class="btn-system" onclick="startFlowDeposit()">+ Add Assets</button>
             <button class="btn-system btn-withdraw" style="border-color:var(--danger); color:var(--danger);" onclick="globalWithdraw()">Withdrawal</button>
         </div>
 
-        <!-- VAULT -->
         <div class="vault-container" style="border:1px solid var(--inventory); padding:12px; text-align:center; margin-bottom:15px;">
             <div style="font-size:0.6rem; color:var(--inventory); letter-spacing:1px;">STORAGE VAULT</div>
             <div id="vaultAmount" style="font-size:1.5rem; color:var(--inventory); font-weight:bold; font-family:monospace;">0</div>
             <button id="zeroVault" class="btn-zero" onclick="confirmZero('vault')">Zero Remainder (<1k)</button>
         </div>
 
-        <!-- CALENDAR -->
         <div class="calendar-box">
             <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:var(--mana); font-size:0.8rem;">
                 <button onclick="changeMonth(-1)" style="background:none; border:none; color:inherit; cursor:pointer;">&lt;</button>
@@ -217,7 +159,6 @@
             <div class="days-grid" id="daysGrid"></div>
         </div>
 
-        <!-- ADD (OUTSIDE) -->
         <div style="background:rgba(0, 210, 255, 0.03); padding:15px; border:1px solid #222;">
             <div style="font-size:0.6rem; color:var(--mana); margin-bottom:5px;">QUICK ADD (FOR TODAY)</div>
             <input type="text" id="qTitle" placeholder="Objective Title">
@@ -230,32 +171,31 @@
 
         <div id="questList" style="margin-top:20px;"></div>
 
-        <!-- STATS FOOTER -->
+        <!-- NEW STATS FOOTER (USD Values) -->
         <div class="stats-footer">
+            <!-- 1. PAID DEBTS (ARCHIVED) -->
             <div class="stat-box" style="color:var(--debt-color); border-color:var(--debt-color);">
-                <div class="stat-title">PAID</div>
+                <div class="stat-title">PAID DEBTS</div>
                 <div class="stat-val" id="countPaidDebts">0</div>
                 <div class="stat-sub" id="valPaidDebts">$0.00</div>
             </div>
+
+            <!-- 2. UNPAID DEBTS (ACTIVE) -->
             <div class="stat-box" style="color:var(--future-debt); border-color:var(--future-debt);">
-                <div class="stat-title">UNPAID</div>
+                <div class="stat-title">UNPAID DEBTS</div>
                 <div class="stat-val" id="countUnpaidDebts">0</div>
                 <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
             </div>
+
+            <!-- 3. COMPLETED QUESTS (ARCHIVED) -->
             <div class="stat-box" style="color:var(--mana); border-color:var(--mana);">
-                <div class="stat-title">DONE</div>
+                <div class="stat-title">DONE QUESTS</div>
                 <div class="stat-val" id="countDoneQuests">0</div>
                 <div class="stat-sub" id="valDoneQuests">$0.00</div>
-            </div>
-            <!-- HP RECORD BUTTON -->
-            <div class="stat-box" style="color:var(--hp-color); border-color:var(--hp-color);" onclick="openHpView()">
-                <div class="stat-title">HP REC</div>
-                <div class="stat-val" style="font-size:1.5rem;">📊</div>
             </div>
         </div>
     </div>
 
-    <!-- DAY VIEW -->
     <div id="dayView" class="full-view">
         <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
         <h2 id="dayTitle" style="color:var(--mana); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;"></h2>
@@ -272,18 +212,6 @@
 
         <h3 style="color:#666; font-size:0.7rem; margin-top:20px;">ARCHIVED / COMPLETED</h3>
         <div id="dayList"></div>
-    </div>
-
-    <!-- HP REPORT VIEW (CHART) -->
-    <div id="hpView" class="full-view">
-        <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
-        <h2 style="color:var(--hp-color); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">MONTHLY PERFORMANCE</h2>
-        
-        <div id="hpChartContent" class="chart-container"></div>
-        
-        <div style="margin-top:30px; font-size:0.7rem; color:#666; text-align:center;">
-            System resets HP progress to 0 each month. Unpaid balance carries over as Debt.
-        </div>
     </div>
 
     <script type="module">
@@ -306,15 +234,12 @@
         const provider = new GoogleAuthProvider();
 
         const RATE = 89000;
-        const BASE_HP_TARGET_USD = 15;
-
-        // system.hp structure: { current:0, debt:0, lastMonth:"", archives: [] }
-        let system = { vault: 0, salary: 0, quests: [], dayArchives: {}, hp: { current:0, debt:0, lastMonth:"", archives:[] } };
-        
+        let system = { vault: 0, salary: 0, quests: [], dayArchives: {} };
         let navDate = new Date();
         let currentOpenDate = null;
         let currentUser = null;
 
+        // --- AUTH & CLOUD ---
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
         window.logout = () => { if(confirm("Disconnect?")) signOut(auth).then(()=>location.reload()); };
 
@@ -328,12 +253,8 @@
                 onSnapshot(doc(db, "users", user.uid), (doc) => {
                     if (doc.exists()) {
                         system = doc.data();
-                        if(!system.hp) system.hp = { current:0, debt:0, lastMonth:"", archives:[] };
-                        if(!system.hp.archives) system.hp.archives = [];
-                        checkMonthRollover();
                         render();
                     } else {
-                        system.hp = { current:0, debt:0, lastMonth: getCurrentMonthKey(), archives:[] };
                         save();
                     }
                 });
@@ -349,7 +270,7 @@
             }
         }
 
-        // --- CORE FUNCTIONS ---
+        // --- Helper Functions ---
         function parseWish(val) {
             if (!val) return 0;
             val = String(val).toLowerCase().trim();
@@ -365,6 +286,7 @@
             return Math.floor(v);
         }
 
+        // --- LOCAL DATE FUNCTION (BUG FIX) ---
         function getLocalTodayStr() {
             const d = new Date();
             const year = d.getFullYear();
@@ -373,11 +295,7 @@
             return `${year}-${month}-${day}`;
         }
 
-        function getCurrentMonthKey() {
-            const d = new Date();
-            return d.toLocaleString('default', { month: 'long', year: 'numeric' });
-        }
-
+        // --- RANK LOGIC ---
         function getRankInfo(val) {
             if (val >= 100000000) return { r: 'SS', c: 'var(--rank-ss)' }; 
             if (val >= 50000000) return { r: 'S', c: 'var(--rank-s)' };   
@@ -386,74 +304,6 @@
             if (val >= 400000) return { r: 'C', c: 'var(--rank-c)' };     
             return { r: 'E', c: 'var(--rank-e)' };
         }
-
-        // --- STRICT HP MONTHLY LOGIC ---
-        function checkMonthRollover() {
-            const currentMonth = getCurrentMonthKey();
-            if (system.hp.lastMonth !== currentMonth) {
-                if(system.hp.lastMonth !== "") {
-                    // Previous month logic
-                    const targetWas = (BASE_HP_TARGET_USD * RATE) + (system.hp.debt || 0);
-                    const deposited = system.hp.current || 0;
-                    
-                    let missing = 0;
-                    // Deficit becomes debt for new month
-                    if(deposited < targetWas) {
-                        missing = targetWas - deposited; 
-                    }
-                    
-                    // Archive Record
-                    system.hp.archives.push({
-                        month: system.hp.lastMonth,
-                        collected: deposited,
-                        target: targetWas
-                    });
-
-                    // Carry over debt
-                    system.hp.debt = missing; 
-                } else {
-                    system.hp.debt = 0;
-                }
-                
-                // NEW MONTH: RESET COUNTER TO 0
-                // Wealth stays in Vault, but HP task resets for new input
-                system.hp.current = 0; 
-                system.hp.lastMonth = currentMonth;
-                save();
-            }
-        }
-
-        window.openHpView = () => {
-            const container = document.getElementById('hpChartContent');
-            container.innerHTML = '';
-            document.getElementById('hpView').style.display = 'block';
-
-            if(system.hp.archives.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#555;">No records yet.</div>';
-                return;
-            }
-
-            system.hp.archives.forEach(rec => {
-                const perc = Math.min(100, (rec.collected / rec.target) * 100);
-                const isSuccess = rec.collected >= rec.target - 100;
-                const barClass = isSuccess ? 'status-success' : 'status-fail';
-                const valUSD = (rec.collected/RATE).toFixed(2);
-                const targetUSD = (rec.target/RATE).toFixed(2);
-
-                container.innerHTML += `
-                <div class="chart-row">
-                    <div class="chart-label">
-                        <span>${rec.month}</span>
-                        <span>$${valUSD} / $${targetUSD}</span>
-                    </div>
-                    <div class="chart-bar-bg">
-                        <div class="chart-bar-fill ${barClass}" style="width:${perc}%">
-                            ${Math.round(perc)}%
-                        </div>
-                    </div>
-                </div>`;
-            });
-        };
 
         // --- GLOBAL LOGIC ---
         window.addSalary = () => {
@@ -476,41 +326,16 @@
         };
 
         window.startFlowDeposit = () => { 
-            let a = prompt("Add Assets (e.g. 50$ or 100k):"); 
+            let a = prompt("Deposit Assets (e.g. 50$ or 100k):"); 
             if(a) distribute(parseWish(a)); 
         };
 
         window.confirmZero = (type) => {
-            if(confirm(`Clean up fraction from ${type}?`)) {
+            if(confirm(`Clean up the remaining fraction (less than 1000) from ${type}?`)) {
                 if(type === 'salary') system.salary = 0; else system.vault = 0;
                 save();
             }
         };
-
-        // UPDATED: Distribute adds to Vault first, then fills HP STRICTLY to target
-        function distribute(amount) {
-            if(amount < 0.1) return;
-            
-            // 1. Add to total Vault (Wealth)
-            system.vault = (system.vault || 0) + amount;
-
-            // 2. Calculate HP target
-            const hpBase = BASE_HP_TARGET_USD * RATE; // 15$
-            const hpTarget = hpBase + (system.hp.debt || 0);
-            
-            // 3. Update HP current strictly (Cap at Target)
-            const spaceInHp = hpTarget - (system.hp.current || 0);
-            
-            if (spaceInHp > 0) {
-                // Fill HP with amount OR remaining space, whichever is smaller
-                const fill = Math.min(amount, spaceInHp);
-                system.hp.current = (system.hp.current || 0) + fill;
-            }
-            // Remainder stays in Vault automatically
-            
-            archiveCheck(); 
-            save();
-        }
 
         window.payDebt = (id) => {
             let q = system.quests.find(x => x.id === id);
@@ -530,10 +355,29 @@
             }
         };
 
+        function distribute(amount) {
+            if(amount < 1) return;
+            const today = getLocalTodayStr(); // Using Local Date
+            system.quests.sort((a,b) => a.id - b.id);
+            for (let q of system.quests) {
+                if(q.isDebt) continue; 
+                if(q.targetDate > today) continue;
+                let needed = q.target - q.current;
+                if(needed > 0) {
+                    let fill = Math.min(amount, needed);
+                    q.current += fill;
+                    amount -= fill;
+                }
+                if(amount <= 0) break;
+            }
+            if(amount > 0) system.vault = (system.vault || 0) + amount;
+            archiveCheck(); save();
+        }
+
         window.registerQuest = (isDebt) => {
             let t = document.getElementById('qTitle').value, g = document.getElementById('qTarget').value;
             if(t && g) {
-                const todayStr = getLocalTodayStr(); 
+                const todayStr = getLocalTodayStr(); // Using Local Date
                 addObjective(t, g, isDebt, todayStr);
                 document.getElementById('qTitle').value = ''; 
                 document.getElementById('qTarget').value = '';
@@ -560,7 +404,12 @@
                 isDebt: isDebt, 
                 targetDate: date 
             });
-            save();
+            const today = getLocalTodayStr(); // Using Local Date
+            if(!isDebt && date <= today && (system.vault || 0) >= 1) { 
+                let v = system.vault; system.vault = 0; distribute(v); 
+            } else {
+                save();
+            }
         }
 
         window.discardQuest = (id) => {
@@ -573,7 +422,6 @@
             save();
         };
 
-        // UPDATED: Withdrawal logic syncs with HP
         window.globalWithdraw = () => {
             let withdrawableQuests = system.quests.filter(q => !q.isDebt);
             let withdrawableArchived = Object.values(system.dayArchives).flat().filter(q => !q.isDebt);
@@ -586,22 +434,8 @@
                 let rem = parseWish(a);
                 if(rem > totalAvailable) { alert("Funds tied in Debts cannot be withdrawn."); return; }
                 if(rem >= 1000) {
-                    
-                    // 1. Take from Vault first
-                    if(system.vault >= rem) {
-                        system.vault -= rem;
-                        rem = 0;
-                    } else {
-                        rem -= system.vault;
-                        system.vault = 0;
-                    }
-
-                    // 2. SYNC: HP cannot exceed Vault balance
-                    if ((system.hp.current || 0) > system.vault) {
-                        system.hp.current = system.vault;
-                    }
-                    
-                    // 3. Take from Quests if still needed
+                    if(system.vault >= rem) { system.vault -= rem; rem = 0; }
+                    else { rem -= system.vault; system.vault = 0; }
                     if(rem > 0) {
                         let reverseQuests = [...system.quests].reverse();
                         for(let q of reverseQuests) {
@@ -610,8 +444,6 @@
                             else { rem -= q.current; q.current = 0; }
                         }
                     }
-                    
-                    // 4. Take from Archive
                     if(rem > 0) {
                         let dates = Object.keys(system.dayArchives).sort().reverse();
                         for(let d of dates) {
@@ -652,49 +484,30 @@
 
         // --- RENDER ---
         function render() {
-            const todayStr = getLocalTodayStr(); 
+            const todayStr = getLocalTodayStr(); // Using Local Date
             
-            // HP DISPLAY LOGIC (STRICT CAP)
-            const hpDebt = system.hp.debt || 0;
-            const hpBase = BASE_HP_TARGET_USD * RATE;
-            const hpTargetGold = hpBase + hpDebt;
-            
-            // Visual Cap: Ensure we don't show more than the target
-            const visualCurrent = Math.min(system.hp.current || 0, hpTargetGold);
-            
-            let hpPerc = (visualCurrent / hpTargetGold) * 100;
-            let isComplete = (visualCurrent >= hpTargetGold - 100); 
-
-            let hpDisplayString = "";
-            if(hpDebt > 0) {
-                hpDisplayString = `$${(visualCurrent/RATE).toFixed(2)} / $15 + Debt: $${(hpDebt/RATE).toFixed(2)}`;
-            } else {
-                hpDisplayString = `$${(visualCurrent/RATE).toFixed(2)} / $15`;
-            }
-            
-            const fillEl = document.getElementById('hpFill');
-            fillEl.style.width = hpPerc + "%";
-            fillEl.className = isComplete ? "hp-fill complete" : "hp-fill"; 
-            document.getElementById('hpText').textContent = hpDisplayString;
-
-            // WEALTH
+            // --- WEALTH CALCULATION (Vault + Quests only) ---
             const vaultVal = (system.vault || 0);
             const activeQuestsVal = system.quests.filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
             const archivedQuestsVal = Object.values(system.dayArchives).flat().filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
             const totalWealth = vaultVal + activeQuestsVal + archivedQuestsVal;
 
+            // --- RANK & LEVEL ---
             const playerRank = getRankInfo(totalWealth);
             const playerLevel = Math.floor(totalWealth / 400000) + 1; 
 
-            document.getElementById('playerRankBadge').textContent = "RANK " + playerRank.r;
-            document.getElementById('playerRankBadge').style.color = playerRank.c;
-            document.getElementById('playerRankBadge').style.boxShadow = `0 0 10px ${playerRank.c}`;
+            // Header Update
+            const pBadge = document.getElementById('playerRankBadge');
+            pBadge.textContent = "RANK " + playerRank.r;
+            pBadge.style.color = playerRank.c;
+            pBadge.style.boxShadow = `0 0 10px ${playerRank.c}`;
             document.getElementById('playerLevel').textContent = playerLevel;
 
             document.getElementById('totalAssets').textContent = formatVal(totalWealth);
             document.getElementById('totalUSD').textContent = `$${(totalWealth/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             document.getElementById('vaultAmount').textContent = formatVal(system.vault || 0);
 
+            // Salary Update
             document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             document.getElementById('salaryGoldDisplay').textContent = formatVal((system.salary||0)*RATE);
             
@@ -702,24 +515,29 @@
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (system.vault > 0.1 && system.vault < 1000) ? 'inline-block' : 'none';
 
-            // STATS USD
+            // --- STATS LOGIC UPDATE (USD) ---
+            
+            // 1. Paid Debts (Archived)
             const archivedDebts = Object.values(system.dayArchives).flat().filter(q => q.isDebt);
             document.getElementById('countPaidDebts').textContent = archivedDebts.length;
             const sumPaid = archivedDebts.reduce((acc,q)=>acc+q.target,0);
             document.getElementById('valPaidDebts').textContent = "$" + (sumPaid / RATE).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
+            // 2. Unpaid Debts (Active)
             const activeDebts = system.quests.filter(q => q.isDebt);
             document.getElementById('countUnpaidDebts').textContent = activeDebts.length;
             const sumUnpaid = activeDebts.reduce((acc,q)=>acc+q.target,0);
             document.getElementById('valUnpaidDebts').textContent = "$" + (sumUnpaid / RATE).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
+            // 3. Completed Quests (Archived)
             const archivedQuests = Object.values(system.dayArchives).flat().filter(q => !q.isDebt);
             document.getElementById('countDoneQuests').textContent = archivedQuests.length;
             const sumDone = archivedQuests.reduce((acc,q)=>acc+q.target,0);
             document.getElementById('valDoneQuests').textContent = "$" + (sumDone / RATE).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-            // LIST
+            // Render List
             const list = document.getElementById('questList'); list.innerHTML = '';
+            
             let displayList = [...system.quests].sort((a,b) => {
                 if(a.isDebt !== b.isDebt) return a.isDebt ? -1 : 1;
                 return new Date(a.targetDate) - new Date(b.targetDate);
@@ -771,7 +589,7 @@
             const grid = document.getElementById('daysGrid'); grid.innerHTML = '';
             document.getElementById('monthTitle').textContent = navDate.toLocaleString('default', {month:'long', year:'numeric'}).toUpperCase();
             
-            const todayStr = getLocalTodayStr(); 
+            const todayStr = getLocalTodayStr(); // Using Local Date
 
             const year = navDate.getFullYear();
             const month = navDate.getMonth();
@@ -799,6 +617,7 @@
             document.getElementById('dayTitle').textContent = d;
 
             const todayStr = getLocalTodayStr();
+            
             const formDiv = document.getElementById('dayObjectiveForm');
             if (d < todayStr) formDiv.style.display = 'none';
             else formDiv.style.display = 'block';
@@ -826,6 +645,7 @@
         window.closeViews = () => document.querySelectorAll('.full-view').forEach(v => v.style.display='none');
         window.changeMonth = (s) => { navDate.setMonth(navDate.getMonth()+s); drawCalendar(); };
         
+        // Functions are attached to window for HTML access due to module scope
     </script>
 </body>
 </html>
