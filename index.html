@@ -3,24 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V13.0 (STACKED BARS)</title>
+    <title>SUNG JIN-WOO SYSTEM | V12.1 (STEP BACK)</title>
+    <!-- CHART.JS LIBRARY -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
             
-            /* Colors */
+            /* Logic Colors */
             --mana: #00d2ff;      
             --debt-color: #bc13fe; 
-            --hp-bg: #2a0000;     
-            
-            /* Level Colors */
-            --hp-lvl1: #ff0000;   
+            --hp-bg: #4a0000;     
+            --hp-fill: #ff0000;   
             --hp-lvl2: #00d2ff;   
             --hp-lvl3: #bc13fe;   
-            --hp-lvl4: #ffd700;
-            --hp-lvl5: #50fa7b;
 
+            /* Rank Colors */
             --rank-ss: #ffcc00; --rank-s: #ff3131; --rank-a: #bc13fe;
             --rank-b: #00d2ff; --rank-c: #4caf50; --rank-e: #9e9e9e;
 
@@ -36,7 +34,7 @@
             padding-bottom: 90px;
         }
 
-        /* MODAL */
+        /* CUSTOM MODAL STYLES */
         .modal-backdrop {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000;
             display: none; justify-content: center; align-items: center;
@@ -71,11 +69,18 @@
         .btn-confirm { background: var(--mana); color: black; }
         .btn-cancel { background: #333; color: white; }
 
-        /* AUTH */
-        #authOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 50000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .login-card { width: 85%; max-width: 400px; border: 1px solid var(--mana); padding: 40px 20px; text-align: center; background: rgba(0, 30, 50, 0.3); }
 
-        /* HP SECTION (STACKED) */
+        /* AUTH OVERLAY */
+        #authOverlay {
+            position: fixed; inset: 0; background: var(--bg); z-index: 50000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .login-card {
+            width: 85%; max-width: 400px; border: 1px solid var(--mana);
+            padding: 40px 20px; text-align: center; background: rgba(0, 30, 50, 0.3);
+        }
+
+        /* HP BAR SECTION */
         .hp-section {
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid #333;
@@ -86,6 +91,7 @@
         .hp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .hp-label { font-size: 0.7rem; color: #ff6b6b; font-weight: bold; }
         
+        /* Reset Button */
         .btn-reset-hp {
             background: none; border: 1px solid #444; color: #888;
             font-size: 0.6rem; padding: 2px 6px; cursor: pointer;
@@ -93,36 +99,33 @@
         }
         .btn-reset-hp:active { background: #fff; color: #000; }
 
-        /* Stacked Bars Container */
-        .hp-stack-container {
-            display: flex;
-            flex-direction: column;
-            gap: 4px; /* Space between bars */
-        }
-        
-        .hp-row {
-            height: 22px;
+        .hp-bar-container {
+            height: 25px;
             background: var(--hp-bg);
             border: 1px solid #550000;
             position: relative;
             border-radius: 2px;
             overflow: hidden;
         }
-
         .hp-fill {
             height: 100%;
+            background: linear-gradient(90deg, #cc0000, #ff0000);
             width: 0%;
             transition: width 0.5s ease-in-out;
-            box-shadow: 0 0 5px currentColor;
+            box-shadow: 0 0 10px #ff0000;
         }
+        /* Level Colors */
+        .hp-fill.lvl-1 { background: linear-gradient(90deg, #cc0000, #ff0000); box-shadow: 0 0 10px #ff0000; }
+        .hp-fill.lvl-2 { background: linear-gradient(90deg, #005f73, #00d2ff); box-shadow: 0 0 10px #00d2ff; }
+        .hp-fill.lvl-3 { background: linear-gradient(90deg, #5a189a, #bc13fe); box-shadow: 0 0 10px #bc13fe; }
 
-        .hp-row-text {
+        .hp-text {
             position: absolute;
             width: 100%;
             text-align: center;
             top: 0;
-            line-height: 22px;
-            font-size: 0.75rem;
+            line-height: 25px;
+            font-size: 0.8rem;
             color: white;
             font-weight: bold;
             text-shadow: 1px 1px 2px black;
@@ -130,14 +133,35 @@
         }
 
         /* HEADER */
-        .system-header { border: 1px solid var(--mana); background: rgba(0, 210, 255, 0.05); padding: 15px; border-radius: 4px; margin-bottom: 20px; position: relative; }
+        .system-header { 
+            border: 1px solid var(--mana); background: rgba(0, 210, 255, 0.05); 
+            padding: 15px; border-radius: 4px; margin-bottom: 20px; 
+            position: relative;
+        }
+
         .user-auth-bar { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--mana); margin-bottom: 10px; border-bottom: 1px solid rgba(0, 210, 255, 0.2); padding-bottom: 5px; }
-        .player-status-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
-        .rank-tag { background: rgba(0,0,0,0.6); border: 1px solid currentColor; padding: 2px 10px; font-weight: 900; font-size: 0.8rem; box-shadow: 0 0 10px currentColor; }
+
+        .player-status-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 5px;
+        }
+
+        .rank-tag { 
+            background: rgba(0,0,0,0.6); border: 1px solid currentColor; 
+            padding: 2px 10px; font-weight: 900; font-size: 0.8rem; 
+            box-shadow: 0 0 10px currentColor;
+        }
+
         .level-text { font-family: monospace; font-size: 0.9rem; color: var(--mana); }
         .gold-main { font-size: 2.4rem; color: var(--gold); display: block; font-weight: bold; text-align: center; margin: 5px 0; font-family: monospace; }
         
-        /* ACTIONS */
+        /* CARDS */
+        .quest-card { background: var(--panel); border: 1px solid #333; padding: 15px; margin-bottom: 15px; position: relative; clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%); transition: 0.3s; overflow: hidden; }
+        .locked-card { opacity: 0.7; filter: grayscale(0.2); border: 1px dashed #555; }
+        .card-rank-badge { position: absolute; right: 10px; top: 10px; font-size: 2.5rem; font-weight: 900; font-style: italic; opacity: 0.15; pointer-events: none; z-index: 0; }
+
+        /* BUTTONS */
         .btn-system { background: rgba(0, 0, 0, 0.7); border: 1px solid var(--mana); color: var(--mana); padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; width: 100%; transition: 0.2s; }
         .btn-system:active { transform: scale(0.95); background: var(--mana); color:black; }
         .btn-pay { background: var(--success); color: black; border: none; padding: 8px 15px; font-weight: bold; font-size: 0.75rem; cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 0 10px rgba(80, 250, 123, 0.3); position: relative; z-index: 2; }
@@ -148,10 +172,6 @@
         .salary-container { border: 1px solid var(--success); background: rgba(80, 250, 123, 0.05); padding: 12px; margin-bottom: 15px; text-align: center; border-radius: 4px; }
         .salary-value { font-size: 1.8rem; color: var(--success); font-weight: bold; font-family: monospace; display: block; }
         
-        /* QUESTS */
-        .quest-card { background: var(--panel); border: 1px solid #333; padding: 15px; margin-bottom: 15px; position: relative; clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%); transition: 0.3s; overflow: hidden; }
-        .locked-card { opacity: 0.7; filter: grayscale(0.2); border: 1px dashed #555; }
-        .card-rank-badge { position: absolute; right: 10px; top: 10px; font-size: 2.5rem; font-weight: 900; font-style: italic; opacity: 0.15; pointer-events: none; z-index: 0; }
         .progress-container { height: 6px; background: #000; margin-top: 15px; border: 1px solid #222; position: relative; z-index: 2; }
         .progress-fill { height: 100%; transition: width 0.5s; }
 
@@ -174,12 +194,11 @@
         .archive-debt { border-left: 4px solid var(--debt-color) !important; }
         .archive-quest { border-left: 4px solid var(--mana) !important; }
 
-        /* SPLIT VAULT */
+        /* SPLIT VAULT STYLES */
         .vault-split { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; border-top: 1px solid #333; padding-top: 8px; }
         .v-col { text-align: center; }
         .v-lbl { font-size: 0.55rem; color: #888; letter-spacing: 1px; }
         .v-val { font-size: 0.9rem; color: var(--text); font-family: monospace; font-weight: bold; }
-        .vault-container { border: 1px solid var(--inventory); padding: 12px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -191,15 +210,17 @@
         </div>
     </div>
 
-    <!-- WITHDRAWAL MODAL -->
+    <!-- NEW WITHDRAWAL MODAL -->
     <div id="withdrawModal" class="modal-backdrop">
         <div class="modal-window">
             <div class="modal-title">SYSTEM WITHDRAWAL</div>
+            
             <input type="text" id="withdrawInput" class="modal-input" placeholder="Amount (e.g. 50$ or 5k)">
+            
             <div style="font-size:0.6rem; color:#888; text-align:left; margin-left:2px;">SELECT SOURCE:</div>
             <div class="source-grid">
                 <div id="btnSrcCurrent" class="source-btn" onclick="selectSource('current')">
-                    <span class="src-label" style="color:var(--hp-lvl2)">CURRENT</span>
+                    <span class="src-label" style="color:var(--hp-bg)">CURRENT</span>
                     <span class="src-val" id="dispCurrent">0</span>
                 </div>
                 <div id="btnSrcSavings" class="source-btn" onclick="selectSource('savings')">
@@ -207,6 +228,7 @@
                     <span class="src-val" id="dispSavings">0</span>
                 </div>
             </div>
+
             <div class="modal-actions">
                 <button class="modal-btn btn-cancel" onclick="closeWithdrawModal()">CANCEL</button>
                 <button class="modal-btn btn-confirm" onclick="submitWithdraw()">CONFIRM</button>
@@ -218,25 +240,33 @@
     <div id="chartView" class="full-view">
         <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
         <h2 style="color:var(--gold); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">VAULT GROWTH CHART</h2>
+        
         <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-top:20px;">
             <canvas id="vaultChart"></canvas>
         </div>
+        
+        <p style="color:#888; font-size:0.7rem; text-align:center; margin-top:15px;">
+            * Shows Total Vault (Current + Savings).
+            <br>* Moves dynamically this month, fixes past months.
+        </p>
     </div>
 
     <div id="mainView" style="display: none;">
         
-        <!-- STACKED HP BARS -->
+        <!-- HP BAR SECTION -->
         <div class="hp-section">
             <div class="hp-header">
-                <div class="hp-label">VISUAL PENALTY <span id="hpDebtText" style="color:var(--danger)"></span></div>
-                <button class="btn-reset-hp" onclick="stepBackHp()" title="Remove last bar / Zero first bar">[ DROP LEVEL ]</button>
+                <div class="hp-label">MONTHLY PENALTY <span id="hpDebtText" style="color:var(--danger)"></span></div>
+                <!-- UPDATED BUTTON TITLE -->
+                <button class="btn-reset-hp" onclick="resetHpVisual()" title="Step back one visual level">[ &lt; ]</button>
             </div>
             
-            <!-- This container will hold the stacked bars -->
-            <div class="hp-stack-container" id="hpStackContainer"></div>
-            
+            <div class="hp-bar-container">
+                <div class="hp-fill" id="hpFill"></div>
+                <div class="hp-text" id="hpText">Loading...</div>
+            </div>
             <div style="font-size:0.6rem; color:#666; margin-top:4px; text-align:center;">
-                Infinite Stack: $15.00 per Bar.
+                Infinite Progress: $15.00 per Bar.
             </div>
         </div>
 
@@ -256,10 +286,12 @@
                 <span id="userEmailDisplay">---</span>
                 <span style="color:var(--danger); cursor:pointer;" onclick="logout()">[ DISCONNECT ]</span>
             </div>
+
             <div class="player-status-row">
                 <span class="level-text">LEVEL: <span id="playerLevel" style="color:white; font-weight:bold;">1</span></span>
                 <div id="playerRankBadge" class="rank-tag" style="color:var(--rank-e)">RANK E</div>
             </div>
+            
             <div style="font-size:0.6rem; color:#888; letter-spacing:1px; margin-top:5px;">NET WORTH (ALL ASSETS)</div>
             <span class="gold-main" id="totalAssets">0</span>
             <span id="totalUSD" style="text-align:center; display:block; color:var(--success); font-weight:bold; font-size:1.1rem;">$0.00</span>
@@ -270,14 +302,16 @@
             <button class="btn-system btn-withdraw" style="border-color:var(--danger); color:var(--danger);" onclick="openWithdrawModal()">Withdrawal</button>
         </div>
 
-        <div class="vault-container">
+        <!-- SPLIT VAULT CONTAINER -->
+        <div class="vault-container" style="border:1px solid var(--inventory); padding:12px; margin-bottom:15px;">
             <div style="text-align:center;">
                 <div style="font-size:0.6rem; color:var(--inventory); letter-spacing:1px;">TOTAL STORAGE</div>
                 <div id="vaultTotal" style="font-size:1.5rem; color:var(--inventory); font-weight:bold; font-family:monospace;">0</div>
             </div>
+            
             <div class="vault-split">
                 <div class="v-col">
-                    <div class="v-lbl" style="color:var(--hp-lvl2);">THIS MONTH</div>
+                    <div class="v-lbl" style="color:var(--hp-bg);">THIS MONTH</div>
                     <div class="v-val" id="vaultCurrentDisplay">0</div>
                 </div>
                 <div class="v-col" style="border-left:1px solid #333;">
@@ -285,6 +319,7 @@
                     <div class="v-val" id="vaultSavingsDisplay">0</div>
                 </div>
             </div>
+            
             <button id="zeroVault" class="btn-zero" style="width:100%;" onclick="confirmZero('vault')">Zero Remainder (<1k)</button>
         </div>
 
@@ -300,7 +335,7 @@
         <div style="background:rgba(0, 210, 255, 0.03); padding:15px; border:1px solid #222;">
             <div style="font-size:0.6rem; color:var(--mana); margin-bottom:5px;">QUICK ADD (FOR TODAY)</div>
             <input type="text" id="qTitle" placeholder="Objective Title">
-            <input type="text" id="qTarget" placeholder="Target">
+            <input type="text" id="qTarget" placeholder="Target (e.g. 5$ or 50k, 1m)">
             <div style="display:flex; gap:10px;">
                 <button class="btn-system" style="background:var(--mana); color:#000; flex:1; border:none;" onclick="registerQuest(false)">Quest</button>
                 <button class="btn-system" style="background:var(--debt-color); color:#fff; flex:1; border:none;" onclick="registerQuest(true)">Debt</button>
@@ -309,18 +344,20 @@
 
         <div id="questList" style="margin-top:20px;"></div>
 
-        <!-- STATS FOOTER (FIXED) -->
+        <!-- STATS FOOTER WITH CHART BUTTON -->
         <div class="stats-footer">
             <div class="stat-box" style="color:var(--debt-color); border-color:var(--debt-color);">
                 <div class="stat-title">PAID DEBTS</div>
                 <div class="stat-val" id="countPaidDebts">0</div>
                 <div class="stat-sub" id="valPaidDebts">$0.00</div>
             </div>
+
             <div class="stat-box" style="color:var(--future-debt); border-color:var(--future-debt);">
                 <div class="stat-title">UNPAID DEBTS</div>
                 <div class="stat-val" id="countUnpaidDebts">0</div>
                 <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
             </div>
+
             <div class="stat-box" style="color:var(--mana); border-color:var(--mana);">
                 <div class="stat-title">DONE QUESTS</div>
                 <div class="stat-val" id="countDoneQuests">0</div>
@@ -337,6 +374,7 @@
     <div id="dayView" class="full-view">
         <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
         <h2 id="dayTitle" style="color:var(--mana); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;"></h2>
+        
         <div id="dayObjectiveForm" style="background:rgba(255,255,255,0.05); padding:15px; margin-bottom:20px; border:1px solid #333;">
             <div style="font-size:0.6rem; color:#888; margin-bottom:5px;">REGISTER OBJECTIVE FOR THIS DATE</div>
             <input type="text" id="dTitle" placeholder="Title">
@@ -346,6 +384,7 @@
                 <button class="btn-system" style="background:var(--debt-color); color:#fff; flex:1; border:none;" onclick="registerFromDayView(true)">Add Debt</button>
             </div>
         </div>
+
         <h3 style="color:#666; font-size:0.7rem; margin-top:20px;">ARCHIVED / COMPLETED</h3>
         <div id="dayList"></div>
     </div>
@@ -385,9 +424,11 @@
         let currentOpenDate = null;
         let currentUser = null;
         let myChart = null; 
+
+        // UI STATE FOR WITHDRAWAL
         let selectedWithdrawSource = null;
 
-        // AUTH
+        // --- AUTH & CLOUD ---
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
         window.logout = () => { if(confirm("Disconnect?")) signOut(auth).then(()=>location.reload()); };
 
@@ -397,14 +438,16 @@
                 document.getElementById('authOverlay').style.display = 'none';
                 document.getElementById('mainView').style.display = 'block';
                 document.getElementById('userEmailDisplay').textContent = user.email;
+                
                 onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
                         if(data.vault !== undefined && data.vaultSavings === undefined) {
-                            data.vaultSavings = data.vault; data.vaultCurrent = 0; delete data.vault;
+                            data.vaultSavings = data.vault;
+                            data.vaultCurrent = 0;
+                            delete data.vault;
                         }
                         if(!data.history) data.history = {};
-                        if(!data.dayArchives) data.dayArchives = {}; // Ensure safe
                         system = data;
                         checkMonthRollover(); 
                         render();
@@ -421,6 +464,7 @@
 
         async function save() {
             if (currentUser) {
+                // HISTORY TRACKER
                 const d = new Date();
                 const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
                 if(!system.history) system.history = {};
@@ -429,6 +473,7 @@
             }
         }
 
+        // --- HP / MONTH LOGIC ---
         function checkMonthRollover() {
             const currentMonthStr = getLocalTodayStr().substring(0, 7); 
             if (!system.hpMonth) system.hpMonth = currentMonthStr;
@@ -437,151 +482,423 @@
             if (system.hpMonth !== currentMonthStr) {
                 let curUSD = (system.vaultCurrent || 0) / RATE;
                 let required = 15 + (system.hpDebt || 0);
-                if (curUSD < required) system.hpDebt = required - curUSD;
-                else system.hpDebt = 0; 
+                
+                if (curUSD < required) {
+                    system.hpDebt = required - curUSD;
+                } else {
+                    system.hpDebt = 0; 
+                }
+
                 system.vaultSavings = (system.vaultSavings || 0) + (system.vaultCurrent || 0);
                 system.vaultCurrent = 0;
+                
                 system.hpOffset = 0;
                 system.hpMonth = currentMonthStr; 
                 save();
             }
         }
 
-        // --- NEW STEP BACK LOGIC (REMOVE LAST BAR) ---
-        window.stepBackHp = () => {
+        // --- Helper Functions ---
+        function parseWish(val) {
+            if (!val) return 0;
+            val = String(val).toLowerCase().trim();
+            if (val.endsWith('$')) return parseFloat(val) * RATE;
+            if (val.endsWith('k')) return parseFloat(val) * 1000;
+            if (val.endsWith('m')) return parseFloat(val) * 1000000;
+            return parseFloat(val) || 0;
+        }
+
+        function formatVal(v) {
+            if (v >= 1000000) return (v / 1000000).toFixed(2) + "m";
+            if (v >= 1000) return (v / 1000).toFixed(1) + "k";
+            return Math.floor(v);
+        }
+
+        function getLocalTodayStr() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getRankInfo(val) {
+            if (val >= 100000000) return { r: 'SS', c: 'var(--rank-ss)' }; 
+            if (val >= 50000000) return { r: 'S', c: 'var(--rank-s)' };   
+            if (val >= 10000000) return { r: 'A', c: 'var(--rank-a)' };   
+            if (val >= 2000000) return { r: 'B', c: 'var(--rank-b)' };    
+            if (val >= 400000) return { r: 'C', c: 'var(--rank-c)' };     
+            return { r: 'E', c: 'var(--rank-e)' };
+        }
+
+        // --- GLOBAL LOGIC ---
+        window.addSalary = () => {
+            let a = prompt("Add Salary Income (e.g. 500$):");
+            if(a) { system.salary = (system.salary || 0) + (parseWish(a) / RATE); save(); }
+        };
+
+        window.salaryToVault = () => {
+            let a = prompt("Transfer to System (e.g. 50k, 100$):");
+            if(!a) return;
+            let goldAmount = parseWish(a);
+            let costInUSD = goldAmount / RATE;
+
+            if(goldAmount >= 1 && (system.salary || 0) >= costInUSD) {
+                system.salary -= costInUSD; 
+                distribute(goldAmount); 
+            } else {
+                alert("Insufficient Salary funds.");
+            }
+        };
+
+        window.startFlowDeposit = () => { 
+            let a = prompt("Deposit Assets (e.g. 50$ or 100k):"); 
+            if(a) distribute(parseWish(a)); 
+        };
+
+        window.confirmZero = (type) => {
+            if(confirm(`Clean up the remaining fraction (less than 1000)?`)) {
+                if(type === 'salary') system.salary = 0; 
+                else {
+                    if(system.vaultCurrent < 1000) system.vaultCurrent = 0;
+                    if(system.vaultSavings < 1000) system.vaultSavings = 0;
+                }
+                save();
+            }
+        };
+
+        window.payDebt = (id) => {
+            let q = system.quests.find(x => x.id === id);
+            if(!q) return;
+            let remainingGold = q.target - q.current;
+            let costUSD = remainingGold / RATE;
+
+            if((system.salary || 0) >= costUSD) {
+                if(confirm(`Pay $${costUSD.toFixed(2)} from SALARY?`)) {
+                    system.salary -= costUSD;
+                    q.current = q.target;
+                    archiveCheck();
+                    save();
+                }
+            } else {
+                alert(`Insufficient Salary! Need $${costUSD.toFixed(2)}`);
+            }
+        };
+
+        function distribute(amount) {
+            if(amount < 1) return;
+            const today = getLocalTodayStr(); 
+            system.quests.sort((a,b) => a.id - b.id);
+            for (let q of system.quests) {
+                if(q.isDebt) continue; 
+                if(q.targetDate > today) continue;
+                let needed = q.target - q.current;
+                if(needed > 0) {
+                    let fill = Math.min(amount, needed);
+                    q.current += fill;
+                    amount -= fill;
+                }
+                if(amount <= 0) break;
+            }
+            if(amount > 0) {
+                system.vaultCurrent = (system.vaultCurrent || 0) + amount;
+            }
+            archiveCheck(); save();
+        }
+
+        // --- UPDATED RESET LOGIC (STEP BACK) ---
+        window.resetHpVisual = () => {
             let currentUSD = (system.vaultCurrent || 0) / RATE;
             let visualUSD = Math.max(0, currentUSD - (system.hpOffset || 0));
             
-            if(visualUSD <= 0.01) { alert("Visual Bar is already at 0!"); return; }
-
-            const hpBase = 15;
-            let currentLevel = Math.ceil(visualUSD / hpBase);
-            if(currentLevel === 0) currentLevel = 1;
-
-            let targetVisual;
-            if (currentLevel > 1) {
-                // Drop to the MAX of the previous level (Delete top bar)
-                targetVisual = (currentLevel - 1) * hpBase;
-            } else {
-                // If Level 1, just zero it out
-                targetVisual = 0;
+            if(visualUSD <= 0.01) {
+                alert("Visual Bar is already at 0!");
+                return;
             }
 
-            // Offset = Real - Target
+            const hpBase = 15;
+            // Calculate exact target to step down one level
+            // e.g., if visual is 50, (50/15) = 3.33. Floor=3. 3*15=45. Target is 45.
+            // e.g., if visual is 45, (44.99/15) = 2.99. Floor=2. 2*15=30. Target is 30.
+            let targetVisual = Math.floor((visualUSD - 0.01) / hpBase) * hpBase;
+            
+            if(targetVisual < 0) targetVisual = 0;
+
+            // Calculate new offset: current - target
             let newOffset = currentUSD - targetVisual;
 
-            if(confirm(`Drop one visual level? \nCurrent Visual: $${visualUSD.toFixed(2)}\nTarget: $${targetVisual.toFixed(2)}`)) {
+            if(confirm(`Step back HP Bar Level? \nCurrent Visual: $${visualUSD.toFixed(2)}\nNew Visual Target: $${targetVisual.toFixed(2)}`)) {
                 system.hpOffset = newOffset;
                 save();
             }
         };
 
-        // --- STATS LOGIC (ROBUST) ---
-        function calculateStats() {
-            // Safety check for empty archives
-            if(!system.dayArchives) return { pd:0, pdv:0, ud:0, udv:0, dq:0, dqv:0 };
-
-            // Flatten all days
-            const allItems = Object.values(system.dayArchives).flat();
+        // --- WITHDRAWAL LOGIC ---
+        window.openWithdrawModal = () => {
+            document.getElementById('withdrawModal').style.display = 'flex';
+            document.getElementById('withdrawInput').value = '';
             
-            // Paid Debts (Archived)
-            const archivedDebts = allItems.filter(q => q.isDebt);
-            const valPaid = archivedDebts.reduce((acc,q)=>acc+q.target,0);
+            document.getElementById('dispCurrent').textContent = formatVal(system.vaultCurrent || 0);
+            document.getElementById('dispSavings').textContent = formatVal(system.vaultSavings || 0);
+            
+            selectedWithdrawSource = null;
+            document.getElementById('btnSrcCurrent').classList.remove('active');
+            document.getElementById('btnSrcSavings').classList.remove('active');
+        };
 
-            // Unpaid Debts (Active Quests list)
-            const activeDebts = system.quests.filter(q => q.isDebt);
-            const valUnpaid = activeDebts.reduce((acc,q)=>acc+q.target,0);
+        window.closeWithdrawModal = () => {
+            document.getElementById('withdrawModal').style.display = 'none';
+        };
 
-            // Done Quests (Archived)
-            const archivedQuests = allItems.filter(q => !q.isDebt);
-            const valDone = archivedQuests.reduce((acc,q)=>acc+q.target,0);
+        window.selectSource = (src) => {
+            selectedWithdrawSource = src;
+            document.getElementById('btnSrcCurrent').classList.remove('active');
+            document.getElementById('btnSrcSavings').classList.remove('active');
+            
+            if(src === 'current') document.getElementById('btnSrcCurrent').classList.add('active');
+            if(src === 'savings') document.getElementById('btnSrcSavings').classList.add('active');
+        };
 
-            return {
-                pd: archivedDebts.length, pdv: valPaid,
-                ud: activeDebts.length, udv: valUnpaid,
-                dq: archivedQuests.length, dqv: valDone
-            };
+        window.submitWithdraw = () => {
+            let val = document.getElementById('withdrawInput').value;
+            let req = parseWish(val);
+            
+            if(req <= 0) { alert("Invalid Amount"); return; }
+            if(!selectedWithdrawSource) { alert("Please select a Source (Current or Savings)"); return; }
+
+            if(selectedWithdrawSource === 'savings') {
+                if((system.vaultSavings || 0) >= req) {
+                    system.vaultSavings -= req;
+                    req = 0; 
+                } else {
+                    alert("Not enough in Savings!");
+                    return;
+                }
+            } else {
+                if((system.vaultCurrent || 0) >= req) {
+                    system.vaultCurrent -= req;
+                    let curUSD = system.vaultCurrent / RATE;
+                    if(system.hpOffset > curUSD) system.hpOffset = curUSD;
+                    req = 0;
+                } else {
+                    if(system.vaultCurrent > 0) {
+                        req -= system.vaultCurrent;
+                        system.vaultCurrent = 0;
+                        system.hpOffset = 0;
+                    }
+                }
+            }
+
+            if(req > 0) {
+                 let reverseQuests = [...system.quests].reverse();
+                 for(let q of reverseQuests) {
+                     if(q.isDebt) continue; 
+                     if(q.current >= req) { q.current -= req; req = 0; break; }
+                     else { req -= q.current; q.current = 0; }
+                 }
+            }
+            if(req > 0) {
+                let dates = Object.keys(system.dayArchives).sort().reverse();
+                for(let d of dates) {
+                    let list = system.dayArchives[d];
+                    for(let i=list.length-1; i>=0; i--) {
+                        let q = list[i]; if(q.isDebt) continue; 
+                        if(q.current >= req) { q.current -= req; req = 0; }
+                        else { req -= q.current; q.current = 0; }
+                        if(q.current < q.target) system.quests.unshift(list.splice(i,1)[0]);
+                        if(req <= 0) break;
+                    }
+                    if(req <= 0) break;
+                }
+            }
+
+            save();
+            closeWithdrawModal();
+        };
+
+        // --- CHART FUNCTIONS ---
+        window.openChart = () => {
+            document.getElementById('chartView').style.display = 'block';
+            renderChart();
+        };
+
+        function renderChart() {
+            const ctx = document.getElementById('vaultChart').getContext('2d');
+            
+            if(!system.history) system.history = {};
+            
+            const sortedKeys = Object.keys(system.history).sort();
+            const labels = sortedKeys.map(k => k); 
+            const dataUSD = sortedKeys.map(k => (system.history[k] / RATE));
+
+            if(myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Vault (USD)',
+                        data: dataUSD,
+                        borderColor: '#ffd700',
+                        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.2,
+                        pointBackgroundColor: '#fff',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { 
+                                color: '#888',
+                                callback: function(value) { return '$' + value; } 
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#888' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#e6edf3' } }
+                    }
+                }
+            });
         }
 
+        window.registerQuest = (isDebt) => {
+            let t = document.getElementById('qTitle').value, g = document.getElementById('qTarget').value;
+            if(t && g) {
+                const todayStr = getLocalTodayStr(); 
+                addObjective(t, g, isDebt, todayStr);
+                document.getElementById('qTitle').value = ''; 
+                document.getElementById('qTarget').value = '';
+            }
+        };
+
+        window.registerFromDayView = (isDebt) => {
+            let t = document.getElementById('dTitle').value, g = document.getElementById('dTarget').value;
+            if(t && g && currentOpenDate) {
+                addObjective(t, g, isDebt, currentOpenDate);
+                document.getElementById('dTitle').value = ''; 
+                document.getElementById('dTarget').value = '';
+                alert("Objective Added!");
+                closeViews();
+            }
+        };
+
+        function addObjective(title, target, isDebt, date) {
+            system.quests.push({ 
+                id: Date.now(), 
+                title: title, 
+                target: parseWish(target), 
+                current: 0, 
+                isDebt: isDebt, 
+                targetDate: date 
+            });
+            const today = getLocalTodayStr(); 
+            if(!isDebt && date <= today && (system.vaultCurrent || 0) >= 1) { 
+                let v = system.vaultCurrent; system.vaultCurrent = 0; distribute(v); 
+            } else {
+                save();
+            }
+        }
+
+        window.discardQuest = (id) => {
+            let idx = system.quests.findIndex(x => x.id === id);
+            if(idx === -1) return;
+            let q = system.quests[idx];
+            let refundAmount = q.current || 0; 
+            system.quests.splice(idx,1);
+            if(!q.isDebt && refundAmount > 0) {
+                system.vaultCurrent = (system.vaultCurrent || 0) + refundAmount;
+            }
+            save();
+        };
+
+        window.deleteArchivedDebt = (date, id) => {
+            if(confirm("Permanently purge this Debt record?")) {
+                system.dayArchives[date] = system.dayArchives[date].filter(q => q.id !== id);
+                if(system.dayArchives[date].length === 0) delete system.dayArchives[date];
+                save(); openDay(date);
+            }
+        };
+
+        window.refundArchivedQuest = (date, id) => {
+            if(confirm("Delete this completed quest and REFUND its value to Vault?")) {
+                let list = system.dayArchives[date];
+                let idx = list.findIndex(q => q.id === id);
+                if(idx > -1) {
+                    let q = list[idx];
+                    let refundAmt = q.target;
+                    system.vaultCurrent = (system.vaultCurrent || 0) + refundAmt;
+                    list.splice(idx, 1);
+                    if(list.length === 0) delete system.dayArchives[date];
+                    save(); openDay(date);
+                }
+            }
+        };
+
+        function archiveCheck() {
+            for(let i=0; i<system.quests.length; i++){
+                if(system.quests[i].current >= system.quests[i].target - 0.1){ 
+                    let d = system.quests[i].targetDate;
+                    if(!system.dayArchives[d]) system.dayArchives[d] = [];
+                    system.dayArchives[d].push(system.quests.splice(i,1)[0]);
+                    i--;
+                }
+            }
+        }
+
+        // --- RENDER ---
         function render() {
             const todayStr = getLocalTodayStr(); 
+            
+            // WEALTH
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
             const vTotal = vCurrent + vSavings;
             
-            // Stats Update
-            const s = calculateStats();
-            document.getElementById('countPaidDebts').textContent = s.pd;
-            document.getElementById('valPaidDebts').textContent = "$" + (s.pdv/RATE).toFixed(2);
-            document.getElementById('countUnpaidDebts').textContent = s.ud;
-            document.getElementById('valUnpaidDebts').textContent = "$" + (s.udv/RATE).toFixed(2);
-            document.getElementById('countDoneQuests').textContent = s.dq;
-            document.getElementById('valDoneQuests').textContent = "$" + (s.dqv/RATE).toFixed(2);
+            const activeQuestsVal = system.quests.filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
+            const archivedQuestsVal = Object.values(system.dayArchives).flat().filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
+            const totalWealth = vTotal + activeQuestsVal + archivedQuestsVal;
 
-            // Wealth
-            const totalWealth = vTotal + (s.udv + s.dqv); // Approximate
-            document.getElementById('totalAssets').textContent = formatVal(totalWealth);
-            document.getElementById('totalUSD').textContent = `$${(totalWealth/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
-            document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-            document.getElementById('salaryGoldDisplay').textContent = formatVal((system.salary||0)*RATE);
-
-            // --- STACKED HP BARS RENDER ---
-            const container = document.getElementById('hpStackContainer');
-            container.innerHTML = ''; // Clear old bars
-            
+            // --- INFINITE HP BAR LOGIC ---
             const hpBase = 15; 
             let rawCurrentUSD = vCurrent / RATE;
-            let visualUSD = Math.max(0, rawCurrentUSD - (system.hpOffset || 0));
             
-            // Determine how many bars
-            let totalBars = Math.ceil(visualUSD / hpBase);
-            if (totalBars === 0) totalBars = 1; // Always show at least 1 empty bar
-
-            // Generate Bars (Top to Bottom visually, but loop 1 to Total)
-            // Stack order: Level 1 at top? Or Level 1 at bottom?
-            // "Stack below each other" usually means Level 1 is top, Level 2 appears below it.
-            for (let i = 1; i <= totalBars; i++) {
-                // Calculate fill for this specific bar
-                // Level 1: 0-15. Level 2: 15-30.
-                let barValue = 0;
-                if (visualUSD >= i * hpBase) {
-                    barValue = 100; // Full
-                } else if (visualUSD > (i - 1) * hpBase) {
-                    let remainder = visualUSD - ((i - 1) * hpBase);
-                    barValue = (remainder / hpBase) * 100;
-                } else {
-                    barValue = 0;
-                }
-
-                // Create Elements
-                const row = document.createElement('div');
-                row.className = 'hp-row';
-                
-                const fill = document.createElement('div');
-                fill.className = 'hp-fill';
-                fill.style.width = barValue + "%";
-                
-                // Color Logic
-                if (i % 5 === 1) fill.style.background = 'linear-gradient(90deg, #cc0000, var(--hp-lvl1))';
-                else if (i % 5 === 2) fill.style.background = 'linear-gradient(90deg, #005f73, var(--hp-lvl2))';
-                else if (i % 5 === 3) fill.style.background = 'linear-gradient(90deg, #5a189a, var(--hp-lvl3))';
-                else if (i % 5 === 4) fill.style.background = 'linear-gradient(90deg, #ffaa00, var(--hp-lvl4))';
-                else fill.style.background = 'linear-gradient(90deg, #2ecc71, var(--hp-lvl5))';
-                fill.style.boxShadow = `0 0 10px ${fill.style.background}`;
-
-                const text = document.createElement('div');
-                text.className = 'hp-row-text';
-                
-                // Text Logic
-                let displayVal = 0;
-                if(barValue === 100) displayVal = 15.00;
-                else displayVal = (barValue / 100) * 15;
-                text.textContent = `LVL ${i} | $${displayVal.toFixed(2)} / $15.00`;
-
-                row.appendChild(fill);
-                row.appendChild(text);
-                container.appendChild(row);
+            let visualUSD = Math.max(0, rawCurrentUSD - (system.hpOffset || 0));
+            let level = Math.floor(visualUSD / hpBase) + 1;
+            let currentCycleVal = visualUSD % hpBase;
+            
+            let hpPerc = (currentCycleVal / hpBase) * 100;
+            
+            if(visualUSD > 0 && currentCycleVal < 0.01) {
+                hpPerc = 100;
+                level -= 1; 
+                currentCycleVal = hpBase;
             }
+
+            const hpFill = document.getElementById('hpFill');
+            const hpText = document.getElementById('hpText');
+
+            hpFill.style.width = hpPerc + "%";
+            
+            if (visualUSD >= hpBase) {
+                hpText.textContent = `LVL ${level} | $${currentCycleVal.toFixed(2)} / $15.00`;
+            } else {
+                hpText.textContent = `$${visualUSD.toFixed(2)} / $15.00`;
+            }
+
+            hpFill.className = 'hp-fill'; 
+            if(level === 1) hpFill.classList.add('lvl-1');
+            else if(level === 2) hpFill.classList.add('lvl-2');
+            else hpFill.classList.add('lvl-3');
 
             if(system.hpDebt > 0.01) {
                 document.getElementById('hpDebtText').textContent = `[ARREARS: $${system.hpDebt.toFixed(2)}]`;
@@ -589,17 +906,39 @@
                 document.getElementById('hpDebtText').textContent = "";
             }
 
-            // VAULT DISPLAYS
+            // RENDER VAULT
             document.getElementById('vaultTotal').textContent = formatVal(vTotal);
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
 
-            // QUEST LIST
+            // RANK & LEVEL
+            const playerRank = getRankInfo(totalWealth);
+            const playerLevel = Math.floor(totalWealth / 400000) + 1; 
+
+            const pBadge = document.getElementById('playerRankBadge');
+            pBadge.textContent = "RANK " + playerRank.r;
+            pBadge.style.color = playerRank.c;
+            pBadge.style.boxShadow = `0 0 10px ${playerRank.c}`;
+            document.getElementById('playerLevel').textContent = playerLevel;
+
+            document.getElementById('totalAssets').textContent = formatVal(totalWealth);
+            document.getElementById('totalUSD').textContent = `$${(totalWealth/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+
+            // Salary
+            document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            document.getElementById('salaryGoldDisplay').textContent = formatVal((system.salary||0)*RATE);
+            
+            const salInGold = (system.salary || 0) * RATE;
+            document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
+            document.getElementById('zeroVault').style.display = (vTotal > 0.1 && vTotal < 1000) ? 'inline-block' : 'none';
+
+            // LIST
             const list = document.getElementById('questList'); list.innerHTML = '';
             let displayList = [...system.quests].sort((a,b) => {
                 if(a.isDebt !== b.isDebt) return a.isDebt ? -1 : 1;
                 return new Date(a.targetDate) - new Date(b.targetDate);
             });
+
             displayList.forEach(q => {
                 const perc = (q.current/q.target*100).toFixed(0);
                 const isFuture = q.targetDate > todayStr;
@@ -607,8 +946,10 @@
                 let colorVar = isFuture ? (q.isDebt ? 'var(--future-debt)' : 'var(--future-quest)') : (q.isDebt ? 'var(--debt-color)' : 'var(--mana)');
                 let typeLabel = q.isDebt ? 'DEBT' : 'QUEST';
                 if(isFuture) typeLabel += ' (FUTURE)';
+
                 let actionButton = q.isDebt ? `<button class="btn-pay" onclick="payDebt(${q.id})">PAY & ARCHIVE ($${(q.target/RATE).toFixed(2)})</button>` : '';
                 let rankBadgeHTML = !q.isDebt ? `<div class="card-rank-badge" style="color:${getRankInfo(q.target).c}">${getRankInfo(q.target).r}-RANK</div>` : '';
+
                 list.innerHTML += `<div class="quest-card ${isLocked?'locked-card':''}" style="border-left: 4px solid ${colorVar}">
                     ${rankBadgeHTML}
                     <div style="font-size:0.6rem; color:#666; display:flex; justify-content:space-between; position:relative; z-index:2;">
@@ -628,186 +969,59 @@
             drawCalendar();
         }
 
-        // --- GLOBAL HELPERS ---
-        function parseWish(val) {
-            if (!val) return 0;
-            val = String(val).toLowerCase().trim();
-            if (val.endsWith('$')) return parseFloat(val) * RATE;
-            if (val.endsWith('k')) return parseFloat(val) * 1000;
-            if (val.endsWith('m')) return parseFloat(val) * 1000000;
-            return parseFloat(val) || 0;
-        }
-        function formatVal(v) {
-            if (v >= 1000000) return (v / 1000000).toFixed(2) + "m";
-            if (v >= 1000) return (v / 1000).toFixed(1) + "k";
-            return Math.floor(v);
-        }
-        function getLocalTodayStr() {
-            const d = new Date();
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-        function getRankInfo(val) {
-            if (val >= 100000000) return { r: 'SS', c: 'var(--rank-ss)' }; 
-            if (val >= 50000000) return { r: 'S', c: 'var(--rank-s)' };   
-            if (val >= 10000000) return { r: 'A', c: 'var(--rank-a)' };   
-            if (val >= 2000000) return { r: 'B', c: 'var(--rank-b)' };    
-            if (val >= 400000) return { r: 'C', c: 'var(--rank-c)' };     
-            return { r: 'E', c: 'var(--rank-e)' };
-        }
-
-        // --- LOGIC FUNCTIONS (Add, Withdraw, etc) ---
-        window.addSalary = () => { let a = prompt("Add Salary Income:"); if(a) { system.salary = (system.salary||0) + (parseWish(a)/RATE); save(); } };
-        window.salaryToVault = () => {
-            let a = prompt("Transfer to System:"); if(!a) return;
-            let gold = parseWish(a); let usd = gold/RATE;
-            if(gold >= 1 && (system.salary||0) >= usd) { system.salary -= usd; distribute(gold); } else alert("Insufficient");
-        };
-        window.startFlowDeposit = () => { let a = prompt("Deposit Assets:"); if(a) distribute(parseWish(a)); };
-        window.confirmZero = (type) => {
-            if(confirm("Zero Remainder?")) {
-                if(type === 'salary') system.salary = 0;
-                else { if(system.vaultCurrent<1000) system.vaultCurrent=0; if(system.vaultSavings<1000) system.vaultSavings=0; }
-                save();
-            }
-        };
-        window.payDebt = (id) => {
-            let q = system.quests.find(x => x.id === id); if(!q) return;
-            let cost = (q.target-q.current)/RATE;
-            if((system.salary||0)>=cost && confirm(`Pay $${cost.toFixed(2)}?`)) {
-                system.salary -= cost; q.current = q.target; archiveCheck(); save();
-            } else alert("Insufficient");
-        };
-        function distribute(amount) {
-            if(amount < 1) return;
-            const today = getLocalTodayStr();
-            system.quests.sort((a,b)=>a.id-b.id);
-            for(let q of system.quests) {
-                if(q.isDebt || q.targetDate > today) continue;
-                let needed = q.target - q.current;
-                if(needed > 0) { let fill = Math.min(amount, needed); q.current += fill; amount -= fill; }
-                if(amount <= 0) break;
-            }
-            if(amount > 0) system.vaultCurrent = (system.vaultCurrent||0) + amount;
-            archiveCheck(); save();
-        }
-
-        // WITHDRAWAL
-        window.openWithdrawModal = () => {
-            document.getElementById('withdrawModal').style.display = 'flex';
-            document.getElementById('withdrawInput').value = '';
-            document.getElementById('dispCurrent').textContent = formatVal(system.vaultCurrent||0);
-            document.getElementById('dispSavings').textContent = formatVal(system.vaultSavings||0);
-            selectedWithdrawSource = null;
-            document.getElementById('btnSrcCurrent').classList.remove('active');
-            document.getElementById('btnSrcSavings').classList.remove('active');
-        };
-        window.closeWithdrawModal = () => document.getElementById('withdrawModal').style.display='none';
-        window.selectSource = (src) => {
-            selectedWithdrawSource = src;
-            document.getElementById('btnSrcCurrent').classList.toggle('active', src==='current');
-            document.getElementById('btnSrcSavings').classList.toggle('active', src==='savings');
-        };
-        window.submitWithdraw = () => {
-            let req = parseWish(document.getElementById('withdrawInput').value);
-            if(req<=0 || !selectedWithdrawSource) { alert("Invalid"); return; }
-            if(selectedWithdrawSource==='savings') {
-                if((system.vaultSavings||0)>=req) { system.vaultSavings-=req; req=0; } else { alert("Insufficient Savings"); return; }
-            } else {
-                if((system.vaultCurrent||0)>=req) { 
-                    system.vaultCurrent-=req; 
-                    let curUSD = system.vaultCurrent/RATE; 
-                    if(system.hpOffset>curUSD) system.hpOffset=curUSD; 
-                    req=0; 
-                } else {
-                     if(system.vaultCurrent>0) { req-=system.vaultCurrent; system.vaultCurrent=0; system.hpOffset=0; }
-                }
-            }
-            if(req>0) { /* Fallback to quests logic if needed, omitted for brevity as UI enforces source */ }
-            save(); closeWithdrawModal();
-        };
-
-        // QUESTS
-        window.registerQuest = (isDebt) => {
-            let t = document.getElementById('qTitle').value, g = document.getElementById('qTarget').value;
-            if(t && g) { addObjective(t,g,isDebt,getLocalTodayStr()); document.getElementById('qTitle').value=''; document.getElementById('qTarget').value=''; }
-        };
-        window.registerFromDayView = (isDebt) => {
-            let t = document.getElementById('dTitle').value, g = document.getElementById('dTarget').value;
-            if(t&&g) { addObjective(t,g,isDebt,currentOpenDate); document.getElementById('dTitle').value=''; document.getElementById('dTarget').value=''; closeViews(); }
-        };
-        function addObjective(t,g,isDebt,d) {
-            system.quests.push({ id:Date.now(), title:t, target:parseWish(g), current:0, isDebt:isDebt, targetDate:d });
-            if(!isDebt && d<=getLocalTodayStr() && (system.vaultCurrent||0)>=1) { let v=system.vaultCurrent; system.vaultCurrent=0; distribute(v); } else save();
-        }
-        window.discardQuest = (id) => {
-            let idx=system.quests.findIndex(x=>x.id===id); if(idx===-1) return;
-            let q=system.quests[idx]; let ref=q.current; system.quests.splice(idx,1);
-            if(!q.isDebt && ref>0) system.vaultCurrent=(system.vaultCurrent||0)+ref;
-            save();
-        };
-        window.deleteArchivedDebt = (d, id) => {
-            if(confirm("Purge?")) { system.dayArchives[d]=system.dayArchives[d].filter(q=>q.id!==id); if(!system.dayArchives[d].length) delete system.dayArchives[d]; save(); openDay(d); }
-        };
-        window.refundArchivedQuest = (d, id) => {
-            if(confirm("Refund?")) {
-                let idx=system.dayArchives[d].findIndex(q=>q.id===id); if(idx>-1) {
-                    system.vaultCurrent=(system.vaultCurrent||0)+system.dayArchives[d][idx].target;
-                    system.dayArchives[d].splice(idx,1); if(!system.dayArchives[d].length) delete system.dayArchives[d];
-                    save(); openDay(d);
-                }
-            }
-        };
-        function archiveCheck() {
-            for(let i=0; i<system.quests.length; i++){
-                if(system.quests[i].current >= system.quests[i].target - 0.1){ 
-                    let d = system.quests[i].targetDate;
-                    if(!system.dayArchives[d]) system.dayArchives[d] = [];
-                    system.dayArchives[d].push(system.quests.splice(i,1)[0]);
-                    i--;
-                }
-            }
-        }
-
-        // CHART & CALENDAR
-        window.openChart = () => { document.getElementById('chartView').style.display='block'; renderChart(); };
-        function renderChart() {
-            const ctx = document.getElementById('vaultChart').getContext('2d');
-            if(myChart) myChart.destroy();
-            if(!system.history) system.history={};
-            const sortedKeys = Object.keys(system.history).sort();
-            myChart = new Chart(ctx, {
-                type:'line',
-                data: { labels: sortedKeys, datasets: [{ label:'Total Vault (USD)', data: sortedKeys.map(k=>system.history[k]/RATE), borderColor:'#ffd700', backgroundColor:'rgba(255,215,0,0.1)', fill:true }] },
-                options: { responsive:true, scales:{ y:{ beginAtZero:true, ticks:{ color:'#888' } } } }
-            });
-        }
-        window.openDay = (d) => {
-            currentOpenDate = d; document.getElementById('dayView').style.display='block'; document.getElementById('dayTitle').textContent=d;
-            document.getElementById('dayObjectiveForm').style.display = (d<getLocalTodayStr()) ? 'none' : 'block';
-            const l = document.getElementById('dayList'); l.innerHTML='';
-            (system.dayArchives[d]||[]).forEach(q => {
-                let border = q.isDebt?'archive-debt':'archive-quest';
-                let btn = q.isDebt ? `<button class="discard-btn" onclick="deleteArchivedDebt('${d}',${q.id})">Purge</button>` : `<button class="refund-btn" onclick="refundArchivedQuest('${d}',${q.id})">Refund</button>`;
-                l.innerHTML += `<div class="quest-card ${border}"><div>${q.isDebt?'DEBT':'QUEST'}</div><b>${q.title}</b><br>Target: ${formatVal(q.target)}<div>${btn}</div></div>`;
-            });
-        };
-        window.closeViews = () => document.querySelectorAll('.full-view').forEach(v=>v.style.display='none');
-        window.changeMonth = (s) => { navDate.setMonth(navDate.getMonth()+s); drawCalendar(); };
         function drawCalendar() {
-            const g = document.getElementById('daysGrid'); g.innerHTML=''; 
-            document.getElementById('monthTitle').textContent = navDate.toLocaleString('default',{month:'long',year:'numeric'}).toUpperCase();
-            const y=navDate.getFullYear(), m=navDate.getMonth();
-            const f=new Date(y,m,1).getDay(), l=new Date(y,m+1,0).getDate();
-            for(let i=0;i<f;i++) g.innerHTML+='<div></div>';
-            for(let i=1;i<=l;i++) {
-                let d=`${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                let cls = `day-cell ${(system.dayArchives[d]&&system.dayArchives[d].length)?'has-completed':''} ${d===getLocalTodayStr()?'today':''}`;
-                let el=document.createElement('div'); el.className=cls; el.textContent=i; el.onclick=()=>openDay(d); g.appendChild(el);
+            const grid = document.getElementById('daysGrid'); grid.innerHTML = '';
+            document.getElementById('monthTitle').textContent = navDate.toLocaleString('default', {month:'long', year:'numeric'}).toUpperCase();
+            
+            const todayStr = getLocalTodayStr(); 
+
+            const year = navDate.getFullYear();
+            const month = navDate.getMonth();
+            const first = new Date(year, month, 1).getDay();
+            const last = new Date(year, month+1, 0).getDate();
+            
+            for(let i=0; i<first; i++) grid.innerHTML += '<div></div>';
+            
+            for(let i=1; i<=last; i++) {
+                const currentDayStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                const has = system.dayArchives[currentDayStr] && system.dayArchives[currentDayStr].length > 0;
+                const isToday = (currentDayStr === todayStr);
+
+                const cell = document.createElement('div');
+                cell.className = `day-cell ${has ? 'has-completed' : ''} ${isToday ? 'today' : ''}`;
+                cell.textContent = i; 
+                cell.onclick = () => openDay(currentDayStr);
+                grid.appendChild(cell);
             }
         }
+
+        window.openDay = (d) => {
+            currentOpenDate = d;
+            document.getElementById('dayView').style.display = 'block';
+            document.getElementById('dayTitle').textContent = d;
+            const todayStr = getLocalTodayStr();
+            const formDiv = document.getElementById('dayObjectiveForm');
+            if (d < todayStr) formDiv.style.display = 'none';
+            else formDiv.style.display = 'block';
+
+            const l = document.getElementById('dayList'); l.innerHTML = '';
+            (system.dayArchives[d] || []).forEach(q => {
+                const borderClass = q.isDebt ? 'archive-debt' : 'archive-quest';
+                const typeColor = q.isDebt ? 'var(--debt-color)' : 'var(--mana)';
+                let archiveRank = !q.isDebt ? `<span style="color:${getRankInfo(q.target).c}; font-weight:900; font-size:0.7rem; border:1px solid ${getRankInfo(q.target).c}; padding:0 4px; margin-left:5px;">${getRankInfo(q.target).r}</span>` : '';
+                let delButton = q.isDebt ? `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge Record</button>` : `<button class="refund-btn" onclick="refundArchivedQuest('${d}', ${q.id})">REFUND & DELETE</button>`;
+
+                l.innerHTML += `<div class="quest-card ${borderClass}">
+                    <div style="font-size:0.65rem; color:${typeColor}; font-weight:bold;">[COMPLETED] ${q.isDebt?'DEBT':'QUEST'} ${archiveRank}</div>
+                    <div style="font-weight:bold; margin-top:5px;">${q.title}</div>
+                    <div style="font-family:monospace;">Target: ${formatVal(q.target)}</div>
+                    <div style="margin-top:10px;">${delButton}</div>
+                </div>`;
+            });
+        };
+
+        window.closeViews = () => document.querySelectorAll('.full-view').forEach(v => v.style.display='none');
+        window.changeMonth = (s) => { navDate.setMonth(navDate.getMonth()+s); drawCalendar(); };
     </script>
 </body>
 </html>
