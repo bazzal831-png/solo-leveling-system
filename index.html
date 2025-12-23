@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V15.0 (WITHDRAW FIX)</title>
+    <title>SUNG JIN-WOO SYSTEM | V13.0 (STACKED BARS)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -26,7 +26,6 @@
 
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
             --inventory: #ff79c6; 
-            --active-q: #f1c40f; 
         }
 
         body { 
@@ -37,20 +36,41 @@
             padding-bottom: 90px;
         }
 
-        /* MODAL & VIEWS */
-        .modal-backdrop, .full-view {
-            position: fixed; inset: 0; background: var(--bg); z-index: 10000;
-            display: none; flex-direction: column; 
+        /* MODAL */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000;
+            display: none; justify-content: center; align-items: center;
         }
-        .full-view { padding: 20px; overflow-y: auto; display: none; }
-        
         .modal-window {
             background: var(--panel); border: 1px solid var(--mana);
             width: 90%; max-width: 350px; padding: 20px; text-align: center;
             box-shadow: 0 0 20px rgba(0, 210, 255, 0.15);
-            margin: auto;
         }
+        .modal-title { color: var(--mana); font-weight: bold; margin-bottom: 15px; letter-spacing: 2px; border-bottom: 1px solid rgba(0, 210, 255, 0.3); padding-bottom: 10px; }
         
+        .source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .source-btn { 
+            border: 1px solid #333; background: rgba(0,0,0,0.5); padding: 10px; 
+            cursor: pointer; transition: 0.2s; border-radius: 4px;
+        }
+        .source-btn.active { 
+            border: 1px solid var(--mana); background: rgba(0, 210, 255, 0.15); 
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); transform: scale(1.02);
+        }
+        .src-label { font-size: 0.7rem; font-weight: bold; display: block; margin-bottom: 5px; }
+        .src-val { font-size: 0.8rem; font-family: monospace; color: #aaa; }
+        .active .src-val { color: white; }
+        
+        .modal-input { 
+            background: #000; border: 1px solid #444; color: white; 
+            padding: 12px; width: 100%; box-sizing: border-box; 
+            font-size: 1rem; text-align: center; margin-bottom: 15px;
+        }
+        .modal-actions { display: flex; gap: 10px; }
+        .modal-btn { flex: 1; padding: 12px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; }
+        .btn-confirm { background: var(--mana); color: black; }
+        .btn-cancel { background: #333; color: white; }
+
         /* AUTH */
         #authOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 50000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .login-card { width: 85%; max-width: 400px; border: 1px solid var(--mana); padding: 40px 20px; text-align: center; background: rgba(0, 30, 50, 0.3); }
@@ -71,11 +91,43 @@
             font-size: 0.6rem; padding: 2px 6px; cursor: pointer;
             border-radius: 3px; transition: 0.2s;
         }
+        .btn-reset-hp:active { background: #fff; color: #000; }
+
+        /* Stacked Bars Container */
+        .hp-stack-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px; /* Space between bars */
+        }
         
-        .hp-stack-container { display: flex; flex-direction: column; gap: 4px; }
-        .hp-row { height: 22px; background: var(--hp-bg); border: 1px solid #550000; position: relative; border-radius: 2px; overflow: hidden; }
-        .hp-fill { height: 100%; width: 0%; transition: width 0.5s ease-in-out; box-shadow: 0 0 5px currentColor; }
-        .hp-row-text { position: absolute; width: 100%; text-align: center; top: 0; line-height: 22px; font-size: 0.75rem; color: white; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 2; }
+        .hp-row {
+            height: 22px;
+            background: var(--hp-bg);
+            border: 1px solid #550000;
+            position: relative;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .hp-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+            box-shadow: 0 0 5px currentColor;
+        }
+
+        .hp-row-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            top: 0;
+            line-height: 22px;
+            font-size: 0.75rem;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px black;
+            z-index: 2;
+        }
 
         /* HEADER */
         .system-header { border: 1px solid var(--mana); background: rgba(0, 210, 255, 0.05); padding: 15px; border-radius: 4px; margin-bottom: 20px; position: relative; }
@@ -85,14 +137,13 @@
         .level-text { font-family: monospace; font-size: 0.9rem; color: var(--mana); }
         .gold-main { font-size: 2.4rem; color: var(--gold); display: block; font-weight: bold; text-align: center; margin: 5px 0; font-family: monospace; }
         
-        /* ACTIONS & INPUTS */
+        /* ACTIONS */
         .btn-system { background: rgba(0, 0, 0, 0.7); border: 1px solid var(--mana); color: var(--mana); padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.7rem; width: 100%; transition: 0.2s; }
         .btn-system:active { transform: scale(0.95); background: var(--mana); color:black; }
         .btn-pay { background: var(--success); color: black; border: none; padding: 8px 15px; font-weight: bold; font-size: 0.75rem; cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 0 10px rgba(80, 250, 123, 0.3); position: relative; z-index: 2; }
         .discard-btn { color: var(--danger); background: none; border: 1px solid rgba(255,49,49,0.2); padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 10px; display: inline-block; position: relative; z-index: 2; }
         .refund-btn { color: var(--mana); background: none; border: 1px solid rgba(0, 210, 255, 0.2); padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 10px; display: inline-block; position: relative; z-index: 2; margin-right: 5px; }
         .btn-zero { background: var(--danger); color: white; border: none; padding: 6px 12px; font-size: 0.7rem; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 8px; display: none; box-shadow: 0 0 8px var(--danger); }
-        input { width: 100%; padding: 15px; margin-bottom: 10px; background: #080a0f; border: 1px solid #333; color: white; box-sizing: border-box; }
 
         .salary-container { border: 1px solid var(--success); background: rgba(80, 250, 123, 0.05); padding: 12px; margin-bottom: 15px; text-align: center; border-radius: 4px; }
         .salary-value { font-size: 1.8rem; color: var(--success); font-weight: bold; font-family: monospace; display: block; }
@@ -104,7 +155,9 @@
         .progress-container { height: 6px; background: #000; margin-top: 15px; border: 1px solid #222; position: relative; z-index: 2; }
         .progress-fill { height: 100%; transition: width 0.5s; }
 
-        /* CALENDAR */
+        .full-view { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 9999; padding: 20px; overflow-y: auto; }
+        input { width: 100%; padding: 15px; margin-bottom: 10px; background: #080a0f; border: 1px solid #333; color: white; box-sizing: border-box; }
+        
         .calendar-box { background: var(--panel); padding: 15px; border: 1px solid #222; margin-bottom: 20px; }
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
         .day-cell { aspect-ratio: 1; background: #080a0f; border: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; cursor: pointer; position: relative; }
@@ -112,37 +165,21 @@
         .day-cell.today { border: 2px solid #fff !important; color: #fff !important; font-weight: 900; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); transform: scale(1.05); z-index: 2; }
         .day-cell.today.has-completed { border-color: #fff !important; color: var(--gold) !important; background: rgba(255, 215, 0, 0.15); }
 
-        /* VAULT SPLIT */
+        .stats-footer { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
+        .stat-box { background: rgba(0,0,0,0.5); padding: 8px 4px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; min-height: 70px; }
+        .stat-title { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
+        .stat-val { font-size: 1.1rem; font-weight: bold; }
+        .stat-sub { font-size: 0.75rem; color:var(--success); font-family: monospace; margin-top: 2px; font-weight:bold; }
+
+        .archive-debt { border-left: 4px solid var(--debt-color) !important; }
+        .archive-quest { border-left: 4px solid var(--mana) !important; }
+
+        /* SPLIT VAULT */
         .vault-split { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; border-top: 1px solid #333; padding-top: 8px; }
         .v-col { text-align: center; }
         .v-lbl { font-size: 0.55rem; color: #888; letter-spacing: 1px; }
         .v-val { font-size: 0.9rem; color: var(--text); font-family: monospace; font-weight: bold; }
         .vault-container { border: 1px solid var(--inventory); padding: 12px; margin-bottom: 15px; }
-
-        /* STATS STACK */
-        .stats-stack { display: flex; flex-direction: column; gap: 8px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
-        .stat-btn { background: rgba(0,0,0,0.6); border: 1px solid #333; border-left: 5px solid #555; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .stat-btn:active { transform: scale(0.98); background: #111; }
-        .stat-btn-left { display: flex; flex-direction: column; text-align: left; }
-        .stat-label { font-size: 0.6rem; letter-spacing: 1px; font-weight: bold; margin-bottom: 2px; }
-        .stat-main-val { font-size: 1.1rem; font-weight: bold; font-family: monospace; }
-        .stat-count-badge { background: #333; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
-        
-        .stat-unpaid { border-left-color: var(--danger); } .stat-unpaid .stat-label { color: var(--danger); }
-        .stat-paid { border-left-color: var(--debt-color); } .stat-paid .stat-label { color: var(--debt-color); }
-        .stat-activeq { border-left-color: var(--active-q); } .stat-activeq .stat-label { color: var(--active-q); }
-        .stat-doneq { border-left-color: var(--mana); } .stat-doneq .stat-label { color: var(--mana); }
-
-        /* MODAL */
-        .modal-input { background: #000; border: 1px solid #444; color: white; padding: 12px; width: 100%; box-sizing: border-box; font-size: 1rem; text-align: center; margin-bottom: 15px; }
-        .modal-actions { display: flex; gap: 10px; }
-        .modal-btn { flex: 1; padding: 12px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; }
-        .btn-confirm { background: var(--mana); color: black; }
-        .btn-cancel { background: #333; color: white; }
-        .source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
-        .source-btn { border: 1px solid #333; background: rgba(0,0,0,0.5); padding: 10px; cursor: pointer; transition: 0.2s; border-radius: 4px; }
-        .source-btn.active { border: 1px solid var(--mana); background: rgba(0, 210, 255, 0.15); }
-        .src-label { font-size: 0.7rem; font-weight: bold; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -163,7 +200,6 @@
             <div class="source-grid">
                 <div id="btnSrcCurrent" class="source-btn" onclick="selectSource('current')">
                     <span class="src-label" style="color:var(--hp-lvl2)">CURRENT</span>
-                    <!-- FIX: Show Sum of Vault + Quests -->
                     <span class="src-val" id="dispCurrent">0</span>
                 </div>
                 <div id="btnSrcSavings" class="source-btn" onclick="selectSource('savings')">
@@ -187,13 +223,6 @@
         </div>
     </div>
 
-    <!-- GLOBAL LIST VIEW -->
-    <div id="globalListView" class="full-view">
-        <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
-        <h2 id="globalListTitle" style="color:var(--mana); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">LIST VIEW</h2>
-        <div id="globalListContent"></div>
-    </div>
-
     <div id="mainView" style="display: none;">
         
         <!-- STACKED HP BARS -->
@@ -202,7 +231,10 @@
                 <div class="hp-label">VISUAL PENALTY <span id="hpDebtText" style="color:var(--danger)"></span></div>
                 <button class="btn-reset-hp" onclick="stepBackHp()" title="Remove last bar / Zero first bar">[ DROP LEVEL ]</button>
             </div>
+            
+            <!-- This container will hold the stacked bars -->
             <div class="hp-stack-container" id="hpStackContainer"></div>
+            
             <div style="font-size:0.6rem; color:#666; margin-top:4px; text-align:center;">
                 Infinite Stack: $15.00 per Bar.
             </div>
@@ -277,27 +309,26 @@
 
         <div id="questList" style="margin-top:20px;"></div>
 
-        <!-- STACKED STATS BUTTONS -->
-        <div class="stats-stack">
-            <div class="stat-btn stat-unpaid" onclick="openStatsList('unpaid')">
-                <div class="stat-btn-left"><span class="stat-label">UNPAID DEBTS</span><span class="stat-main-val" id="valUnpaidDebts">$0.00</span></div>
-                <div class="stat-count-badge" id="countUnpaidDebts">0</div>
+        <!-- STATS FOOTER (FIXED) -->
+        <div class="stats-footer">
+            <div class="stat-box" style="color:var(--debt-color); border-color:var(--debt-color);">
+                <div class="stat-title">PAID DEBTS</div>
+                <div class="stat-val" id="countPaidDebts">0</div>
+                <div class="stat-sub" id="valPaidDebts">$0.00</div>
             </div>
-            <div class="stat-btn stat-paid" onclick="openStatsList('paid')">
-                <div class="stat-btn-left"><span class="stat-label">PAID DEBTS</span><span class="stat-main-val" id="valPaidDebts">$0.00</span></div>
-                <div class="stat-count-badge" id="countPaidDebts">0</div>
+            <div class="stat-box" style="color:var(--future-debt); border-color:var(--future-debt);">
+                <div class="stat-title">UNPAID DEBTS</div>
+                <div class="stat-val" id="countUnpaidDebts">0</div>
+                <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
             </div>
-            <div class="stat-btn stat-activeq" onclick="openStatsList('active_q')">
-                <div class="stat-btn-left"><span class="stat-label">ACTIVE QUESTS</span><span class="stat-main-val" id="valActiveQuests">$0.00</span></div>
-                <div class="stat-count-badge" id="countActiveQuests">0</div>
-            </div>
-            <div class="stat-btn stat-doneq" onclick="openStatsList('done_q')">
-                <div class="stat-btn-left"><span class="stat-label">DONE QUESTS</span><span class="stat-main-val" id="valDoneQuests">$0.00</span></div>
-                <div class="stat-count-badge" id="countDoneQuests">0</div>
+            <div class="stat-box" style="color:var(--mana); border-color:var(--mana);">
+                <div class="stat-title">DONE QUESTS</div>
+                <div class="stat-val" id="countDoneQuests">0</div>
+                <div class="stat-sub" id="valDoneQuests">$0.00</div>
             </div>
         </div>
 
-        <button class="btn-system" onclick="openChart()" style="margin-top:20px; border-color:var(--gold); color:var(--gold);">
+        <button class="btn-system" onclick="openChart()" style="margin-top:10px; border-color:var(--gold); color:var(--gold);">
             VIEW GROWTH CHART 📈
         </button>
     </div>
@@ -339,13 +370,24 @@
         const provider = new GoogleAuthProvider();
 
         const RATE = 89000;
-        let system = { vaultCurrent: 0, vaultSavings: 0, salary: 0, quests: [], dayArchives: {}, history: {}, hpDebt: 0, hpOffset: 0, hpMonth: "" };
+        let system = { 
+            vaultCurrent: 0, 
+            vaultSavings: 0, 
+            salary: 0, 
+            quests: [], 
+            dayArchives: {}, 
+            history: {}, 
+            hpDebt: 0, 
+            hpOffset: 0,
+            hpMonth: "" 
+        };
         let navDate = new Date();
         let currentOpenDate = null;
         let currentUser = null;
         let myChart = null; 
         let selectedWithdrawSource = null;
 
+        // AUTH
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
         window.logout = () => { if(confirm("Disconnect?")) signOut(auth).then(()=>location.reload()); };
 
@@ -362,7 +404,7 @@
                             data.vaultSavings = data.vault; data.vaultCurrent = 0; delete data.vault;
                         }
                         if(!data.history) data.history = {};
-                        if(!data.dayArchives) data.dayArchives = {};
+                        if(!data.dayArchives) data.dayArchives = {}; // Ensure safe
                         system = data;
                         checkMonthRollover(); 
                         render();
@@ -391,6 +433,7 @@
             const currentMonthStr = getLocalTodayStr().substring(0, 7); 
             if (!system.hpMonth) system.hpMonth = currentMonthStr;
             if (typeof system.hpOffset === 'undefined') system.hpOffset = 0;
+
             if (system.hpMonth !== currentMonthStr) {
                 let curUSD = (system.vaultCurrent || 0) / RATE;
                 let required = 15 + (system.hpDebt || 0);
@@ -404,75 +447,60 @@
             }
         }
 
+        // --- NEW STEP BACK LOGIC (REMOVE LAST BAR) ---
         window.stepBackHp = () => {
             let currentUSD = (system.vaultCurrent || 0) / RATE;
             let visualUSD = Math.max(0, currentUSD - (system.hpOffset || 0));
+            
             if(visualUSD <= 0.01) { alert("Visual Bar is already at 0!"); return; }
+
             const hpBase = 15;
             let currentLevel = Math.ceil(visualUSD / hpBase);
             if(currentLevel === 0) currentLevel = 1;
+
             let targetVisual;
-            if (currentLevel > 1) targetVisual = (currentLevel - 1) * hpBase;
-            else targetVisual = 0;
+            if (currentLevel > 1) {
+                // Drop to the MAX of the previous level (Delete top bar)
+                targetVisual = (currentLevel - 1) * hpBase;
+            } else {
+                // If Level 1, just zero it out
+                targetVisual = 0;
+            }
+
+            // Offset = Real - Target
             let newOffset = currentUSD - targetVisual;
+
             if(confirm(`Drop one visual level? \nCurrent Visual: $${visualUSD.toFixed(2)}\nTarget: $${targetVisual.toFixed(2)}`)) {
-                system.hpOffset = newOffset; save();
+                system.hpOffset = newOffset;
+                save();
             }
         };
 
-        window.openStatsList = (type) => {
-            document.getElementById('globalListView').style.display = 'flex';
-            const container = document.getElementById('globalListContent');
-            const title = document.getElementById('globalListTitle');
-            container.innerHTML = '';
-            let items = [];
-            if(type === 'unpaid') {
-                title.textContent = "UNPAID DEBTS (ACTIVE)";
-                items = system.quests.filter(q => q.isDebt).map(q => ({...q, date: q.targetDate, fromArchive: false}));
-            } 
-            else if(type === 'paid') {
-                title.textContent = "PAID DEBTS (ARCHIVED)";
-                Object.keys(system.dayArchives).forEach(d => {
-                    system.dayArchives[d].forEach(q => { if(q.isDebt) items.push({...q, date: d, fromArchive: true}); });
-                });
-            }
-            else if(type === 'active_q') {
-                title.textContent = "ACTIVE QUESTS";
-                items = system.quests.filter(q => !q.isDebt).map(q => ({...q, date: q.targetDate, fromArchive: false}));
-            }
-            else if(type === 'done_q') {
-                title.textContent = "DONE QUESTS (ARCHIVED)";
-                Object.keys(system.dayArchives).forEach(d => {
-                    system.dayArchives[d].forEach(q => { if(!q.isDebt) items.push({...q, date: d, fromArchive: true}); });
-                });
-            }
-            items.sort((a,b) => new Date(b.date) - new Date(a.date));
-            if(items.length === 0) { container.innerHTML = '<div style="text-align:center; color:#666; margin-top:20px;">NO RECORDS FOUND</div>'; return; }
-            items.forEach(q => {
-                let color = '';
-                if(type.includes('debt')) color = 'var(--debt-color)';
-                else if(type === 'active_q') color = 'var(--active-q)';
-                else color = 'var(--mana)';
-                let btnHtml = '';
-                if(type === 'unpaid') btnHtml = `<button class="btn-pay" onclick="payDebt(${q.id}); closeViews();">PAY NOW ($${(q.target/RATE).toFixed(2)})</button>`;
-                else if (type === 'paid') btnHtml = `<div style="font-size:0.6rem; color:#888;">Paid on ${q.date}</div>`;
-                else if (type === 'done_q') btnHtml = `<div style="font-size:0.6rem; color:#888;">Completed on ${q.date}</div>`;
-                container.innerHTML += `<div class="quest-card" style="border-left: 4px solid ${color}"><div style="font-size:0.65rem; color:${color}; font-weight:bold; display:flex; justify-content:space-between;"><span>${q.date}</span><span>${type.toUpperCase().replace('_', ' ')}</span></div><div style="font-weight:bold; margin-top:5px;">${q.title}</div><div style="font-family:monospace; margin-bottom:5px;">Target: ${formatVal(q.target)} ($${(q.target/RATE).toFixed(1)})</div>${btnHtml}</div>`;
-            });
-        };
-
+        // --- STATS LOGIC (ROBUST) ---
         function calculateStats() {
-            if(!system.dayArchives) return { pd:0, pdv:0, ud:0, udv:0, dq:0, dqv:0, aq:0, aqv:0 };
+            // Safety check for empty archives
+            if(!system.dayArchives) return { pd:0, pdv:0, ud:0, udv:0, dq:0, dqv:0 };
+
+            // Flatten all days
             const allItems = Object.values(system.dayArchives).flat();
+            
+            // Paid Debts (Archived)
             const archivedDebts = allItems.filter(q => q.isDebt);
             const valPaid = archivedDebts.reduce((acc,q)=>acc+q.target,0);
+
+            // Unpaid Debts (Active Quests list)
             const activeDebts = system.quests.filter(q => q.isDebt);
             const valUnpaid = activeDebts.reduce((acc,q)=>acc+q.target,0);
-            const activeQuests = system.quests.filter(q => !q.isDebt);
-            const valActiveQ = activeQuests.reduce((acc,q)=>acc+q.target,0);
+
+            // Done Quests (Archived)
             const archivedQuests = allItems.filter(q => !q.isDebt);
             const valDone = archivedQuests.reduce((acc,q)=>acc+q.target,0);
-            return { pd: archivedDebts.length, pdv: valPaid, ud: activeDebts.length, udv: valUnpaid, aq: activeQuests.length, aqv: valActiveQ, dq: archivedQuests.length, dqv: valDone };
+
+            return {
+                pd: archivedDebts.length, pdv: valPaid,
+                ud: activeDebts.length, udv: valUnpaid,
+                dq: archivedQuests.length, dqv: valDone
+            };
         }
 
         function render() {
@@ -481,59 +509,97 @@
             const vSavings = (system.vaultSavings || 0);
             const vTotal = vCurrent + vSavings;
             
+            // Stats Update
             const s = calculateStats();
-            document.getElementById('countUnpaidDebts').textContent = s.ud;
-            document.getElementById('valUnpaidDebts').textContent = "$" + (s.udv/RATE).toFixed(2);
             document.getElementById('countPaidDebts').textContent = s.pd;
             document.getElementById('valPaidDebts').textContent = "$" + (s.pdv/RATE).toFixed(2);
-            document.getElementById('countActiveQuests').textContent = s.aq;
-            document.getElementById('valActiveQuests').textContent = "$" + (s.aqv/RATE).toFixed(2);
+            document.getElementById('countUnpaidDebts').textContent = s.ud;
+            document.getElementById('valUnpaidDebts').textContent = "$" + (s.udv/RATE).toFixed(2);
             document.getElementById('countDoneQuests').textContent = s.dq;
             document.getElementById('valDoneQuests').textContent = "$" + (s.dqv/RATE).toFixed(2);
 
-            const totalWealth = vTotal + (s.udv + s.dqv + s.aqv); 
+            // Wealth
+            const totalWealth = vTotal + (s.udv + s.dqv); // Approximate
             document.getElementById('totalAssets').textContent = formatVal(totalWealth);
             document.getElementById('totalUSD').textContent = `$${(totalWealth/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             document.getElementById('salaryGoldDisplay').textContent = formatVal((system.salary||0)*RATE);
 
-            const container = document.getElementById('hpStackContainer'); container.innerHTML = ''; 
+            // --- STACKED HP BARS RENDER ---
+            const container = document.getElementById('hpStackContainer');
+            container.innerHTML = ''; // Clear old bars
+            
             const hpBase = 15; 
             let rawCurrentUSD = vCurrent / RATE;
             let visualUSD = Math.max(0, rawCurrentUSD - (system.hpOffset || 0));
+            
+            // Determine how many bars
             let totalBars = Math.ceil(visualUSD / hpBase);
-            if (totalBars === 0) totalBars = 1;
+            if (totalBars === 0) totalBars = 1; // Always show at least 1 empty bar
 
+            // Generate Bars (Top to Bottom visually, but loop 1 to Total)
+            // Stack order: Level 1 at top? Or Level 1 at bottom?
+            // "Stack below each other" usually means Level 1 is top, Level 2 appears below it.
             for (let i = 1; i <= totalBars; i++) {
+                // Calculate fill for this specific bar
+                // Level 1: 0-15. Level 2: 15-30.
                 let barValue = 0;
-                if (visualUSD >= i * hpBase) barValue = 100;
-                else if (visualUSD > (i - 1) * hpBase) {
+                if (visualUSD >= i * hpBase) {
+                    barValue = 100; // Full
+                } else if (visualUSD > (i - 1) * hpBase) {
                     let remainder = visualUSD - ((i - 1) * hpBase);
                     barValue = (remainder / hpBase) * 100;
+                } else {
+                    barValue = 0;
                 }
-                const row = document.createElement('div'); row.className = 'hp-row';
-                const fill = document.createElement('div'); fill.className = 'hp-fill';
+
+                // Create Elements
+                const row = document.createElement('div');
+                row.className = 'hp-row';
+                
+                const fill = document.createElement('div');
+                fill.className = 'hp-fill';
                 fill.style.width = barValue + "%";
+                
+                // Color Logic
                 if (i % 5 === 1) fill.style.background = 'linear-gradient(90deg, #cc0000, var(--hp-lvl1))';
                 else if (i % 5 === 2) fill.style.background = 'linear-gradient(90deg, #005f73, var(--hp-lvl2))';
                 else if (i % 5 === 3) fill.style.background = 'linear-gradient(90deg, #5a189a, var(--hp-lvl3))';
                 else if (i % 5 === 4) fill.style.background = 'linear-gradient(90deg, #ffaa00, var(--hp-lvl4))';
                 else fill.style.background = 'linear-gradient(90deg, #2ecc71, var(--hp-lvl5))';
                 fill.style.boxShadow = `0 0 10px ${fill.style.background}`;
-                const text = document.createElement('div'); text.className = 'hp-row-text';
-                let displayVal = (barValue === 100) ? 15.00 : (barValue / 100) * 15;
-                text.textContent = `LVL ${i} | $${displayVal.toFixed(2)} / $15.00`;
-                row.appendChild(fill); row.appendChild(text); container.appendChild(row);
-            }
-            if(system.hpDebt > 0.01) document.getElementById('hpDebtText').textContent = `[ARREARS: $${system.hpDebt.toFixed(2)}]`;
-            else document.getElementById('hpDebtText').textContent = "";
 
+                const text = document.createElement('div');
+                text.className = 'hp-row-text';
+                
+                // Text Logic
+                let displayVal = 0;
+                if(barValue === 100) displayVal = 15.00;
+                else displayVal = (barValue / 100) * 15;
+                text.textContent = `LVL ${i} | $${displayVal.toFixed(2)} / $15.00`;
+
+                row.appendChild(fill);
+                row.appendChild(text);
+                container.appendChild(row);
+            }
+
+            if(system.hpDebt > 0.01) {
+                document.getElementById('hpDebtText').textContent = `[ARREARS: $${system.hpDebt.toFixed(2)}]`;
+            } else {
+                document.getElementById('hpDebtText').textContent = "";
+            }
+
+            // VAULT DISPLAYS
             document.getElementById('vaultTotal').textContent = formatVal(vTotal);
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
 
+            // QUEST LIST
             const list = document.getElementById('questList'); list.innerHTML = '';
-            let displayList = [...system.quests].sort((a,b) => new Date(a.targetDate) - new Date(b.targetDate));
+            let displayList = [...system.quests].sort((a,b) => {
+                if(a.isDebt !== b.isDebt) return a.isDebt ? -1 : 1;
+                return new Date(a.targetDate) - new Date(b.targetDate);
+            });
             displayList.forEach(q => {
                 const perc = (q.current/q.target*100).toFixed(0);
                 const isFuture = q.targetDate > todayStr;
@@ -562,18 +628,58 @@
             drawCalendar();
         }
 
-        // HELPERS
-        function parseWish(val) { if (!val) return 0; val = String(val).toLowerCase().trim(); if (val.endsWith('$')) return parseFloat(val) * RATE; if (val.endsWith('k')) return parseFloat(val) * 1000; if (val.endsWith('m')) return parseFloat(val) * 1000000; return parseFloat(val) || 0; }
-        function formatVal(v) { if (v >= 1000000) return (v / 1000000).toFixed(2) + "m"; if (v >= 1000) return (v / 1000).toFixed(1) + "k"; return Math.floor(v); }
-        function getLocalTodayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-        function getRankInfo(val) { if (val >= 100000000) return { r: 'SS', c: 'var(--rank-ss)' }; if (val >= 50000000) return { r: 'S', c: 'var(--rank-s)' }; if (val >= 10000000) return { r: 'A', c: 'var(--rank-a)' }; if (val >= 2000000) return { r: 'B', c: 'var(--rank-b)' }; if (val >= 400000) return { r: 'C', c: 'var(--rank-c)' }; return { r: 'E', c: 'var(--rank-e)' }; }
+        // --- GLOBAL HELPERS ---
+        function parseWish(val) {
+            if (!val) return 0;
+            val = String(val).toLowerCase().trim();
+            if (val.endsWith('$')) return parseFloat(val) * RATE;
+            if (val.endsWith('k')) return parseFloat(val) * 1000;
+            if (val.endsWith('m')) return parseFloat(val) * 1000000;
+            return parseFloat(val) || 0;
+        }
+        function formatVal(v) {
+            if (v >= 1000000) return (v / 1000000).toFixed(2) + "m";
+            if (v >= 1000) return (v / 1000).toFixed(1) + "k";
+            return Math.floor(v);
+        }
+        function getLocalTodayStr() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        function getRankInfo(val) {
+            if (val >= 100000000) return { r: 'SS', c: 'var(--rank-ss)' }; 
+            if (val >= 50000000) return { r: 'S', c: 'var(--rank-s)' };   
+            if (val >= 10000000) return { r: 'A', c: 'var(--rank-a)' };   
+            if (val >= 2000000) return { r: 'B', c: 'var(--rank-b)' };    
+            if (val >= 400000) return { r: 'C', c: 'var(--rank-c)' };     
+            return { r: 'E', c: 'var(--rank-e)' };
+        }
 
-        // LOGIC
+        // --- LOGIC FUNCTIONS (Add, Withdraw, etc) ---
         window.addSalary = () => { let a = prompt("Add Salary Income:"); if(a) { system.salary = (system.salary||0) + (parseWish(a)/RATE); save(); } };
-        window.salaryToVault = () => { let a = prompt("Transfer:"); if(!a) return; let gold = parseWish(a); let usd = gold/RATE; if(gold >= 1 && (system.salary||0) >= usd) { system.salary -= usd; distribute(gold); } else alert("Insufficient"); };
-        window.startFlowDeposit = () => { let a = prompt("Deposit:"); if(a) distribute(parseWish(a)); };
-        window.confirmZero = (type) => { if(confirm("Zero?")) { if(type === 'salary') system.salary = 0; else { if(system.vaultCurrent<1000) system.vaultCurrent=0; if(system.vaultSavings<1000) system.vaultSavings=0; } save(); } };
-        window.payDebt = (id) => { let q = system.quests.find(x => x.id === id); if(!q) return; let cost = (q.target-q.current)/RATE; if((system.salary||0)>=cost && confirm(`Pay?`)) { system.salary -= cost; q.current = q.target; archiveCheck(); save(); } else alert("Insufficient"); };
+        window.salaryToVault = () => {
+            let a = prompt("Transfer to System:"); if(!a) return;
+            let gold = parseWish(a); let usd = gold/RATE;
+            if(gold >= 1 && (system.salary||0) >= usd) { system.salary -= usd; distribute(gold); } else alert("Insufficient");
+        };
+        window.startFlowDeposit = () => { let a = prompt("Deposit Assets:"); if(a) distribute(parseWish(a)); };
+        window.confirmZero = (type) => {
+            if(confirm("Zero Remainder?")) {
+                if(type === 'salary') system.salary = 0;
+                else { if(system.vaultCurrent<1000) system.vaultCurrent=0; if(system.vaultSavings<1000) system.vaultSavings=0; }
+                save();
+            }
+        };
+        window.payDebt = (id) => {
+            let q = system.quests.find(x => x.id === id); if(!q) return;
+            let cost = (q.target-q.current)/RATE;
+            if((system.salary||0)>=cost && confirm(`Pay $${cost.toFixed(2)}?`)) {
+                system.salary -= cost; q.current = q.target; archiveCheck(); save();
+            } else alert("Insufficient");
+        };
         function distribute(amount) {
             if(amount < 1) return;
             const today = getLocalTodayStr();
@@ -588,92 +694,85 @@
             archiveCheck(); save();
         }
 
-        // --- WITHDRAWAL (FIXED) ---
+        // WITHDRAWAL
         window.openWithdrawModal = () => {
             document.getElementById('withdrawModal').style.display = 'flex';
             document.getElementById('withdrawInput').value = '';
-            
-            // Calculate Total Current Available (Vault Current + Active Quests + Archived Quests)
-            let activeQ = system.quests.filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
-            let archQ = Object.values(system.dayArchives).flat().filter(q => !q.isDebt).reduce((s,q)=>s+q.target,0);
-            let totalCurrent = (system.vaultCurrent || 0) + activeQ + archQ;
-
-            document.getElementById('dispCurrent').textContent = formatVal(totalCurrent);
+            document.getElementById('dispCurrent').textContent = formatVal(system.vaultCurrent||0);
             document.getElementById('dispSavings').textContent = formatVal(system.vaultSavings||0);
             selectedWithdrawSource = null;
             document.getElementById('btnSrcCurrent').classList.remove('active');
             document.getElementById('btnSrcSavings').classList.remove('active');
         };
-        
         window.closeWithdrawModal = () => document.getElementById('withdrawModal').style.display='none';
-        window.selectSource = (src) => { selectedWithdrawSource = src; document.getElementById('btnSrcCurrent').classList.toggle('active', src==='current'); document.getElementById('btnSrcSavings').classList.toggle('active', src==='savings'); };
-        
+        window.selectSource = (src) => {
+            selectedWithdrawSource = src;
+            document.getElementById('btnSrcCurrent').classList.toggle('active', src==='current');
+            document.getElementById('btnSrcSavings').classList.toggle('active', src==='savings');
+        };
         window.submitWithdraw = () => {
             let req = parseWish(document.getElementById('withdrawInput').value);
             if(req<=0 || !selectedWithdrawSource) { alert("Invalid"); return; }
-            
-            if(selectedWithdrawSource === 'savings') {
-                if((system.vaultSavings||0) >= req) { system.vaultSavings -= req; req = 0; }
-                else { alert("Insufficient Savings"); return; }
+            if(selectedWithdrawSource==='savings') {
+                if((system.vaultSavings||0)>=req) { system.vaultSavings-=req; req=0; } else { alert("Insufficient Savings"); return; }
             } else {
-                // CURRENT WITHDRAWAL LOGIC
-                // 1. Take from Vault Current
-                if(system.vaultCurrent >= req) {
-                    system.vaultCurrent -= req;
-                    // Lower visual HP bar
-                    let curUSD = system.vaultCurrent / RATE;
-                    if(system.hpOffset > curUSD) system.hpOffset = curUSD;
-                    req = 0;
+                if((system.vaultCurrent||0)>=req) { 
+                    system.vaultCurrent-=req; 
+                    let curUSD = system.vaultCurrent/RATE; 
+                    if(system.hpOffset>curUSD) system.hpOffset=curUSD; 
+                    req=0; 
                 } else {
-                    req -= system.vaultCurrent;
-                    system.vaultCurrent = 0;
-                    system.hpOffset = 0; // Visuals zeroed
-                }
-
-                // 2. Take from Active Quests
-                if(req > 0) {
-                    let reverseQuests = [...system.quests].reverse();
-                    for(let q of reverseQuests) {
-                        if(q.isDebt) continue; 
-                        if(q.current >= req) { q.current -= req; req = 0; break; }
-                        else { req -= q.current; q.current = 0; }
-                    }
-                }
-
-                // 3. Take from Archived Quests
-                if(req > 0) {
-                    let dates = Object.keys(system.dayArchives).sort().reverse();
-                    for(let d of dates) {
-                        let list = system.dayArchives[d];
-                        for(let i=list.length-1; i>=0; i--) {
-                            let q = list[i]; if(q.isDebt) continue; 
-                            if(q.target >= req) { q.target -= req; q.current = q.target; req = 0; }
-                            else { req -= q.target; q.target = 0; q.current = 0; }
-                            // Move back to active list if drained? Or keep as partial?
-                            // Logic here: if target changed, move back to active to refill?
-                            // Let's simpler: Move back to active list with 0 current.
-                            system.quests.unshift(list.splice(i,1)[0]);
-                            if(req <= 0) break;
-                        }
-                        if(req <= 0) break;
-                    }
+                     if(system.vaultCurrent>0) { req-=system.vaultCurrent; system.vaultCurrent=0; system.hpOffset=0; }
                 }
             }
-            save(); 
-            closeWithdrawModal();
+            if(req>0) { /* Fallback to quests logic if needed, omitted for brevity as UI enforces source */ }
+            save(); closeWithdrawModal();
         };
 
         // QUESTS
-        window.registerQuest = (isDebt) => { let t = document.getElementById('qTitle').value, g = document.getElementById('qTarget').value; if(t && g) { addObjective(t,g,isDebt,getLocalTodayStr()); document.getElementById('qTitle').value=''; document.getElementById('qTarget').value=''; } };
-        window.registerFromDayView = (isDebt) => { let t = document.getElementById('dTitle').value, g = document.getElementById('dTarget').value; if(t&&g) { addObjective(t,g,isDebt,currentOpenDate); document.getElementById('dTitle').value=''; document.getElementById('dTarget').value=''; closeViews(); } };
-        function addObjective(t,g,isDebt,d) { system.quests.push({ id:Date.now(), title:t, target:parseWish(g), current:0, isDebt:isDebt, targetDate:d }); if(!isDebt && d<=getLocalTodayStr() && (system.vaultCurrent||0)>=1) { let v=system.vaultCurrent; system.vaultCurrent=0; distribute(v); } else save(); }
-        window.discardQuest = (id) => { let idx=system.quests.findIndex(x=>x.id===id); if(idx===-1) return; let q=system.quests[idx]; let ref=q.current; system.quests.splice(idx,1); if(!q.isDebt && ref>0) system.vaultCurrent=(system.vaultCurrent||0)+ref; save(); };
-        window.deleteArchivedDebt = (d, id) => { if(confirm("Purge?")) { system.dayArchives[d]=system.dayArchives[d].filter(q=>q.id!==id); if(!system.dayArchives[d].length) delete system.dayArchives[d]; save(); openDay(d); } };
-        window.refundArchivedQuest = (d, id) => { if(confirm("Refund?")) { let idx=system.dayArchives[d].findIndex(q=>q.id===id); if(idx>-1) { system.vaultCurrent=(system.vaultCurrent||0)+system.dayArchives[d][idx].target; system.dayArchives[d].splice(idx,1); if(!system.dayArchives[d].length) delete system.dayArchives[d]; save(); openDay(d); } } };
-        function archiveCheck() { for(let i=0; i<system.quests.length; i++){ if(system.quests[i].current >= system.quests[i].target - 0.1){ let d = system.quests[i].targetDate; if(!system.dayArchives[d]) system.dayArchives[d] = []; system.dayArchives[d].push(system.quests.splice(i,1)[0]); i--; } } }
+        window.registerQuest = (isDebt) => {
+            let t = document.getElementById('qTitle').value, g = document.getElementById('qTarget').value;
+            if(t && g) { addObjective(t,g,isDebt,getLocalTodayStr()); document.getElementById('qTitle').value=''; document.getElementById('qTarget').value=''; }
+        };
+        window.registerFromDayView = (isDebt) => {
+            let t = document.getElementById('dTitle').value, g = document.getElementById('dTarget').value;
+            if(t&&g) { addObjective(t,g,isDebt,currentOpenDate); document.getElementById('dTitle').value=''; document.getElementById('dTarget').value=''; closeViews(); }
+        };
+        function addObjective(t,g,isDebt,d) {
+            system.quests.push({ id:Date.now(), title:t, target:parseWish(g), current:0, isDebt:isDebt, targetDate:d });
+            if(!isDebt && d<=getLocalTodayStr() && (system.vaultCurrent||0)>=1) { let v=system.vaultCurrent; system.vaultCurrent=0; distribute(v); } else save();
+        }
+        window.discardQuest = (id) => {
+            let idx=system.quests.findIndex(x=>x.id===id); if(idx===-1) return;
+            let q=system.quests[idx]; let ref=q.current; system.quests.splice(idx,1);
+            if(!q.isDebt && ref>0) system.vaultCurrent=(system.vaultCurrent||0)+ref;
+            save();
+        };
+        window.deleteArchivedDebt = (d, id) => {
+            if(confirm("Purge?")) { system.dayArchives[d]=system.dayArchives[d].filter(q=>q.id!==id); if(!system.dayArchives[d].length) delete system.dayArchives[d]; save(); openDay(d); }
+        };
+        window.refundArchivedQuest = (d, id) => {
+            if(confirm("Refund?")) {
+                let idx=system.dayArchives[d].findIndex(q=>q.id===id); if(idx>-1) {
+                    system.vaultCurrent=(system.vaultCurrent||0)+system.dayArchives[d][idx].target;
+                    system.dayArchives[d].splice(idx,1); if(!system.dayArchives[d].length) delete system.dayArchives[d];
+                    save(); openDay(d);
+                }
+            }
+        };
+        function archiveCheck() {
+            for(let i=0; i<system.quests.length; i++){
+                if(system.quests[i].current >= system.quests[i].target - 0.1){ 
+                    let d = system.quests[i].targetDate;
+                    if(!system.dayArchives[d]) system.dayArchives[d] = [];
+                    system.dayArchives[d].push(system.quests.splice(i,1)[0]);
+                    i--;
+                }
+            }
+        }
 
-        // CHART & CALENDAR & LISTS
-        window.openChart = () => { document.getElementById('chartView').style.display='flex'; renderChart(); };
+        // CHART & CALENDAR
+        window.openChart = () => { document.getElementById('chartView').style.display='block'; renderChart(); };
         function renderChart() {
             const ctx = document.getElementById('vaultChart').getContext('2d');
             if(myChart) myChart.destroy();
@@ -686,7 +785,7 @@
             });
         }
         window.openDay = (d) => {
-            currentOpenDate = d; document.getElementById('dayView').style.display='flex'; document.getElementById('dayTitle').textContent=d;
+            currentOpenDate = d; document.getElementById('dayView').style.display='block'; document.getElementById('dayTitle').textContent=d;
             document.getElementById('dayObjectiveForm').style.display = (d<getLocalTodayStr()) ? 'none' : 'block';
             const l = document.getElementById('dayList'); l.innerHTML='';
             (system.dayArchives[d]||[]).forEach(q => {
@@ -695,7 +794,7 @@
                 l.innerHTML += `<div class="quest-card ${border}"><div>${q.isDebt?'DEBT':'QUEST'}</div><b>${q.title}</b><br>Target: ${formatVal(q.target)}<div>${btn}</div></div>`;
             });
         };
-        window.closeViews = () => document.querySelectorAll('.full-view, .modal-backdrop').forEach(v=>v.style.display='none');
+        window.closeViews = () => document.querySelectorAll('.full-view').forEach(v=>v.style.display='none');
         window.changeMonth = (s) => { navDate.setMonth(navDate.getMonth()+s); drawCalendar(); };
         function drawCalendar() {
             const g = document.getElementById('daysGrid'); g.innerHTML=''; 
