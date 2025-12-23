@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V9.0 (SMART HP)</title>
+    <title>SUNG JIN-WOO SYSTEM | V10.0 (SPLIT VAULT)</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -11,10 +11,9 @@
             /* Logic Colors */
             --mana: #00d2ff;      /* Current Quest */
             --debt-color: #bc13fe; /* Current Debt */
-            --future-quest: #f1c40f; 
-            --future-debt: #e74c3c;  
-            --hp-bg: #4a0000;     /* HP Bar Background */
-            --hp-fill: #ff0000;   /* HP Bar Fill */
+            --hp-bg: #4a0000;     
+            --hp-fill: #ff0000;   
+            --hp-safe: #50fa7b;   /* Color when completed */
 
             /* Rank Colors */
             --rank-ss: #ffcc00; --rank-s: #ff3131; --rank-a: #bc13fe;
@@ -50,9 +49,19 @@
             margin-bottom: 15px;
             border-radius: 4px;
         }
-        .hp-label { font-size: 0.7rem; color: #ff6b6b; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .hp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .hp-label { font-size: 0.7rem; color: #ff6b6b; font-weight: bold; }
+        
+        /* Reset Button */
+        .btn-reset-hp {
+            background: none; border: 1px solid #444; color: #888;
+            font-size: 0.6rem; padding: 2px 6px; cursor: pointer;
+            border-radius: 3px; transition: 0.2s;
+        }
+        .btn-reset-hp:active { background: #fff; color: #000; }
+
         .hp-bar-container {
-            height: 20px;
+            height: 25px;
             background: var(--hp-bg);
             border: 1px solid #550000;
             position: relative;
@@ -66,13 +75,17 @@
             transition: width 0.5s ease-in-out;
             box-shadow: 0 0 10px #ff0000;
         }
+        .hp-fill.completed {
+            background: linear-gradient(90deg, #2ecc71, #50fa7b);
+            box-shadow: 0 0 10px #50fa7b;
+        }
         .hp-text {
             position: absolute;
             width: 100%;
             text-align: center;
             top: 0;
-            line-height: 20px;
-            font-size: 0.75rem;
+            line-height: 25px;
+            font-size: 0.8rem;
             color: white;
             font-weight: bold;
             text-shadow: 1px 1px 2px black;
@@ -140,6 +153,12 @@
 
         .archive-debt { border-left: 4px solid var(--debt-color) !important; }
         .archive-quest { border-left: 4px solid var(--mana) !important; }
+
+        /* SPLIT VAULT STYLES */
+        .vault-split { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; border-top: 1px solid #333; padding-top: 8px; }
+        .v-col { text-align: center; }
+        .v-lbl { font-size: 0.55rem; color: #888; letter-spacing: 1px; }
+        .v-val { font-size: 0.9rem; color: var(--text); font-family: monospace; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -155,16 +174,17 @@
         
         <!-- HP BAR SECTION -->
         <div class="hp-section">
-            <div class="hp-label">
-                <span>SYSTEM PENALTY (MONTHLY)</span>
-                <span id="hpStatusText" style="color:var(--danger)"></span>
+            <div class="hp-header">
+                <div class="hp-label">MONTHLY PENALTY <span id="hpDebtText" style="color:var(--danger)"></span></div>
+                <button class="btn-reset-hp" onclick="resetHpVisual()" title="Zero the visual counter">[ ⟳ ]</button>
             </div>
+            
             <div class="hp-bar-container">
                 <div class="hp-fill" id="hpFill"></div>
                 <div class="hp-text" id="hpText">Loading...</div>
             </div>
             <div style="font-size:0.6rem; color:#666; margin-top:4px; text-align:center;">
-                Visual Tracker: Adds up monthly deposits. Resets every month.
+                Target: $15.00/Month. Current deposits only.
             </div>
         </div>
 
@@ -190,7 +210,7 @@
                 <div id="playerRankBadge" class="rank-tag" style="color:var(--rank-e)">RANK E</div>
             </div>
             
-            <div style="font-size:0.6rem; color:#888; letter-spacing:1px; margin-top:5px;">NET WORTH (VAULT + QUESTS)</div>
+            <div style="font-size:0.6rem; color:#888; letter-spacing:1px; margin-top:5px;">NET WORTH (ALL ASSETS)</div>
             <span class="gold-main" id="totalAssets">0</span>
             <span id="totalUSD" style="text-align:center; display:block; color:var(--success); font-weight:bold; font-size:1.1rem;">$0.00</span>
         </div>
@@ -200,10 +220,25 @@
             <button class="btn-system btn-withdraw" style="border-color:var(--danger); color:var(--danger);" onclick="globalWithdraw()">Withdrawal</button>
         </div>
 
-        <div class="vault-container" style="border:1px solid var(--inventory); padding:12px; text-align:center; margin-bottom:15px;">
-            <div style="font-size:0.6rem; color:var(--inventory); letter-spacing:1px;">STORAGE VAULT</div>
-            <div id="vaultAmount" style="font-size:1.5rem; color:var(--inventory); font-weight:bold; font-family:monospace;">0</div>
-            <button id="zeroVault" class="btn-zero" onclick="confirmZero('vault')">Zero Remainder (<1k)</button>
+        <!-- SPLIT VAULT CONTAINER -->
+        <div class="vault-container" style="border:1px solid var(--inventory); padding:12px; margin-bottom:15px;">
+            <div style="text-align:center;">
+                <div style="font-size:0.6rem; color:var(--inventory); letter-spacing:1px;">TOTAL STORAGE</div>
+                <div id="vaultTotal" style="font-size:1.5rem; color:var(--inventory); font-weight:bold; font-family:monospace;">0</div>
+            </div>
+            
+            <div class="vault-split">
+                <div class="v-col">
+                    <div class="v-lbl" style="color:var(--hp-safe);">THIS MONTH</div>
+                    <div class="v-val" id="vaultCurrentDisplay">0</div>
+                </div>
+                <div class="v-col" style="border-left:1px solid #333;">
+                    <div class="v-lbl" style="color:#888;">SAVINGS</div>
+                    <div class="v-val" id="vaultSavingsDisplay">0</div>
+                </div>
+            </div>
+            
+            <button id="zeroVault" class="btn-zero" style="width:100%;" onclick="confirmZero('vault')">Zero Remainder (<1k)</button>
         </div>
 
         <div class="calendar-box">
@@ -288,8 +323,17 @@
         const provider = new GoogleAuthProvider();
 
         const RATE = 89000;
-        // system includes hpCurrent (Visual USD added this month), hpMonth (YYYY-MM)
-        let system = { vault: 0, salary: 0, quests: [], dayArchives: {}, hpCurrent: 0, hpMonth: "" };
+        // system: vaultCurrent (Gold), vaultSavings (Gold), hpDebt (USD), hpOffset (USD - for visual reset), hpMonth (Str)
+        let system = { 
+            vaultCurrent: 0, 
+            vaultSavings: 0, 
+            salary: 0, 
+            quests: [], 
+            dayArchives: {}, 
+            hpDebt: 0, 
+            hpOffset: 0,
+            hpMonth: "" 
+        };
         let navDate = new Date();
         let currentOpenDate = null;
         let currentUser = null;
@@ -308,6 +352,14 @@
                 onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
+                        
+                        // Migration for old versions that used 'vault'
+                        if(data.vault !== undefined && data.vaultSavings === undefined) {
+                            data.vaultSavings = data.vault;
+                            data.vaultCurrent = 0;
+                            delete data.vault;
+                        }
+
                         system = data;
                         checkMonthRollover(); 
                         render();
@@ -332,15 +384,33 @@
         function checkMonthRollover() {
             const currentMonthStr = getLocalTodayStr().substring(0, 7); // YYYY-MM
             
-            // Initialize if new or undefined
+            // Initialize
             if (!system.hpMonth) system.hpMonth = currentMonthStr;
-            if (typeof system.hpCurrent === 'undefined') system.hpCurrent = 0;
+            if (typeof system.hpOffset === 'undefined') system.hpOffset = 0;
 
-            // NEW MONTH RESET
+            // ROLOVER: New Month Detected
             if (system.hpMonth !== currentMonthStr) {
-                // Reset Visual Bar to 0. 
-                // Vault money STAYS in Vault (User requirement).
-                system.hpCurrent = 0;
+                
+                // 1. Calculate Debt from Current Fund status
+                // Did the user deposit enough this month?
+                // Logic: (CurrentUSD - Offset) is visual, but actual debt is based on real money flow?
+                // Actually, debt is typically if you didn't pay the system.
+                // Let's stick to strict money: If vaultCurrent < 15, difference is debt.
+                let curUSD = (system.vaultCurrent || 0) / RATE;
+                let required = 15 + (system.hpDebt || 0);
+                
+                if (curUSD < required) {
+                    system.hpDebt = required - curUSD;
+                } else {
+                    system.hpDebt = 0; // Paid off
+                }
+
+                // 2. Move Current Funds to Savings
+                system.vaultSavings = (system.vaultSavings || 0) + (system.vaultCurrent || 0);
+                system.vaultCurrent = 0;
+                
+                // 3. Reset Visual Offset and Month
+                system.hpOffset = 0;
                 system.hpMonth = currentMonthStr; 
                 
                 save();
@@ -406,8 +476,14 @@
         };
 
         window.confirmZero = (type) => {
-            if(confirm(`Clean up the remaining fraction (less than 1000) from ${type}?`)) {
-                if(type === 'salary') system.salary = 0; else system.vault = 0;
+            if(confirm(`Clean up the remaining fraction (less than 1000)?`)) {
+                if(type === 'salary') system.salary = 0; 
+                else {
+                    // Zeroing Vault checks total, usually removes from Savings mostly?
+                    // To be safe, we just remove small dust from current then savings
+                    if(system.vaultCurrent < 1000) system.vaultCurrent = 0;
+                    if(system.vaultSavings < 1000) system.vaultSavings = 0;
+                }
                 save();
             }
         };
@@ -430,16 +506,11 @@
             }
         };
 
-        // --- CORE LOGIC: DISTRIBUTE ---
+        // --- CORE: DISTRIBUTE (DEPOSIT) ---
         function distribute(amount) {
             if(amount < 1) return;
             
-            // 1. ADD TO HP (VISUAL ONLY)
-            // It just tracks how much entered this month.
-            let amountUSD = amount / RATE;
-            system.hpCurrent = (system.hpCurrent || 0) + amountUSD;
-
-            // 2. QUESTS FILL
+            // 1. QUESTS FILL
             const today = getLocalTodayStr(); 
             system.quests.sort((a,b) => a.id - b.id);
             for (let q of system.quests) {
@@ -454,12 +525,25 @@
                 if(amount <= 0) break;
             }
 
-            // 3. VAULT FILL (Remaining amount)
-            if(amount > 0) system.vault = (system.vault || 0) + amount;
+            // 2. VAULT FILL (ALWAYS GOES TO CURRENT MONTH)
+            if(amount > 0) {
+                system.vaultCurrent = (system.vaultCurrent || 0) + amount;
+            }
             
             archiveCheck(); 
             save();
         }
+
+        // --- VISUAL RESET ---
+        window.resetHpVisual = () => {
+            // "Zero the visual bar even if I have money"
+            // We do this by setting offset = current amount
+            if(confirm("Reset the HP Bar visually to 0? (Money remains in Vault)")) {
+                let currentUSD = (system.vaultCurrent || 0) / RATE;
+                system.hpOffset = currentUSD;
+                save();
+            }
+        };
 
         window.registerQuest = (isDebt) => {
             let t = document.getElementById('qTitle').value, g = document.getElementById('qTarget').value;
@@ -493,8 +577,9 @@
             });
             const today = getLocalTodayStr(); 
             
-            if(!isDebt && date <= today && (system.vault || 0) >= 1) { 
-                let v = system.vault; system.vault = 0; distribute(v); 
+            // Auto fill only if today/past and current vault has funds
+            if(!isDebt && date <= today && (system.vaultCurrent || 0) >= 1) { 
+                let v = system.vaultCurrent; system.vaultCurrent = 0; distribute(v); 
             } else {
                 save();
             }
@@ -507,79 +592,93 @@
             let refundAmount = q.current || 0; 
             system.quests.splice(idx,1);
             if(!q.isDebt && refundAmount > 0) {
-                // If discarded, refund to Vault AND HP (Visual)
-                // Why? Because it's money flowing back into availability this month.
-                system.vault = (system.vault || 0) + refundAmount;
-                system.hpCurrent = (system.hpCurrent || 0) + (refundAmount / RATE);
+                // Refund to Current Vault
+                system.vaultCurrent = (system.vaultCurrent || 0) + refundAmount;
             }
             save();
         };
 
-        // --- CORE LOGIC: SMART WITHDRAWAL ---
+        // --- CORE: SMART WITHDRAWAL ---
         window.globalWithdraw = () => {
-            let withdrawableQuests = system.quests.filter(q => !q.isDebt);
-            let withdrawableArchived = Object.values(system.dayArchives).flat().filter(q => !q.isDebt);
-            let totalAvailable = (system.vault || 0) + 
-                                 withdrawableQuests.reduce((s,q)=>s+q.current,0) + 
-                                 withdrawableArchived.reduce((s,q)=>s+q.current,0);
+            let totalAvailable = (system.vaultCurrent || 0) + (system.vaultSavings || 0);
             
-            let a = prompt(`Withdraw (Max Available: ${formatVal(totalAvailable)}):`);
-            if(a) {
-                let rem = parseWish(a);
-                if(rem > totalAvailable) { alert("Funds tied in Debts cannot be withdrawn."); return; }
-                if(rem >= 1000) {
-                    
-                    // 1. DEDUCT FROM VAULT
-                    if(system.vault >= rem) { system.vault -= rem; rem = 0; }
-                    else { rem -= system.vault; system.vault = 0; }
+            // Just for display logic in prompt, not strictly needed for logic
+            let withdrawableQuests = system.quests.filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
+            let withdrawableArchived = Object.values(system.dayArchives).flat().filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
+            let grandTotal = totalAvailable + withdrawableQuests + withdrawableArchived;
 
-                    // 2. CHECK HP LOGIC (Smart Decrease)
-                    // If Vault (converted to USD) is less than 15, HP Bar takes damage
-                    let vaultUSD = (system.vault || 0) / RATE;
-                    
-                    if (vaultUSD >= 15) {
-                        // SAFE ZONE: Do nothing to HP Bar.
-                    } else {
-                        // DANGER ZONE: HP Bar decreases because Vault is low
-                        let withdrawUSD = parseWish(a) / RATE;
-                        
-                        // We deduct the withdrawal amount from HP (clamped to 0)
-                        // Note: If vault was 16 and I withdrew 6 (Left 10), 
-                        // The loop runs after vault is updated. Vault is 10.
-                        // Since 10 < 15, we assume the withdrawal hurt the monthly progress.
-                        // We reduce HP by the full withdrawal amount? 
-                        // User scenario: Vault 16, HP 1. Withdraw 6. Left 10. HP -> 0.
-                        // Logic: system.hpCurrent -= withdrawUSD
-                        
-                        system.hpCurrent = Math.max(0, system.hpCurrent - withdrawUSD);
-                    }
+            let a = prompt(`Withdraw Amount?\nTotal Assets: ${formatVal(grandTotal)}\n(Type amount e.g. 50$, 100k)`);
+            if(!a) return;
 
-                    // 3. DEDUCT FROM QUESTS (If Vault was empty)
-                    if(rem > 0) {
-                        let reverseQuests = [...system.quests].reverse();
-                        for(let q of reverseQuests) {
-                            if(q.isDebt) continue; 
-                            if(q.current >= rem) { q.current -= rem; rem = 0; break; }
-                            else { rem -= q.current; q.current = 0; }
-                        }
-                    }
-                    if(rem > 0) {
-                        let dates = Object.keys(system.dayArchives).sort().reverse();
-                        for(let d of dates) {
-                            let list = system.dayArchives[d];
-                            for(let i=list.length-1; i>=0; i--) {
-                                let q = list[i]; if(q.isDebt) continue; 
-                                if(q.current >= rem) { q.current -= rem; rem = 0; }
-                                else { rem -= q.current; q.current = 0; }
-                                if(q.current < q.target) system.quests.unshift(list.splice(i,1)[0]);
-                                if(rem <= 0) break;
-                            }
-                            if(rem <= 0) break;
-                        }
-                    }
-                    save();
+            let req = parseWish(a);
+            if(req > grandTotal) { alert("Insufficient funds."); return; }
+
+            // ASK SOURCE
+            let source = prompt("Source?\n1. CURRENT MONTH (Affects HP Bar)\n2. SAVINGS (Safe)\n(Type 1 or 2)");
+            if(source !== '1' && source !== '2') return;
+
+            if (source === '2') {
+                // SAVINGS
+                if (system.vaultSavings >= req) {
+                    system.vaultSavings -= req;
+                    req = 0;
+                } else {
+                    alert(`Not enough in Savings! (Available: ${formatVal(system.vaultSavings)})`);
+                    return;
+                }
+            } else {
+                // CURRENT MONTH
+                // Logic: If we withdraw, vaultCurrent decreases. 
+                // Because HP Bar = (vaultCurrent - offset), HP Bar naturally drops.
+                
+                // Edge Case: If I used Reset Button (Offset exists), and I withdraw below that offset?
+                // Example: Dep 10. Reset (Offset 10). Bar 0. Withdraw 5.
+                // Vault 5. Offset 10. Bar -5? No. Bar should be 0.
+                // But we must reduce offset so future deposits fill it?
+                // Or simply: Offset clamps to VaultCurrent.
+                
+                if (system.vaultCurrent >= req) {
+                    system.vaultCurrent -= req;
+                    // Fix Offset if it exceeds new balance
+                    let curUSD = system.vaultCurrent / RATE;
+                    if(system.hpOffset > curUSD) system.hpOffset = curUSD;
+                    
+                    req = 0;
+                } else {
+                     // Try to take from quests?
+                     if(system.vaultCurrent > 0) {
+                         req -= system.vaultCurrent;
+                         system.vaultCurrent = 0;
+                         system.hpOffset = 0;
+                     }
                 }
             }
+
+            // Quests Fallback (Standard logic)
+            if(req > 0) {
+                 let reverseQuests = [...system.quests].reverse();
+                 for(let q of reverseQuests) {
+                     if(q.isDebt) continue; 
+                     if(q.current >= req) { q.current -= req; req = 0; break; }
+                     else { req -= q.current; q.current = 0; }
+                 }
+            }
+            // Archived Fallback
+            if(req > 0) {
+                let dates = Object.keys(system.dayArchives).sort().reverse();
+                for(let d of dates) {
+                    let list = system.dayArchives[d];
+                    for(let i=list.length-1; i>=0; i--) {
+                        let q = list[i]; if(q.isDebt) continue; 
+                        if(q.current >= req) { q.current -= req; req = 0; }
+                        else { req -= q.current; q.current = 0; }
+                        if(q.current < q.target) system.quests.unshift(list.splice(i,1)[0]);
+                        if(req <= 0) break;
+                    }
+                    if(req <= 0) break;
+                }
+            }
+            save();
         };
 
         window.deleteArchivedDebt = (date, id) => {
@@ -590,7 +689,6 @@
             }
         };
 
-        // --- REFUND ARCHIVED QUEST ---
         window.refundArchivedQuest = (date, id) => {
             if(confirm("Delete this completed quest and REFUND its value to Vault?")) {
                 let list = system.dayArchives[date];
@@ -598,18 +696,11 @@
                 if(idx > -1) {
                     let q = list[idx];
                     let refundAmt = q.target;
-
-                    // Refund to vault
-                    system.vault = (system.vault || 0) + refundAmt;
-                    // Also update HP because it's cash flow
-                    system.hpCurrent = (system.hpCurrent || 0) + (refundAmt / RATE);
-                    
-                    // Remove
+                    // Refund to Current
+                    system.vaultCurrent = (system.vaultCurrent || 0) + refundAmt;
                     list.splice(idx, 1);
                     if(list.length === 0) delete system.dayArchives[date];
-                    
-                    save(); 
-                    openDay(date);
+                    save(); openDay(date);
                 }
             }
         };
@@ -630,24 +721,55 @@
             const todayStr = getLocalTodayStr(); 
             
             // WEALTH
-            const vaultVal = (system.vault || 0);
+            const vCurrent = (system.vaultCurrent || 0);
+            const vSavings = (system.vaultSavings || 0);
+            const vTotal = vCurrent + vSavings;
+            
             const activeQuestsVal = system.quests.filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
             const archivedQuestsVal = Object.values(system.dayArchives).flat().filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
-            const totalWealth = vaultVal + activeQuestsVal + archivedQuestsVal;
+            const totalWealth = vTotal + activeQuestsVal + archivedQuestsVal;
 
-            // RENDER HP BAR
-            const targetUSD = 15;
-            const currentUSD = system.hpCurrent || 0;
-            const hpPerc = Math.min(100, (currentUSD / targetUSD) * 100);
+            // --- RENDER HP BAR (VISUAL LOGIC) ---
+            const targetUSD = 15 + (system.hpDebt || 0);
             
-            document.getElementById('hpFill').style.width = hpPerc + "%";
-            document.getElementById('hpText').textContent = `$${currentUSD.toFixed(2)} / $${targetUSD.toFixed(2)} ` + (currentUSD >= 15 ? "(SECURE)" : "");
+            // Visual Value = (Current Vault USD) - (Offset USD)
+            let rawCurrentUSD = vCurrent / RATE;
+            let visualUSD = Math.max(0, rawCurrentUSD - (system.hpOffset || 0));
+
+            // Cap at target for display (Lock effect)
+            let displayUSD = Math.min(visualUSD, targetUSD);
+            let hpPerc = (displayUSD / targetUSD) * 100;
             
+            const hpFill = document.getElementById('hpFill');
+            const hpText = document.getElementById('hpText');
+
+            hpFill.style.width = hpPerc + "%";
+            
+            if (visualUSD >= targetUSD - 0.01) {
+                // Locked / Secure State
+                hpFill.classList.add('completed');
+                hpText.textContent = `COMPLETED (SECURE)`;
+            } else {
+                // Active State
+                hpFill.classList.remove('completed');
+                hpText.textContent = `$${displayUSD.toFixed(2)} / $${targetUSD.toFixed(2)}`;
+            }
+            
+            if(system.hpDebt > 0.01) {
+                document.getElementById('hpDebtText').textContent = `[ARREARS: $${system.hpDebt.toFixed(2)}]`;
+            } else {
+                document.getElementById('hpDebtText').textContent = "";
+            }
+
+            // --- RENDER VAULT SPLIT ---
+            document.getElementById('vaultTotal').textContent = formatVal(vTotal);
+            document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
+            document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
+
             // RANK & LEVEL
             const playerRank = getRankInfo(totalWealth);
             const playerLevel = Math.floor(totalWealth / 400000) + 1; 
 
-            // Header Update
             const pBadge = document.getElementById('playerRankBadge');
             pBadge.textContent = "RANK " + playerRank.r;
             pBadge.style.color = playerRank.c;
@@ -656,7 +778,6 @@
 
             document.getElementById('totalAssets').textContent = formatVal(totalWealth);
             document.getElementById('totalUSD').textContent = `$${(totalWealth/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
-            document.getElementById('vaultAmount').textContent = formatVal(system.vault || 0);
 
             // Salary
             document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
@@ -664,27 +785,10 @@
             
             const salInGold = (system.salary || 0) * RATE;
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
-            document.getElementById('zeroVault').style.display = (system.vault > 0.1 && system.vault < 1000) ? 'inline-block' : 'none';
+            document.getElementById('zeroVault').style.display = (vTotal > 0.1 && vTotal < 1000) ? 'inline-block' : 'none';
 
-            // STATS
-            const archivedDebts = Object.values(system.dayArchives).flat().filter(q => q.isDebt);
-            document.getElementById('countPaidDebts').textContent = archivedDebts.length;
-            const sumPaid = archivedDebts.reduce((acc,q)=>acc+q.target,0);
-            document.getElementById('valPaidDebts').textContent = "$" + (sumPaid / RATE).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
-            const activeDebts = system.quests.filter(q => q.isDebt);
-            document.getElementById('countUnpaidDebts').textContent = activeDebts.length;
-            const sumUnpaid = activeDebts.reduce((acc,q)=>acc+q.target,0);
-            document.getElementById('valUnpaidDebts').textContent = "$" + (sumUnpaid / RATE).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
-            const archivedQuests = Object.values(system.dayArchives).flat().filter(q => !q.isDebt);
-            document.getElementById('countDoneQuests').textContent = archivedQuests.length;
-            const sumDone = archivedQuests.reduce((acc,q)=>acc+q.target,0);
-            document.getElementById('valDoneQuests').textContent = "$" + (sumDone / RATE).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
-            // List
+            // STATS & LISTS (Standard)
             const list = document.getElementById('questList'); list.innerHTML = '';
-            
             let displayList = [...system.quests].sort((a,b) => {
                 if(a.isDebt !== b.isDebt) return a.isDebt ? -1 : 1;
                 return new Date(a.targetDate) - new Date(b.targetDate);
@@ -694,24 +798,12 @@
                 const perc = (q.current/q.target*100).toFixed(0);
                 const isFuture = q.targetDate > todayStr;
                 const isLocked = !q.isDebt && isFuture;
-                
-                let colorVar = '';
-                if(isFuture) { colorVar = q.isDebt ? 'var(--future-debt)' : 'var(--future-quest)'; } 
-                else { colorVar = q.isDebt ? 'var(--debt-color)' : 'var(--mana)'; }
-
+                let colorVar = isFuture ? (q.isDebt ? 'var(--future-debt)' : 'var(--future-quest)') : (q.isDebt ? 'var(--debt-color)' : 'var(--mana)');
                 let typeLabel = q.isDebt ? 'DEBT' : 'QUEST';
                 if(isFuture) typeLabel += ' (FUTURE)';
 
-                let actionButton = '';
-                if(q.isDebt) {
-                    actionButton = `<button class="btn-pay" onclick="payDebt(${q.id})">PAY & ARCHIVE ($${(q.target/RATE).toFixed(2)})</button>`;
-                }
-
-                let rankBadgeHTML = '';
-                if(!q.isDebt) {
-                    let qRank = getRankInfo(q.target);
-                    rankBadgeHTML = `<div class="card-rank-badge" style="color:${qRank.c}">${qRank.r}-RANK</div>`;
-                }
+                let actionButton = q.isDebt ? `<button class="btn-pay" onclick="payDebt(${q.id})">PAY & ARCHIVE ($${(q.target/RATE).toFixed(2)})</button>` : '';
+                let rankBadgeHTML = !q.isDebt ? `<div class="card-rank-badge" style="color:${getRankInfo(q.target).c}">${getRankInfo(q.target).r}-RANK</div>` : '';
 
                 list.innerHTML += `<div class="quest-card ${isLocked?'locked-card':''}" style="border-left: 4px solid ${colorVar}">
                     ${rankBadgeHTML}
@@ -762,9 +854,7 @@
             currentOpenDate = d;
             document.getElementById('dayView').style.display = 'block';
             document.getElementById('dayTitle').textContent = d;
-
             const todayStr = getLocalTodayStr();
-            
             const formDiv = document.getElementById('dayObjectiveForm');
             if (d < todayStr) formDiv.style.display = 'none';
             else formDiv.style.display = 'block';
@@ -773,20 +863,8 @@
             (system.dayArchives[d] || []).forEach(q => {
                 const borderClass = q.isDebt ? 'archive-debt' : 'archive-quest';
                 const typeColor = q.isDebt ? 'var(--debt-color)' : 'var(--mana)';
-                
-                let archiveRank = '';
-                if(!q.isDebt) {
-                    let r = getRankInfo(q.target);
-                    archiveRank = `<span style="color:${r.c}; font-weight:900; font-size:0.7rem; border:1px solid ${r.c}; padding:0 4px; margin-left:5px;">${r.r}</span>`;
-                }
-                
-                // Add Delete Buttons Logic
-                let delButton = '';
-                if(q.isDebt) {
-                    delButton = `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge Record</button>`;
-                } else {
-                    delButton = `<button class="refund-btn" onclick="refundArchivedQuest('${d}', ${q.id})">REFUND & DELETE</button>`;
-                }
+                let archiveRank = !q.isDebt ? `<span style="color:${getRankInfo(q.target).c}; font-weight:900; font-size:0.7rem; border:1px solid ${getRankInfo(q.target).c}; padding:0 4px; margin-left:5px;">${getRankInfo(q.target).r}</span>` : '';
+                let delButton = q.isDebt ? `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge Record</button>` : `<button class="refund-btn" onclick="refundArchivedQuest('${d}', ${q.id})">REFUND & DELETE</button>`;
 
                 l.innerHTML += `<div class="quest-card ${borderClass}">
                     <div style="font-size:0.65rem; color:${typeColor}; font-weight:bold;">[COMPLETED] ${q.isDebt?'DEBT':'QUEST'} ${archiveRank}</div>
