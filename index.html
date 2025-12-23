@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V6.4 (USD STATS)</title>
+    <title>SUNG JIN-WOO SYSTEM | V7.0 (CHART EDITION)</title>
+    <!-- مكتبة الرسم البياني -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -171,31 +173,34 @@
 
         <div id="questList" style="margin-top:20px;"></div>
 
-        <!-- NEW STATS FOOTER (USD Values) -->
+        <!-- STATS FOOTER WITH CHART BUTTON -->
         <div class="stats-footer">
-            <!-- 1. PAID DEBTS (ARCHIVED) -->
             <div class="stat-box" style="color:var(--debt-color); border-color:var(--debt-color);">
                 <div class="stat-title">PAID DEBTS</div>
                 <div class="stat-val" id="countPaidDebts">0</div>
                 <div class="stat-sub" id="valPaidDebts">$0.00</div>
             </div>
 
-            <!-- 2. UNPAID DEBTS (ACTIVE) -->
             <div class="stat-box" style="color:var(--future-debt); border-color:var(--future-debt);">
                 <div class="stat-title">UNPAID DEBTS</div>
                 <div class="stat-val" id="countUnpaidDebts">0</div>
                 <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
             </div>
 
-            <!-- 3. COMPLETED QUESTS (ARCHIVED) -->
             <div class="stat-box" style="color:var(--mana); border-color:var(--mana);">
                 <div class="stat-title">DONE QUESTS</div>
                 <div class="stat-val" id="countDoneQuests">0</div>
                 <div class="stat-sub" id="valDoneQuests">$0.00</div>
             </div>
         </div>
+        
+        <!-- NEW CHART BUTTON -->
+        <button class="btn-system" onclick="openChart()" style="margin-top:10px; border-color:var(--gold); color:var(--gold);">
+            VIEW VAULT GROWTH (MONTHLY) 📈
+        </button>
     </div>
 
+    <!-- DAY VIEW -->
     <div id="dayView" class="full-view">
         <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
         <h2 id="dayTitle" style="color:var(--mana); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;"></h2>
@@ -212,6 +217,21 @@
 
         <h3 style="color:#666; font-size:0.7rem; margin-top:20px;">ARCHIVED / COMPLETED</h3>
         <div id="dayList"></div>
+    </div>
+
+    <!-- CHART VIEW (NEW) -->
+    <div id="chartView" class="full-view">
+        <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
+        <h2 style="color:var(--gold); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">VAULT HISTORY</h2>
+        
+        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-top:20px;">
+            <canvas id="vaultChart"></canvas>
+        </div>
+        
+        <p style="color:#888; font-size:0.7rem; text-align:center; margin-top:15px;">
+            * Tracks the value of the Vault (USD) at the end of each month.
+            <br>Current month updates dynamically.
+        </p>
     </div>
 
     <script type="module">
@@ -234,10 +254,11 @@
         const provider = new GoogleAuthProvider();
 
         const RATE = 89000;
-        let system = { vault: 0, salary: 0, quests: [], dayArchives: {} };
+        let system = { vault: 0, salary: 0, quests: [], dayArchives: {}, history: {} };
         let navDate = new Date();
         let currentOpenDate = null;
         let currentUser = null;
+        let myChart = null; // To hold Chart instance
 
         // --- AUTH & CLOUD ---
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
@@ -252,7 +273,10 @@
                 
                 onSnapshot(doc(db, "users", user.uid), (doc) => {
                     if (doc.exists()) {
-                        system = doc.data();
+                        let data = doc.data();
+                        // Ensure history object exists for old users
+                        if (!data.history) data.history = {};
+                        system = data;
                         render();
                     } else {
                         save();
@@ -266,6 +290,15 @@
 
         async function save() {
             if (currentUser) {
+                // --- HISTORY TRACKING LOGIC ---
+                // Always update the current month's key with the current vault value.
+                const d = new Date();
+                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                
+                if(!system.history) system.history = {};
+                system.history[key] = system.vault || 0;
+                // ------------------------------
+
                 await setDoc(doc(db, "users", currentUser.uid), system);
             }
         }
@@ -286,7 +319,6 @@
             return Math.floor(v);
         }
 
-        // --- LOCAL DATE FUNCTION (BUG FIX) ---
         function getLocalTodayStr() {
             const d = new Date();
             const year = d.getFullYear();
@@ -295,7 +327,6 @@
             return `${year}-${month}-${day}`;
         }
 
-        // --- RANK LOGIC ---
         function getRankInfo(val) {
             if (val >= 100000000) return { r: 'SS', c: 'var(--rank-ss)' }; 
             if (val >= 50000000) return { r: 'S', c: 'var(--rank-s)' };   
@@ -357,7 +388,7 @@
 
         function distribute(amount) {
             if(amount < 1) return;
-            const today = getLocalTodayStr(); // Using Local Date
+            const today = getLocalTodayStr(); 
             system.quests.sort((a,b) => a.id - b.id);
             for (let q of system.quests) {
                 if(q.isDebt) continue; 
@@ -377,7 +408,7 @@
         window.registerQuest = (isDebt) => {
             let t = document.getElementById('qTitle').value, g = document.getElementById('qTarget').value;
             if(t && g) {
-                const todayStr = getLocalTodayStr(); // Using Local Date
+                const todayStr = getLocalTodayStr(); 
                 addObjective(t, g, isDebt, todayStr);
                 document.getElementById('qTitle').value = ''; 
                 document.getElementById('qTarget').value = '';
@@ -404,7 +435,7 @@
                 isDebt: isDebt, 
                 targetDate: date 
             });
-            const today = getLocalTodayStr(); // Using Local Date
+            const today = getLocalTodayStr(); 
             if(!isDebt && date <= today && (system.vault || 0) >= 1) { 
                 let v = system.vault; system.vault = 0; distribute(v); 
             } else {
@@ -484,15 +515,15 @@
 
         // --- RENDER ---
         function render() {
-            const todayStr = getLocalTodayStr(); // Using Local Date
+            const todayStr = getLocalTodayStr(); 
             
-            // --- WEALTH CALCULATION (Vault + Quests only) ---
+            // WEALTH
             const vaultVal = (system.vault || 0);
             const activeQuestsVal = system.quests.filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
             const archivedQuestsVal = Object.values(system.dayArchives).flat().filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
             const totalWealth = vaultVal + activeQuestsVal + archivedQuestsVal;
 
-            // --- RANK & LEVEL ---
+            // RANK & LEVEL
             const playerRank = getRankInfo(totalWealth);
             const playerLevel = Math.floor(totalWealth / 400000) + 1; 
 
@@ -507,7 +538,7 @@
             document.getElementById('totalUSD').textContent = `$${(totalWealth/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             document.getElementById('vaultAmount').textContent = formatVal(system.vault || 0);
 
-            // Salary Update
+            // Salary
             document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             document.getElementById('salaryGoldDisplay').textContent = formatVal((system.salary||0)*RATE);
             
@@ -515,27 +546,23 @@
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (system.vault > 0.1 && system.vault < 1000) ? 'inline-block' : 'none';
 
-            // --- STATS LOGIC UPDATE (USD) ---
-            
-            // 1. Paid Debts (Archived)
+            // STATS
             const archivedDebts = Object.values(system.dayArchives).flat().filter(q => q.isDebt);
             document.getElementById('countPaidDebts').textContent = archivedDebts.length;
             const sumPaid = archivedDebts.reduce((acc,q)=>acc+q.target,0);
             document.getElementById('valPaidDebts').textContent = "$" + (sumPaid / RATE).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-            // 2. Unpaid Debts (Active)
             const activeDebts = system.quests.filter(q => q.isDebt);
             document.getElementById('countUnpaidDebts').textContent = activeDebts.length;
             const sumUnpaid = activeDebts.reduce((acc,q)=>acc+q.target,0);
             document.getElementById('valUnpaidDebts').textContent = "$" + (sumUnpaid / RATE).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-            // 3. Completed Quests (Archived)
             const archivedQuests = Object.values(system.dayArchives).flat().filter(q => !q.isDebt);
             document.getElementById('countDoneQuests').textContent = archivedQuests.length;
             const sumDone = archivedQuests.reduce((acc,q)=>acc+q.target,0);
             document.getElementById('valDoneQuests').textContent = "$" + (sumDone / RATE).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-            // Render List
+            // List
             const list = document.getElementById('questList'); list.innerHTML = '';
             
             let displayList = [...system.quests].sort((a,b) => {
@@ -589,7 +616,7 @@
             const grid = document.getElementById('daysGrid'); grid.innerHTML = '';
             document.getElementById('monthTitle').textContent = navDate.toLocaleString('default', {month:'long', year:'numeric'}).toUpperCase();
             
-            const todayStr = getLocalTodayStr(); // Using Local Date
+            const todayStr = getLocalTodayStr(); 
 
             const year = navDate.getFullYear();
             const month = navDate.getMonth();
@@ -642,10 +669,65 @@
             });
         };
 
+        // --- CHART FUNCTIONS ---
+        window.openChart = () => {
+            document.getElementById('chartView').style.display = 'block';
+            renderChart();
+        };
+
+        function renderChart() {
+            const ctx = document.getElementById('vaultChart').getContext('2d');
+            
+            if(!system.history) system.history = {};
+            
+            const sortedKeys = Object.keys(system.history).sort();
+            const labels = sortedKeys.map(k => k); 
+            // Convert history values (Gold) to USD
+            const dataUSD = sortedKeys.map(k => (system.history[k] / RATE));
+
+            if(myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Vault Value (USD)',
+                        data: dataUSD,
+                        borderColor: '#ffd700',
+                        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointBackgroundColor: '#fff',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { 
+                                color: '#888',
+                                callback: function(value) { return '$' + value; } 
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#888' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#e6edf3' } }
+                    }
+                }
+            });
+        }
+
         window.closeViews = () => document.querySelectorAll('.full-view').forEach(v => v.style.display='none');
         window.changeMonth = (s) => { navDate.setMonth(navDate.getMonth()+s); drawCalendar(); };
         
-        // Functions are attached to window for HTML access due to module scope
     </script>
 </body>
 </html>
