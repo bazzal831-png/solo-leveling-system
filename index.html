@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V12.1 (STEP BACK)</title>
+    <title>SUNG JIN-WOO SYSTEM | DEBT & ASSETS ONLY</title>
     <!-- CHART.JS LIBRARY -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -15,8 +15,6 @@
             --debt-color: #bc13fe; 
             --hp-bg: #4a0000;     
             --hp-fill: #ff0000;   
-            --hp-lvl2: #00d2ff;   
-            --hp-lvl3: #bc13fe;   
 
             /* Rank Colors */
             --rank-ss: #ffcc00; --rank-s: #ff3131; --rank-a: #bc13fe;
@@ -69,7 +67,6 @@
         .btn-confirm { background: var(--mana); color: black; }
         .btn-cancel { background: #333; color: white; }
 
-
         /* AUTH OVERLAY */
         #authOverlay {
             position: fixed; inset: 0; background: var(--bg); z-index: 50000;
@@ -91,14 +88,6 @@
         .hp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .hp-label { font-size: 0.7rem; color: #ff6b6b; font-weight: bold; }
         
-        /* Reset Button */
-        .btn-reset-hp {
-            background: none; border: 1px solid #444; color: #888;
-            font-size: 0.6rem; padding: 2px 6px; cursor: pointer;
-            border-radius: 3px; transition: 0.2s;
-        }
-        .btn-reset-hp:active { background: #fff; color: #000; }
-
         .hp-bar-container {
             height: 25px;
             background: var(--hp-bg);
@@ -158,7 +147,6 @@
         
         /* CARDS */
         .quest-card { background: var(--panel); border: 1px solid #333; padding: 15px; margin-bottom: 15px; position: relative; clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%); transition: 0.3s; overflow: hidden; }
-        .locked-card { opacity: 0.7; filter: grayscale(0.2); border: 1px dashed #555; }
         .card-rank-badge { position: absolute; right: 10px; top: 10px; font-size: 2.5rem; font-weight: 900; font-style: italic; opacity: 0.15; pointer-events: none; z-index: 0; }
 
         /* BUTTONS */
@@ -166,7 +154,6 @@
         .btn-system:active { transform: scale(0.95); background: var(--mana); color:black; }
         .btn-pay { background: var(--success); color: black; border: none; padding: 8px 15px; font-weight: bold; font-size: 0.75rem; cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 0 10px rgba(80, 250, 123, 0.3); position: relative; z-index: 2; }
         .discard-btn { color: var(--danger); background: none; border: 1px solid rgba(255,49,49,0.2); padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 10px; display: inline-block; position: relative; z-index: 2; }
-        .refund-btn { color: var(--mana); background: none; border: 1px solid rgba(0, 210, 255, 0.2); padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 10px; display: inline-block; position: relative; z-index: 2; margin-right: 5px; }
         .btn-zero { background: var(--danger); color: white; border: none; padding: 6px 12px; font-size: 0.7rem; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 8px; display: none; box-shadow: 0 0 8px var(--danger); }
 
         .salary-container { border: 1px solid var(--success); background: rgba(80, 250, 123, 0.05); padding: 12px; margin-bottom: 15px; text-align: center; border-radius: 4px; }
@@ -181,18 +168,16 @@
         .calendar-box { background: var(--panel); padding: 15px; border: 1px solid #222; margin-bottom: 20px; }
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
         .day-cell { aspect-ratio: 1; background: #080a0f; border: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; cursor: pointer; position: relative; }
-        .day-cell.has-completed { border-color: var(--gold); color: var(--gold); background: rgba(255, 215, 0, 0.1); }
+        .day-cell.has-completed { border-color: var(--debt-color); color: var(--debt-color); background: rgba(188, 19, 254, 0.1); }
         .day-cell.today { border: 2px solid #fff !important; color: #fff !important; font-weight: 900; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); transform: scale(1.05); z-index: 2; }
-        .day-cell.today.has-completed { border-color: #fff !important; color: var(--gold) !important; background: rgba(255, 215, 0, 0.15); }
 
-        .stats-footer { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
+        .stats-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
         .stat-box { background: rgba(0,0,0,0.5); padding: 8px 4px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; min-height: 70px; }
         .stat-title { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
         .stat-val { font-size: 1.1rem; font-weight: bold; }
         .stat-sub { font-size: 0.75rem; color:var(--success); font-family: monospace; margin-top: 2px; font-weight:bold; }
 
         .archive-debt { border-left: 4px solid var(--debt-color) !important; }
-        .archive-quest { border-left: 4px solid var(--mana) !important; }
 
         /* SPLIT VAULT STYLES */
         .vault-split { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; border-top: 1px solid #333; padding-top: 8px; }
@@ -247,18 +232,15 @@
         
         <p style="color:#888; font-size:0.7rem; text-align:center; margin-top:15px;">
             * Shows Total Vault (Current + Savings).
-            <br>* Moves dynamically this month, fixes past months.
         </p>
     </div>
 
     <div id="mainView" style="display: none;">
         
-        <!-- HP BAR SECTION -->
+        <!-- HP BAR SECTION (AUTO LEVELING) -->
         <div class="hp-section">
             <div class="hp-header">
-                <div class="hp-label">MONTHLY PENALTY <span id="hpDebtText" style="color:var(--danger)"></span></div>
-                <!-- UPDATED BUTTON TITLE -->
-                <button class="btn-reset-hp" onclick="resetHpVisual()" title="Step back one visual level">[ &lt; ]</button>
+                <div class="hp-label">ASSET PROGRESS</div>
             </div>
             
             <div class="hp-bar-container">
@@ -266,7 +248,7 @@
                 <div class="hp-text" id="hpText">Loading...</div>
             </div>
             <div style="font-size:0.6rem; color:#666; margin-top:4px; text-align:center;">
-                Infinite Progress: $15.00 per Bar.
+                System Levels Up every $15.00 Accumulated.
             </div>
         </div>
 
@@ -288,7 +270,7 @@
             </div>
 
             <div class="player-status-row">
-                <span class="level-text">LEVEL: <span id="playerLevel" style="color:white; font-weight:bold;">1</span></span>
+                <span class="level-text">SYSTEM LVL: <span id="playerLevel" style="color:white; font-weight:bold;">1</span></span>
                 <div id="playerRankBadge" class="rank-tag" style="color:var(--rank-e)">RANK E</div>
             </div>
             
@@ -332,36 +314,28 @@
             <div class="days-grid" id="daysGrid"></div>
         </div>
 
-        <div style="background:rgba(0, 210, 255, 0.03); padding:15px; border:1px solid #222;">
-            <div style="font-size:0.6rem; color:var(--mana); margin-bottom:5px;">QUICK ADD (FOR TODAY)</div>
-            <input type="text" id="qTitle" placeholder="Objective Title">
-            <input type="text" id="qTarget" placeholder="Target (e.g. 5$ or 50k, 1m)">
-            <div style="display:flex; gap:10px;">
-                <button class="btn-system" style="background:var(--mana); color:#000; flex:1; border:none;" onclick="registerQuest(false)">Quest</button>
-                <button class="btn-system" style="background:var(--debt-color); color:#fff; flex:1; border:none;" onclick="registerQuest(true)">Debt</button>
-            </div>
+        <div style="background:rgba(188, 19, 254, 0.05); padding:15px; border:1px solid var(--debt-color);">
+            <div style="font-size:0.6rem; color:var(--debt-color); margin-bottom:5px;">REGISTER NEW DEBT</div>
+            <input type="text" id="qTitle" placeholder="Debt Name / Title">
+            <input type="text" id="qTarget" placeholder="Amount (e.g. 50$ or 1k)">
+            <button class="btn-system" style="background:var(--debt-color); color:#fff; border:none;" onclick="registerQuest(true)">ADD DEBT RECORD</button>
         </div>
 
-        <div id="questList" style="margin-top:20px;"></div>
+        <h3 style="color:var(--debt-color); font-size:0.8rem; margin-top:20px; border-bottom:1px solid #333; padding-bottom:5px;">PENDING DEBTS</h3>
+        <div id="questList" style="margin-top:10px;"></div>
 
         <!-- STATS FOOTER WITH CHART BUTTON -->
         <div class="stats-footer">
             <div class="stat-box" style="color:var(--debt-color); border-color:var(--debt-color);">
-                <div class="stat-title">PAID DEBTS</div>
+                <div class="stat-title">PAID DEBTS (ARCHIVE)</div>
                 <div class="stat-val" id="countPaidDebts">0</div>
                 <div class="stat-sub" id="valPaidDebts">$0.00</div>
             </div>
 
-            <div class="stat-box" style="color:var(--future-debt); border-color:var(--future-debt);">
+            <div class="stat-box" style="color:var(--danger); border-color:var(--danger);">
                 <div class="stat-title">UNPAID DEBTS</div>
                 <div class="stat-val" id="countUnpaidDebts">0</div>
                 <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
-            </div>
-
-            <div class="stat-box" style="color:var(--mana); border-color:var(--mana);">
-                <div class="stat-title">DONE QUESTS</div>
-                <div class="stat-val" id="countDoneQuests">0</div>
-                <div class="stat-sub" id="valDoneQuests">$0.00</div>
             </div>
         </div>
 
@@ -376,16 +350,13 @@
         <h2 id="dayTitle" style="color:var(--mana); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;"></h2>
         
         <div id="dayObjectiveForm" style="background:rgba(255,255,255,0.05); padding:15px; margin-bottom:20px; border:1px solid #333;">
-            <div style="font-size:0.6rem; color:#888; margin-bottom:5px;">REGISTER OBJECTIVE FOR THIS DATE</div>
+            <div style="font-size:0.6rem; color:#888; margin-bottom:5px;">ADD DEBT FOR THIS DATE</div>
             <input type="text" id="dTitle" placeholder="Title">
             <input type="text" id="dTarget" placeholder="Target">
-            <div style="display:flex; gap:10px;">
-                <button class="btn-system" style="background:var(--mana); color:#000; flex:1; border:none;" onclick="registerFromDayView(false)">Add Quest</button>
-                <button class="btn-system" style="background:var(--debt-color); color:#fff; flex:1; border:none;" onclick="registerFromDayView(true)">Add Debt</button>
-            </div>
+            <button class="btn-system" style="background:var(--debt-color); color:#fff; border:none;" onclick="registerFromDayView(true)">Add Debt</button>
         </div>
 
-        <h3 style="color:#666; font-size:0.7rem; margin-top:20px;">ARCHIVED / COMPLETED</h3>
+        <h3 style="color:#666; font-size:0.7rem; margin-top:20px;">ARCHIVED DEBTS</h3>
         <div id="dayList"></div>
     </div>
 
@@ -413,11 +384,9 @@
             vaultCurrent: 0, 
             vaultSavings: 0, 
             salary: 0, 
-            quests: [], 
+            quests: [], // Only Debts now
             dayArchives: {}, 
             history: {}, 
-            hpDebt: 0, 
-            hpOffset: 0,
             hpMonth: "" 
         };
         let navDate = new Date();
@@ -442,6 +411,7 @@
                 onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
+                        // Migration helper
                         if(data.vault !== undefined && data.vaultSavings === undefined) {
                             data.vaultSavings = data.vault;
                             data.vaultCurrent = 0;
@@ -464,7 +434,6 @@
 
         async function save() {
             if (currentUser) {
-                // HISTORY TRACKER
                 const d = new Date();
                 const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
                 if(!system.history) system.history = {};
@@ -473,26 +442,14 @@
             }
         }
 
-        // --- HP / MONTH LOGIC ---
         function checkMonthRollover() {
             const currentMonthStr = getLocalTodayStr().substring(0, 7); 
             if (!system.hpMonth) system.hpMonth = currentMonthStr;
-            if (typeof system.hpOffset === 'undefined') system.hpOffset = 0;
 
             if (system.hpMonth !== currentMonthStr) {
-                let curUSD = (system.vaultCurrent || 0) / RATE;
-                let required = 15 + (system.hpDebt || 0);
-                
-                if (curUSD < required) {
-                    system.hpDebt = required - curUSD;
-                } else {
-                    system.hpDebt = 0; 
-                }
-
+                // Rollover: Move current to savings
                 system.vaultSavings = (system.vaultSavings || 0) + (system.vaultCurrent || 0);
                 system.vaultCurrent = 0;
-                
-                system.hpOffset = 0;
                 system.hpMonth = currentMonthStr; 
                 save();
             }
@@ -538,23 +495,31 @@
         };
 
         window.salaryToVault = () => {
-            let a = prompt("Transfer to System (e.g. 50k, 100$):");
+            let a = prompt("Transfer to Assets (e.g. 50k, 100$):");
             if(!a) return;
             let goldAmount = parseWish(a);
             let costInUSD = goldAmount / RATE;
 
             if(goldAmount >= 1 && (system.salary || 0) >= costInUSD) {
                 system.salary -= costInUSD; 
-                distribute(goldAmount); 
+                directDeposit(goldAmount); 
             } else {
                 alert("Insufficient Salary funds.");
             }
         };
 
         window.startFlowDeposit = () => { 
-            let a = prompt("Deposit Assets (e.g. 50$ or 100k):"); 
-            if(a) distribute(parseWish(a)); 
+            let a = prompt("Deposit Assets Directly (e.g. 50$ or 100k):"); 
+            if(a) directDeposit(parseWish(a)); 
         };
+
+        // Replaced 'distribute' with 'directDeposit' since Quests are gone
+        function directDeposit(amount) {
+            if(amount > 0) {
+                system.vaultCurrent = (system.vaultCurrent || 0) + amount;
+                save();
+            }
+        }
 
         window.confirmZero = (type) => {
             if(confirm(`Clean up the remaining fraction (less than 1000)?`)) {
@@ -577,59 +542,16 @@
                 if(confirm(`Pay $${costUSD.toFixed(2)} from SALARY?`)) {
                     system.salary -= costUSD;
                     q.current = q.target;
-                    archiveCheck();
+                    // Move to Archive logic
+                    let d = q.targetDate;
+                    if(!system.dayArchives[d]) system.dayArchives[d] = [];
+                    system.dayArchives[d].push(q);
+                    // Remove from active list
+                    system.quests = system.quests.filter(x => x.id !== id);
                     save();
                 }
             } else {
                 alert(`Insufficient Salary! Need $${costUSD.toFixed(2)}`);
-            }
-        };
-
-        function distribute(amount) {
-            if(amount < 1) return;
-            const today = getLocalTodayStr(); 
-            system.quests.sort((a,b) => a.id - b.id);
-            for (let q of system.quests) {
-                if(q.isDebt) continue; 
-                if(q.targetDate > today) continue;
-                let needed = q.target - q.current;
-                if(needed > 0) {
-                    let fill = Math.min(amount, needed);
-                    q.current += fill;
-                    amount -= fill;
-                }
-                if(amount <= 0) break;
-            }
-            if(amount > 0) {
-                system.vaultCurrent = (system.vaultCurrent || 0) + amount;
-            }
-            archiveCheck(); save();
-        }
-
-        // --- UPDATED RESET LOGIC (STEP BACK) ---
-        window.resetHpVisual = () => {
-            let currentUSD = (system.vaultCurrent || 0) / RATE;
-            let visualUSD = Math.max(0, currentUSD - (system.hpOffset || 0));
-            
-            if(visualUSD <= 0.01) {
-                alert("Visual Bar is already at 0!");
-                return;
-            }
-
-            const hpBase = 15;
-            // Calculate exact target to step down one level
-            // e.g., if visual is 50, (50/15) = 3.33. Floor=3. 3*15=45. Target is 45.
-            // e.g., if visual is 45, (44.99/15) = 2.99. Floor=2. 2*15=30. Target is 30.
-            let targetVisual = Math.floor((visualUSD - 0.01) / hpBase) * hpBase;
-            
-            if(targetVisual < 0) targetVisual = 0;
-
-            // Calculate new offset: current - target
-            let newOffset = currentUSD - targetVisual;
-
-            if(confirm(`Step back HP Bar Level? \nCurrent Visual: $${visualUSD.toFixed(2)}\nNew Visual Target: $${targetVisual.toFixed(2)}`)) {
-                system.hpOffset = newOffset;
-                save();
             }
         };
 
@@ -669,7 +591,6 @@
             if(selectedWithdrawSource === 'savings') {
                 if((system.vaultSavings || 0) >= req) {
                     system.vaultSavings -= req;
-                    req = 0; 
                 } else {
                     alert("Not enough in Savings!");
                     return;
@@ -677,38 +598,9 @@
             } else {
                 if((system.vaultCurrent || 0) >= req) {
                     system.vaultCurrent -= req;
-                    let curUSD = system.vaultCurrent / RATE;
-                    if(system.hpOffset > curUSD) system.hpOffset = curUSD;
-                    req = 0;
                 } else {
-                    if(system.vaultCurrent > 0) {
-                        req -= system.vaultCurrent;
-                        system.vaultCurrent = 0;
-                        system.hpOffset = 0;
-                    }
-                }
-            }
-
-            if(req > 0) {
-                 let reverseQuests = [...system.quests].reverse();
-                 for(let q of reverseQuests) {
-                     if(q.isDebt) continue; 
-                     if(q.current >= req) { q.current -= req; req = 0; break; }
-                     else { req -= q.current; q.current = 0; }
-                 }
-            }
-            if(req > 0) {
-                let dates = Object.keys(system.dayArchives).sort().reverse();
-                for(let d of dates) {
-                    let list = system.dayArchives[d];
-                    for(let i=list.length-1; i>=0; i--) {
-                        let q = list[i]; if(q.isDebt) continue; 
-                        if(q.current >= req) { q.current -= req; req = 0; }
-                        else { req -= q.current; q.current = 0; }
-                        if(q.current < q.target) system.quests.unshift(list.splice(i,1)[0]);
-                        if(req <= 0) break;
-                    }
-                    if(req <= 0) break;
+                    alert("Not enough in Current Vault!");
+                    return;
                 }
             }
 
@@ -775,7 +667,7 @@
             let t = document.getElementById('qTitle').value, g = document.getElementById('qTarget').value;
             if(t && g) {
                 const todayStr = getLocalTodayStr(); 
-                addObjective(t, g, isDebt, todayStr);
+                addObjective(t, g, true, todayStr); // Force Debt
                 document.getElementById('qTitle').value = ''; 
                 document.getElementById('qTarget').value = '';
             }
@@ -784,10 +676,10 @@
         window.registerFromDayView = (isDebt) => {
             let t = document.getElementById('dTitle').value, g = document.getElementById('dTarget').value;
             if(t && g && currentOpenDate) {
-                addObjective(t, g, isDebt, currentOpenDate);
+                addObjective(t, g, true, currentOpenDate); // Force Debt
                 document.getElementById('dTitle').value = ''; 
                 document.getElementById('dTarget').value = '';
-                alert("Objective Added!");
+                alert("Debt Added!");
                 closeViews();
             }
         };
@@ -798,26 +690,16 @@
                 title: title, 
                 target: parseWish(target), 
                 current: 0, 
-                isDebt: isDebt, 
+                isDebt: true, // Always true now
                 targetDate: date 
             });
-            const today = getLocalTodayStr(); 
-            if(!isDebt && date <= today && (system.vaultCurrent || 0) >= 1) { 
-                let v = system.vaultCurrent; system.vaultCurrent = 0; distribute(v); 
-            } else {
-                save();
-            }
+            save();
         }
 
         window.discardQuest = (id) => {
             let idx = system.quests.findIndex(x => x.id === id);
             if(idx === -1) return;
-            let q = system.quests[idx];
-            let refundAmount = q.current || 0; 
             system.quests.splice(idx,1);
-            if(!q.isDebt && refundAmount > 0) {
-                system.vaultCurrent = (system.vaultCurrent || 0) + refundAmount;
-            }
             save();
         };
 
@@ -829,32 +711,6 @@
             }
         };
 
-        window.refundArchivedQuest = (date, id) => {
-            if(confirm("Delete this completed quest and REFUND its value to Vault?")) {
-                let list = system.dayArchives[date];
-                let idx = list.findIndex(q => q.id === id);
-                if(idx > -1) {
-                    let q = list[idx];
-                    let refundAmt = q.target;
-                    system.vaultCurrent = (system.vaultCurrent || 0) + refundAmt;
-                    list.splice(idx, 1);
-                    if(list.length === 0) delete system.dayArchives[date];
-                    save(); openDay(date);
-                }
-            }
-        };
-
-        function archiveCheck() {
-            for(let i=0; i<system.quests.length; i++){
-                if(system.quests[i].current >= system.quests[i].target - 0.1){ 
-                    let d = system.quests[i].targetDate;
-                    if(!system.dayArchives[d]) system.dayArchives[d] = [];
-                    system.dayArchives[d].push(system.quests.splice(i,1)[0]);
-                    i--;
-                }
-            }
-        }
-
         // --- RENDER ---
         function render() {
             const todayStr = getLocalTodayStr(); 
@@ -863,48 +719,33 @@
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
             const vTotal = vCurrent + vSavings;
-            
-            const activeQuestsVal = system.quests.filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
-            const archivedQuestsVal = Object.values(system.dayArchives).flat().filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
-            const totalWealth = vTotal + activeQuestsVal + archivedQuestsVal;
+            const totalWealth = vTotal; // Assets only (debts are negative space)
 
-            // --- INFINITE HP BAR LOGIC ---
+            // --- AUTO HP BAR LOGIC (FIXED) ---
             const hpBase = 15; 
-            let rawCurrentUSD = vCurrent / RATE;
+            let currentUSD = vCurrent / RATE; 
             
-            let visualUSD = Math.max(0, rawCurrentUSD - (system.hpOffset || 0));
-            let level = Math.floor(visualUSD / hpBase) + 1;
-            let currentCycleVal = visualUSD % hpBase;
-            
+            // Level is how many times we've filled $15 + 1
+            let level = Math.floor(currentUSD / hpBase) + 1;
+            // Progress is the remainder
+            let currentCycleVal = currentUSD % hpBase;
             let hpPerc = (currentCycleVal / hpBase) * 100;
             
-            if(visualUSD > 0 && currentCycleVal < 0.01) {
-                hpPerc = 100;
-                level -= 1; 
-                currentCycleVal = hpBase;
+            // Fix edge case where exactly 15 shows as 0 progress on next level
+            if (currentUSD > 0 && currentCycleVal < 0.001) {
+                currentCycleVal = 0; // Starts fresh new bar
             }
 
             const hpFill = document.getElementById('hpFill');
             const hpText = document.getElementById('hpText');
 
             hpFill.style.width = hpPerc + "%";
-            
-            if (visualUSD >= hpBase) {
-                hpText.textContent = `LVL ${level} | $${currentCycleVal.toFixed(2)} / $15.00`;
-            } else {
-                hpText.textContent = `$${visualUSD.toFixed(2)} / $15.00`;
-            }
+            hpText.textContent = `LVL ${level} | $${currentCycleVal.toFixed(2)} / $15.00`;
 
             hpFill.className = 'hp-fill'; 
-            if(level === 1) hpFill.classList.add('lvl-1');
-            else if(level === 2) hpFill.classList.add('lvl-2');
+            if(level % 3 === 1) hpFill.classList.add('lvl-1');
+            else if(level % 3 === 2) hpFill.classList.add('lvl-2');
             else hpFill.classList.add('lvl-3');
-
-            if(system.hpDebt > 0.01) {
-                document.getElementById('hpDebtText').textContent = `[ARREARS: $${system.hpDebt.toFixed(2)}]`;
-            } else {
-                document.getElementById('hpDebtText').textContent = "";
-            }
 
             // RENDER VAULT
             document.getElementById('vaultTotal').textContent = formatVal(vTotal);
@@ -913,13 +754,13 @@
 
             // RANK & LEVEL
             const playerRank = getRankInfo(totalWealth);
-            const playerLevel = Math.floor(totalWealth / 400000) + 1; 
-
             const pBadge = document.getElementById('playerRankBadge');
             pBadge.textContent = "RANK " + playerRank.r;
             pBadge.style.color = playerRank.c;
             pBadge.style.boxShadow = `0 0 10px ${playerRank.c}`;
-            document.getElementById('playerLevel').textContent = playerLevel;
+            
+            // System Level (matches HP Bar)
+            document.getElementById('playerLevel').textContent = level;
 
             document.getElementById('totalAssets').textContent = formatVal(totalWealth);
             document.getElementById('totalUSD').textContent = `$${(totalWealth/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
@@ -932,40 +773,50 @@
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (vTotal > 0.1 && vTotal < 1000) ? 'inline-block' : 'none';
 
-            // LIST
+            // LIST (DEBTS ONLY)
             const list = document.getElementById('questList'); list.innerHTML = '';
-            let displayList = [...system.quests].sort((a,b) => {
-                if(a.isDebt !== b.isDebt) return a.isDebt ? -1 : 1;
-                return new Date(a.targetDate) - new Date(b.targetDate);
-            });
+            
+            // Filter only active debts
+            let displayList = system.quests.filter(q => q.isDebt).sort((a,b) => new Date(a.targetDate) - new Date(b.targetDate));
 
             displayList.forEach(q => {
-                const perc = (q.current/q.target*100).toFixed(0);
-                const isFuture = q.targetDate > todayStr;
-                const isLocked = !q.isDebt && isFuture;
-                let colorVar = isFuture ? (q.isDebt ? 'var(--future-debt)' : 'var(--future-quest)') : (q.isDebt ? 'var(--debt-color)' : 'var(--mana)');
-                let typeLabel = q.isDebt ? 'DEBT' : 'QUEST';
-                if(isFuture) typeLabel += ' (FUTURE)';
+                let actionButton = `<button class="btn-pay" onclick="payDebt(${q.id})">PAY & ARCHIVE ($${(q.target/RATE).toFixed(2)})</button>`;
+                let rankBadgeHTML = `<div class="card-rank-badge" style="color:${getRankInfo(q.target).c}">${getRankInfo(q.target).r}</div>`;
 
-                let actionButton = q.isDebt ? `<button class="btn-pay" onclick="payDebt(${q.id})">PAY & ARCHIVE ($${(q.target/RATE).toFixed(2)})</button>` : '';
-                let rankBadgeHTML = !q.isDebt ? `<div class="card-rank-badge" style="color:${getRankInfo(q.target).c}">${getRankInfo(q.target).r}-RANK</div>` : '';
-
-                list.innerHTML += `<div class="quest-card ${isLocked?'locked-card':''}" style="border-left: 4px solid ${colorVar}">
+                list.innerHTML += `<div class="quest-card" style="border-left: 4px solid var(--debt-color)">
                     ${rankBadgeHTML}
                     <div style="font-size:0.6rem; color:#666; display:flex; justify-content:space-between; position:relative; z-index:2;">
-                        <span>Target: ${q.targetDate} ${isLocked ? '🔒' : ''}</span>
-                        <span style="color:${colorVar}; font-weight:bold;">${typeLabel}</span>
+                        <span>Target: ${q.targetDate}</span>
+                        <span style="color:var(--debt-color); font-weight:bold;">DEBT</span>
                     </div>
                     <div style="font-weight:bold; color:white; margin:5px 0; position:relative; z-index:2;">${q.title.toUpperCase()}</div>
                     <div style="font-size:0.8rem; font-family:monospace; display:flex; justify-content:space-between; position:relative; z-index:2;">
-                        <span>${formatVal(q.current)} / ${formatVal(q.target)}</span>
-                        <span>$${(q.target/RATE).toFixed(1)}</span>
+                        <span>Pending: ${formatVal(q.target)}</span>
+                        <span>$${(q.target/RATE).toFixed(2)}</span>
                     </div>
-                    <div class="progress-container"><div class="progress-fill" style="width:${perc}%; background:${colorVar}"></div></div>
                     ${actionButton}
                     <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
                 </div>`;
             });
+            
+            // --- UPDATE STATS FOOTER (FIXED) ---
+            // Calculate Active Debts (Unpaid)
+            let unpaidGold = system.quests.reduce((acc, q) => acc + q.target, 0);
+            document.getElementById('countUnpaidDebts').textContent = system.quests.length;
+            document.getElementById('valUnpaidDebts').textContent = `$${(unpaidGold/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+
+            // Calculate Archived Debts (Paid)
+            let paidCount = 0;
+            let paidGold = 0;
+            Object.values(system.dayArchives).forEach(dayList => {
+                dayList.forEach(q => {
+                    paidCount++;
+                    paidGold += q.target;
+                });
+            });
+            document.getElementById('countPaidDebts').textContent = paidCount;
+            document.getElementById('valPaidDebts').textContent = `$${(paidGold/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+
             drawCalendar();
         }
 
@@ -974,7 +825,6 @@
             document.getElementById('monthTitle').textContent = navDate.toLocaleString('default', {month:'long', year:'numeric'}).toUpperCase();
             
             const todayStr = getLocalTodayStr(); 
-
             const year = navDate.getFullYear();
             const month = navDate.getMonth();
             const first = new Date(year, month, 1).getDay();
@@ -984,6 +834,7 @@
             
             for(let i=1; i<=last; i++) {
                 const currentDayStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                // Check if this day has archived debts
                 const has = system.dayArchives[currentDayStr] && system.dayArchives[currentDayStr].length > 0;
                 const isToday = (currentDayStr === todayStr);
 
@@ -999,22 +850,15 @@
             currentOpenDate = d;
             document.getElementById('dayView').style.display = 'block';
             document.getElementById('dayTitle').textContent = d;
-            const todayStr = getLocalTodayStr();
-            const formDiv = document.getElementById('dayObjectiveForm');
-            if (d < todayStr) formDiv.style.display = 'none';
-            else formDiv.style.display = 'block';
-
+            
             const l = document.getElementById('dayList'); l.innerHTML = '';
             (system.dayArchives[d] || []).forEach(q => {
-                const borderClass = q.isDebt ? 'archive-debt' : 'archive-quest';
-                const typeColor = q.isDebt ? 'var(--debt-color)' : 'var(--mana)';
-                let archiveRank = !q.isDebt ? `<span style="color:${getRankInfo(q.target).c}; font-weight:900; font-size:0.7rem; border:1px solid ${getRankInfo(q.target).c}; padding:0 4px; margin-left:5px;">${getRankInfo(q.target).r}</span>` : '';
-                let delButton = q.isDebt ? `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge Record</button>` : `<button class="refund-btn" onclick="refundArchivedQuest('${d}', ${q.id})">REFUND & DELETE</button>`;
+                let delButton = `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge Record</button>`;
 
-                l.innerHTML += `<div class="quest-card ${borderClass}">
-                    <div style="font-size:0.65rem; color:${typeColor}; font-weight:bold;">[COMPLETED] ${q.isDebt?'DEBT':'QUEST'} ${archiveRank}</div>
+                l.innerHTML += `<div class="quest-card archive-debt">
+                    <div style="font-size:0.65rem; color:var(--debt-color); font-weight:bold;">[PAID] DEBT</div>
                     <div style="font-weight:bold; margin-top:5px;">${q.title}</div>
-                    <div style="font-family:monospace;">Target: ${formatVal(q.target)}</div>
+                    <div style="font-family:monospace;">Amount: ${formatVal(q.target)} ($${(q.target/RATE).toFixed(2)})</div>
                     <div style="margin-top:10px;">${delButton}</div>
                 </div>`;
             });
