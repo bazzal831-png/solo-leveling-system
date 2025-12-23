@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V7.0 (CHART EDITION)</title>
-    <!-- مكتبة الرسم البياني -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>SUNG JIN-WOO SYSTEM | V8.0 (HP EDITION)</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -15,6 +13,8 @@
             --debt-color: #bc13fe; /* Current Debt */
             --future-quest: #f1c40f; 
             --future-debt: #e74c3c;  
+            --hp-bg: #4a0000;     /* HP Bar Background */
+            --hp-fill: #ff0000;   /* HP Bar Fill */
 
             /* Rank Colors */
             --rank-ss: #ffcc00; --rank-s: #ff3131; --rank-a: #bc13fe;
@@ -40,6 +40,43 @@
         .login-card {
             width: 85%; max-width: 400px; border: 1px solid var(--mana);
             padding: 40px 20px; text-align: center; background: rgba(0, 30, 50, 0.3);
+        }
+
+        /* HP BAR SECTION */
+        .hp-section {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .hp-label { font-size: 0.7rem; color: #ff6b6b; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .hp-bar-container {
+            height: 20px;
+            background: var(--hp-bg);
+            border: 1px solid #550000;
+            position: relative;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #cc0000, #ff0000);
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+            box-shadow: 0 0 10px #ff0000;
+        }
+        .hp-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            top: 0;
+            line-height: 20px;
+            font-size: 0.75rem;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px black;
+            z-index: 2;
         }
 
         /* HEADER */
@@ -76,6 +113,7 @@
         .btn-system:active { transform: scale(0.95); background: var(--mana); color:black; }
         .btn-pay { background: var(--success); color: black; border: none; padding: 8px 15px; font-weight: bold; font-size: 0.75rem; cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 0 10px rgba(80, 250, 123, 0.3); position: relative; z-index: 2; }
         .discard-btn { color: var(--danger); background: none; border: 1px solid rgba(255,49,49,0.2); padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 10px; display: inline-block; position: relative; z-index: 2; }
+        .refund-btn { color: var(--mana); background: none; border: 1px solid rgba(0, 210, 255, 0.2); padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 10px; display: inline-block; position: relative; z-index: 2; margin-right: 5px; }
         .btn-zero { background: var(--danger); color: white; border: none; padding: 6px 12px; font-size: 0.7rem; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 8px; display: none; box-shadow: 0 0 8px var(--danger); }
 
         .salary-container { border: 1px solid var(--success); background: rgba(80, 250, 123, 0.05); padding: 12px; margin-bottom: 15px; text-align: center; border-radius: 4px; }
@@ -114,6 +152,22 @@
     </div>
 
     <div id="mainView" style="display: none;">
+        
+        <!-- NEW HP BAR SECTION -->
+        <div class="hp-section">
+            <div class="hp-label">
+                <span>SYSTEM PENALTY (MONTHLY)</span>
+                <span id="hpDebtText" style="color:var(--danger)"></span>
+            </div>
+            <div class="hp-bar-container">
+                <div class="hp-fill" id="hpFill"></div>
+                <div class="hp-text" id="hpText">Loading...</div>
+            </div>
+            <div style="font-size:0.6rem; color:#666; margin-top:4px; text-align:center;">
+                Must pay <span style="color:#fff;">$15.00</span> per month + arrears.
+            </div>
+        </div>
+
         <div class="salary-container">
             <div style="font-size:0.6rem; color:var(--success); letter-spacing:2px;">SALARY WALLET</div>
             <span class="salary-value" id="salaryDisplay">$0.00</span>
@@ -173,7 +227,7 @@
 
         <div id="questList" style="margin-top:20px;"></div>
 
-        <!-- STATS FOOTER WITH CHART BUTTON -->
+        <!-- STATS FOOTER -->
         <div class="stats-footer">
             <div class="stat-box" style="color:var(--debt-color); border-color:var(--debt-color);">
                 <div class="stat-title">PAID DEBTS</div>
@@ -193,11 +247,6 @@
                 <div class="stat-sub" id="valDoneQuests">$0.00</div>
             </div>
         </div>
-        
-        <!-- NEW CHART BUTTON -->
-        <button class="btn-system" onclick="openChart()" style="margin-top:10px; border-color:var(--gold); color:var(--gold);">
-            VIEW VAULT GROWTH (MONTHLY) 📈
-        </button>
     </div>
 
     <!-- DAY VIEW -->
@@ -217,21 +266,6 @@
 
         <h3 style="color:#666; font-size:0.7rem; margin-top:20px;">ARCHIVED / COMPLETED</h3>
         <div id="dayList"></div>
-    </div>
-
-    <!-- CHART VIEW (NEW) -->
-    <div id="chartView" class="full-view">
-        <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
-        <h2 style="color:var(--gold); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">VAULT HISTORY</h2>
-        
-        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-top:20px;">
-            <canvas id="vaultChart"></canvas>
-        </div>
-        
-        <p style="color:#888; font-size:0.7rem; text-align:center; margin-top:15px;">
-            * Tracks the value of the Vault (USD) at the end of each month.
-            <br>Current month updates dynamically.
-        </p>
     </div>
 
     <script type="module">
@@ -254,11 +288,11 @@
         const provider = new GoogleAuthProvider();
 
         const RATE = 89000;
-        let system = { vault: 0, salary: 0, quests: [], dayArchives: {}, history: {} };
+        // system includes hpCurrent (USD paid this month), hpDebt (USD rolled over), hpMonth (YYYY-MM)
+        let system = { vault: 0, salary: 0, quests: [], dayArchives: {}, hpCurrent: 0, hpDebt: 0, hpMonth: "" };
         let navDate = new Date();
         let currentOpenDate = null;
         let currentUser = null;
-        let myChart = null; // To hold Chart instance
 
         // --- AUTH & CLOUD ---
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
@@ -271,14 +305,14 @@
                 document.getElementById('mainView').style.display = 'block';
                 document.getElementById('userEmailDisplay').textContent = user.email;
                 
-                onSnapshot(doc(db, "users", user.uid), (doc) => {
-                    if (doc.exists()) {
-                        let data = doc.data();
-                        // Ensure history object exists for old users
-                        if (!data.history) data.history = {};
+                onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
+                    if (docSnapshot.exists()) {
+                        let data = docSnapshot.data();
                         system = data;
+                        checkMonthRollover(); // Check HP Rollover Logic
                         render();
                     } else {
+                        system.hpMonth = getLocalTodayStr().substring(0, 7);
                         save();
                     }
                 });
@@ -290,16 +324,36 @@
 
         async function save() {
             if (currentUser) {
-                // --- HISTORY TRACKING LOGIC ---
-                // Always update the current month's key with the current vault value.
-                const d = new Date();
-                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-                
-                if(!system.history) system.history = {};
-                system.history[key] = system.vault || 0;
-                // ------------------------------
-
                 await setDoc(doc(db, "users", currentUser.uid), system);
+            }
+        }
+
+        // --- HP / MONTH LOGIC ---
+        function checkMonthRollover() {
+            const currentMonthStr = getLocalTodayStr().substring(0, 7); // YYYY-MM
+            
+            // Initialize if new
+            if (!system.hpMonth) system.hpMonth = currentMonthStr;
+            if (typeof system.hpCurrent === 'undefined') system.hpCurrent = 0;
+            if (typeof system.hpDebt === 'undefined') system.hpDebt = 0;
+
+            // If stored month is different from real current month
+            if (system.hpMonth !== currentMonthStr) {
+                // 1. Calculate debt from the old month
+                // Base target was $15 + old debt.
+                // We compare what was paid (hpCurrent) vs needed.
+                const neededTotal = 15 + (system.hpDebt || 0);
+                const paid = system.hpCurrent || 0;
+                
+                let remaining = neededTotal - paid;
+                if (remaining < 0) remaining = 0; // Should not happen if logic works, but safety first
+
+                // 2. Carry over to new month
+                system.hpDebt = remaining; 
+                system.hpCurrent = 0; // Reset progress for the new month
+                system.hpMonth = currentMonthStr; // Update month tracker
+                
+                save();
             }
         }
 
@@ -386,8 +440,38 @@
             }
         };
 
+        // MODIFIED DISTRIBUTE: Fills HP Bar FIRST
         function distribute(amount) {
             if(amount < 1) return;
+            
+            // --- 1. HP BAR LOGIC (Priority) ---
+            const targetUSD = 15 + (system.hpDebt || 0);
+            const currentUSD = system.hpCurrent || 0;
+            
+            // Convert everything to Gold for calculation
+            const targetHPGold = targetUSD * RATE;
+            const currentHPGold = currentUSD * RATE;
+            const neededForHP = targetHPGold - currentHPGold;
+
+            if (neededForHP > 0) {
+                // If we need to fill the bar
+                let payToHP = Math.min(amount, neededForHP);
+                
+                // Update HP current (stored in USD)
+                system.hpCurrent = (system.hpCurrent || 0) + (payToHP / RATE);
+                
+                // Deduct from deposit amount
+                amount -= payToHP;
+            }
+            // ----------------------------------
+
+            // If no money left after paying HP fee, save and exit
+            if (amount <= 0) {
+                save();
+                return;
+            }
+
+            // --- 2. QUESTS LOGIC ---
             const today = getLocalTodayStr(); 
             system.quests.sort((a,b) => a.id - b.id);
             for (let q of system.quests) {
@@ -401,8 +485,12 @@
                 }
                 if(amount <= 0) break;
             }
+
+            // --- 3. VAULT LOGIC ---
             if(amount > 0) system.vault = (system.vault || 0) + amount;
-            archiveCheck(); save();
+            
+            archiveCheck(); 
+            save();
         }
 
         window.registerQuest = (isDebt) => {
@@ -436,6 +524,9 @@
                 targetDate: date 
             });
             const today = getLocalTodayStr(); 
+            
+            // Only auto-fill if it's NOT a debt, is for today/past, and we have vault money
+            // NOTE: HP logic only triggers on NEW deposits (distribute), not from existing vault.
             if(!isDebt && date <= today && (system.vault || 0) >= 1) { 
                 let v = system.vault; system.vault = 0; distribute(v); 
             } else {
@@ -502,6 +593,26 @@
             }
         };
 
+        // --- NEW: REFUND ARCHIVED QUEST ---
+        window.refundArchivedQuest = (date, id) => {
+            if(confirm("Delete this completed quest and REFUND its value to Vault?")) {
+                let list = system.dayArchives[date];
+                let idx = list.findIndex(q => q.id === id);
+                if(idx > -1) {
+                    let q = list[idx];
+                    // Refund to vault
+                    system.vault = (system.vault || 0) + q.target; // Target is fully paid in archives
+                    
+                    // Remove
+                    list.splice(idx, 1);
+                    if(list.length === 0) delete system.dayArchives[date];
+                    
+                    save(); 
+                    openDay(date);
+                }
+            }
+        };
+
         function archiveCheck() {
             for(let i=0; i<system.quests.length; i++){
                 if(system.quests[i].current >= system.quests[i].target - 0.1){ 
@@ -522,6 +633,20 @@
             const activeQuestsVal = system.quests.filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
             const archivedQuestsVal = Object.values(system.dayArchives).flat().filter(q => !q.isDebt).reduce((s,q)=>s+q.current,0);
             const totalWealth = vaultVal + activeQuestsVal + archivedQuestsVal;
+
+            // RENDER HP BAR
+            const targetUSD = 15 + (system.hpDebt || 0);
+            const currentUSD = system.hpCurrent || 0;
+            const hpPerc = Math.min(100, (currentUSD / targetUSD) * 100);
+            
+            document.getElementById('hpFill').style.width = hpPerc + "%";
+            document.getElementById('hpText').textContent = `$${currentUSD.toFixed(2)} / $${targetUSD.toFixed(2)} ` + (hpPerc >= 100 ? "(COMPLETED)" : "");
+            
+            if(system.hpDebt > 0.01) {
+                document.getElementById('hpDebtText').textContent = `[ARREARS: $${system.hpDebt.toFixed(2)}]`;
+            } else {
+                document.getElementById('hpDebtText').textContent = "";
+            }
 
             // RANK & LEVEL
             const playerRank = getRankInfo(totalWealth);
@@ -659,71 +784,23 @@
                     let r = getRankInfo(q.target);
                     archiveRank = `<span style="color:${r.c}; font-weight:900; font-size:0.7rem; border:1px solid ${r.c}; padding:0 4px; margin-left:5px;">${r.r}</span>`;
                 }
+                
+                // Add Delete Buttons Logic
+                let delButton = '';
+                if(q.isDebt) {
+                    delButton = `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge Record</button>`;
+                } else {
+                    delButton = `<button class="refund-btn" onclick="refundArchivedQuest('${d}', ${q.id})">REFUND & DELETE</button>`;
+                }
 
                 l.innerHTML += `<div class="quest-card ${borderClass}">
                     <div style="font-size:0.65rem; color:${typeColor}; font-weight:bold;">[COMPLETED] ${q.isDebt?'DEBT':'QUEST'} ${archiveRank}</div>
                     <div style="font-weight:bold; margin-top:5px;">${q.title}</div>
                     <div style="font-family:monospace;">Target: ${formatVal(q.target)}</div>
-                    ${q.isDebt ? `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge Record</button>` : ''}
+                    <div style="margin-top:10px;">${delButton}</div>
                 </div>`;
             });
         };
-
-        // --- CHART FUNCTIONS ---
-        window.openChart = () => {
-            document.getElementById('chartView').style.display = 'block';
-            renderChart();
-        };
-
-        function renderChart() {
-            const ctx = document.getElementById('vaultChart').getContext('2d');
-            
-            if(!system.history) system.history = {};
-            
-            const sortedKeys = Object.keys(system.history).sort();
-            const labels = sortedKeys.map(k => k); 
-            // Convert history values (Gold) to USD
-            const dataUSD = sortedKeys.map(k => (system.history[k] / RATE));
-
-            if(myChart) myChart.destroy();
-
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Vault Value (USD)',
-                        data: dataUSD,
-                        borderColor: '#ffd700',
-                        backgroundColor: 'rgba(255, 215, 0, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        pointBackgroundColor: '#fff',
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255,255,255,0.1)' },
-                            ticks: { 
-                                color: '#888',
-                                callback: function(value) { return '$' + value; } 
-                            }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#888' }
-                        }
-                    },
-                    plugins: {
-                        legend: { labels: { color: '#e6edf3' } }
-                    }
-                }
-            });
-        }
 
         window.closeViews = () => document.querySelectorAll('.full-view').forEach(v => v.style.display='none');
         window.changeMonth = (s) => { navDate.setMonth(navDate.getMonth()+s); drawCalendar(); };
