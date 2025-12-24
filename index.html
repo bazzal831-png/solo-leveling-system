@@ -442,16 +442,13 @@
         </div>
     </div>
 
-    <!-- DAY VIEW -->
+    <!-- DAY VIEW (MODIFIED: REMOVED ADD FORM) -->
     <div id="dayView" class="full-view">
         <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
         <h2 id="dayTitle" style="color:var(--mana); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;"></h2>
-        <div id="dayObjectiveForm" style="background:rgba(255,255,255,0.05); padding:15px; margin-bottom:20px; border:1px solid #333;">
-            <div style="font-size:0.6rem; color:#888; margin-bottom:5px;">ADD DEBT FOR THIS DATE</div>
-            <input type="text" id="dTitle" placeholder="Title">
-            <input type="text" id="dTarget" placeholder="Target">
-            <button class="btn-system" style="background:var(--debt-color); color:#fff; border:none;" onclick="registerFromDayView(true)">Add Debt</button>
-        </div>
+        
+        <!-- REMOVED THE FORM HERE AS REQUESTED -->
+
         <h3 style="color:#666; font-size:0.7rem; margin-top:20px;">ARCHIVED DEBTS (PAID)</h3>
         <div id="dayList"></div>
     </div>
