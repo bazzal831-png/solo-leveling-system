@@ -499,12 +499,22 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
+                // RESET SYSTEM on new user
+                system = { 
+                    vaultCurrent: 0, vaultSavings: 0, salary: 0, 
+                    quests: [], dayArchives: {}, history: {}, hpMonth: "",
+                    exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0
+                };
+
                 document.getElementById('authOverlay').style.display = 'none';
                 document.getElementById('mainView').style.display = 'block';
                 document.getElementById('userEmailDisplay').textContent = user.email;
                 
                 await loadSubCollections(user.uid);
 
+                // ====================================================
+                // FIXED ONSNAPSHOT LOGIC TO PREVENT ARCHIVE OVERWRITE
+                // ====================================================
                 onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
@@ -513,13 +523,18 @@
                             data.vaultSavings = data.vault; data.vaultCurrent = 0; delete data.vault;
                         }
                         
-                        // Merge Sub-collections logic
-                        const loadedHistory = system.history;
-                        const loadedArchives = system.dayArchives;
+                        // 1. CAPTURE EXISTING LOCAL ARCHIVES (Loaded from sub-collection)
+                        const existingArchives = system.dayArchives || {};
+                        const existingHistory = system.history || {};
 
+                        // 2. MERGE NEW DATA (Salary, Quests, Rates)
                         system = { ...system, ...data };
-                        system.history = { ...loadedHistory, ...(data.history || {}) }; 
-                        
+
+                        // 3. RESTORE ARCHIVES (Don't let Main Doc overwrite them with null/missing)
+                        system.dayArchives = existingArchives;
+                        system.history = { ...existingHistory, ...(data.history || {}) };
+
+                        // 4. Handle Legacy Data if still on main doc
                         if (data.dayArchives) {
                              Object.keys(data.dayArchives).forEach(d => {
                                  if(!system.dayArchives[d]) system.dayArchives[d] = [];
@@ -538,6 +553,11 @@
                         render();
                         updateGoldModalUI(); 
                         fetchLiveGoldPrice();
+                        
+                        // If day view is open, refresh it to show new payments immediately
+                        if(document.getElementById('dayView').style.display === 'block' && currentOpenDate) {
+                            openDay(currentOpenDate);
+                        }
                         
                         if(document.getElementById('chartView').style.display === 'block') {
                             renderChart();
@@ -591,6 +611,7 @@
                 system.salary = Money.val(system.salary || 0);
                 system.storedGoldPrice = global24kGramPrice;
 
+                // Don't save full archives to main doc anymore, they are in sub-collection
                 const payload = { 
                     vaultCurrent: system.vaultCurrent,
                     vaultSavings: system.vaultSavings,
@@ -734,7 +755,7 @@
             }
         };
 
-        // --- NEW SECURE PAY DEBT FUNCTION (BATCHED) ---
+        // --- SECURE PAY DEBT FUNCTION (BATCHED) ---
         window.payDebt = async (id) => {
             let q = system.quests.find(x => x.id == id);
             
@@ -772,7 +793,7 @@
                         // 4. Commit all at once (Atomic Transaction)
                         await batch.commit();
 
-                        // 5. Update Local State & UI only after success
+                        // 5. Update Local State UI immediately
                         system.salary = newSalary;
                         system.quests = newQuests;
 
@@ -969,7 +990,6 @@
         };
 
         async function addObjective(title, target, isDebt, date) {
-            // Updated ID generation to be safer
             const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
             system.quests.push({ 
                 id: uniqueId, title: title, target: target, 
