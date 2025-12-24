@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SUNG JIN-WOO SYSTEM | DEBT MANAGER (SECURE)</title>
-    <!-- FIXED VERSION (Point 5): Chart.js 4.4.1 -->
+    <!-- FIXED VERSION: Chart.js 4.4.1 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
@@ -858,18 +858,17 @@
             if(!system.history) system.history = {};
             const sortedKeys = Object.keys(system.history).sort();
             
-            // Labels array starting with history
-            const labels = [...sortedKeys]; 
+            // --- FIX: ADD 'START' and 0 value to make chart grow from zero ---
+            const labels = ['START', ...sortedKeys]; 
             
-            // Data array starting with history
-            const dataUSD = sortedKeys.map(k => {
+            const dataUSD = [0, ...sortedKeys.map(k => {
                 let entry = system.history[k];
                 // Handle different history formats and rate
                 let rate = (entry.rate && entry.rate > 0) ? entry.rate : 89500;
                 let val = (typeof entry === 'object' && entry !== null) ? entry.val : entry;
                 
                 return val / rate;
-            });
+            })];
 
             // 2. Add CURRENT LIVE STATUS
             // This is the key fix: It calculates what you have RIGHT NOW
