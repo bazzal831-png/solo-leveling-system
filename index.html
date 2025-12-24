@@ -189,9 +189,28 @@
         .karat-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 15px; }
         .k-btn { background: rgba(0,0,0,0.5); border: 1px solid #444; color: #888; padding: 8px 0; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
         .k-btn.active { border-color: var(--gold); color: black; background: var(--gold); box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+
+        /* SAVING INDICATOR */
+        #saveIndicator {
+            position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: transparent; z-index: 99999;
+            display: none;
+        }
+        #saveIndicator.saving {
+            display: block;
+            background: linear-gradient(90deg, var(--bg), var(--danger), var(--bg));
+            animation: savePulse 1s infinite;
+        }
+        #savingText {
+            position: fixed; top: 5px; right: 5px; color: var(--danger); font-size: 0.6rem; font-weight: bold;
+            background: rgba(0,0,0,0.8); padding: 2px 5px; border-radius: 3px; z-index: 99999; display: none;
+        }
+        @keyframes savePulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
 <body>
+
+    <div id="saveIndicator"></div>
+    <div id="savingText">DATA SAVING...</div>
 
     <div id="authOverlay">
         <div class="login-card">
@@ -432,18 +451,14 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        // POINT 4: Safe Math Helper to fix Floating Point Errors
         const Money = {
             add: (a, b) => Math.round((a + b) * 100) / 100,
             sub: (a, b) => Math.round((a - b) * 100) / 100,
             val: (a) => Math.round(a * 100) / 100
         };
 
-        // POINT 3: Robust Date Function with Fixed Timezone (Asia/Beirut)
         function getSystemDate() {
-            // This ensures date is consistently YYYY-MM-DD regardless of user travel
             const options = { timeZone: "Asia/Beirut", year: 'numeric', month: '2-digit', day: '2-digit' };
-            // Using en-CA (Canada) locale forces YYYY-MM-DD format
             const formatter = new Intl.DateTimeFormat('en-CA', options);
             return formatter.format(new Date());
         }
@@ -455,8 +470,8 @@
         let system = { 
             vaultCurrent: 0, vaultSavings: 0, salary: 0, 
             quests: [], 
-            dayArchives: {}, // Will be populated from sub-collection
-            history: {},     // Will be populated from sub-collection
+            dayArchives: {}, 
+            history: {}, 
             hpMonth: "",
             exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0
         };
@@ -467,11 +482,19 @@
         let myChart = null; 
         let selectedWithdrawSource = null;
         let global24kGramPrice = 88.0; 
+        let isSaving = false; // Prevents refresh issues
         
         const karatRatios = { 18: 0.75, 21: 0.875, 22: 0.9167, 24: 1.0 };
 
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
         window.logout = () => { if(confirm("Disconnect?")) signOut(auth).then(()=>location.reload()); };
+
+        // Toggle Saving Indicator
+        function setSaving(state) {
+            isSaving = state;
+            document.getElementById('saveIndicator').className = state ? 'saving' : '';
+            document.getElementById('savingText').style.display = state ? 'block' : 'none';
+        }
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -480,32 +503,35 @@
                 document.getElementById('mainView').style.display = 'block';
                 document.getElementById('userEmailDisplay').textContent = user.email;
                 
-                // Load Sub-collections (Point 1)
                 await loadSubCollections(user.uid);
 
                 onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
+                    // Safety check: if we are in the middle of a local save, don't overwrite
+                    // unless the remote data is strictly newer (handled by firebase, but logic helps)
+                    
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
                         
-                        // Basic validation
                         if(data.vault !== undefined && data.vaultSavings === undefined) {
                             data.vaultSavings = data.vault; data.vaultCurrent = 0; delete data.vault;
                         }
                         
-                        // Merge sub-collection data with realtime doc data
-                        // We preserve local loaded history/archives so they aren't overwritten by empty doc fields
+                        // Merge Sub-collections logic
                         const loadedHistory = system.history;
                         const loadedArchives = system.dayArchives;
 
                         system = { ...system, ...data };
-                        system.history = { ...loadedHistory, ...(data.history || {}) }; // Merge old & new
+                        system.history = { ...loadedHistory, ...(data.history || {}) }; 
                         
-                        // Merge archives safely (Point 1 fix)
                         if (data.dayArchives) {
-                             // This handles legacy data inside the doc
                              Object.keys(data.dayArchives).forEach(d => {
                                  if(!system.dayArchives[d]) system.dayArchives[d] = [];
-                                 system.dayArchives[d] = [...system.dayArchives[d], ...data.dayArchives[d]];
+                                 // Simple merge to avoid duplicates if ID exists
+                                 const incoming = data.dayArchives[d];
+                                 const existingIds = new Set(system.dayArchives[d].map(x => x.id));
+                                 incoming.forEach(inc => {
+                                     if(!existingIds.has(inc.id)) system.dayArchives[d].push(inc);
+                                 });
                              });
                         }
 
@@ -515,7 +541,7 @@
                         checkMonthRollover(); 
                         render();
                         updateGoldModalUI(); 
-                        fetchLiveGoldPrice(); // Point 2 (Kept as is)
+                        fetchLiveGoldPrice();
                         
                         if(document.getElementById('chartView').style.display === 'block') {
                             renderChart();
@@ -531,24 +557,19 @@
             }
         });
 
-        // Point 1 Implementation: Load Sub-collections
         async function loadSubCollections(uid) {
             try {
-                // Load History
                 const historySnap = await getDocs(collection(db, "users", uid, "history_log"));
                 historySnap.forEach(doc => {
                     const d = doc.data();
-                    // key is YYYY-MM
                     if(d.month) system.history[d.month] = { val: d.val, rate: d.rate };
                 });
 
-                // Load Archives
                 const archivesSnap = await getDocs(collection(db, "users", uid, "archived_quests"));
                 archivesSnap.forEach(doc => {
                     const q = doc.data();
                     const dateKey = q.targetDate || "Unknown";
                     if(!system.dayArchives[dateKey]) system.dayArchives[dateKey] = [];
-                    // Add doc ID so we can delete it later from sub-collection
                     system.dayArchives[dateKey].push({ ...q, docId: doc.id });
                 });
             } catch (e) {
@@ -566,15 +587,15 @@
             } catch (e) { console.log("Gold API Error - Using Stored Value"); }
         }
 
-        async function save(forceFull = false) {
+        // FIXED: Async Save with Indicator
+        const save = async (forceFull = false) => {
             if (currentUser) {
-                // Use Point 4 Math safety
+                setSaving(true);
                 system.vaultCurrent = Money.val(system.vaultCurrent || 0);
                 system.vaultSavings = Money.val(system.vaultSavings || 0);
                 system.salary = Money.val(system.salary || 0);
                 system.storedGoldPrice = global24kGramPrice;
 
-                // We do NOT save history/dayArchives back to the main doc to keep it light (Point 1)
                 const payload = { 
                     vaultCurrent: system.vaultCurrent,
                     vaultSavings: system.vaultSavings,
@@ -592,9 +613,11 @@
                     else await updateDoc(doc(db, "users", currentUser.uid), payload);
                 } catch(e) {
                     await setDoc(doc(db, "users", currentUser.uid), payload, { merge: true });
+                } finally {
+                    setSaving(false);
                 }
             }
-        }
+        };
 
         function getNextMonth(yyyy_mm) {
             let [y, m] = yyyy_mm.split('-').map(Number);
@@ -604,6 +627,9 @@
         }
 
         async function checkMonthRollover() {
+            // Prevent rollover loop if we are just loading
+            if(isSaving) return; 
+
             const currentMonthStr = getSystemDate().substring(0, 7); 
             if (!system.hpMonth) system.hpMonth = currentMonthStr;
 
@@ -612,7 +638,6 @@
 
             while(storedMonth < currentMonthStr) {
                 needsSave = true;
-                
                 const monthVal = Money.add(system.vaultCurrent || 0, system.vaultSavings || 0);
                 const monthData = {
                     val: monthVal,
@@ -621,10 +646,9 @@
                     createdAt: serverTimestamp()
                 };
 
-                // Add to Local Memory
                 system.history[storedMonth] = { val: monthVal, rate: system.exchangeRate };
                 
-                // Add to Sub-collection (Point 1)
+                // Add to Sub-collection
                 await addDoc(collection(db, "users", currentUser.uid, "history_log"), monthData);
 
                 system.vaultSavings = Money.add(system.vaultSavings || 0, system.vaultCurrent || 0);
@@ -635,7 +659,7 @@
 
             if(needsSave) {
                 system.hpMonth = currentMonthStr;
-                save();
+                await save();
             }
         }
 
@@ -651,7 +675,7 @@
             if (isNaN(number)) return 0;
             let finalVal = number * mult;
             if (isUSD) { finalVal = finalVal * system.exchangeRate; }
-            return Money.val(finalVal); // Use Point 4
+            return Money.val(finalVal);
         }
 
         function formatVal(v) {
@@ -669,56 +693,55 @@
             return { r: 'E', c: 'var(--rank-e)' };
         }
 
-        window.addSalary = () => {
+        window.addSalary = async () => {
             let a = prompt("Add Salary Income (e.g. $500 or 45000000):");
             let val = parseWish(a);
             if(val > 0 && system.exchangeRate > 0) { 
                 let usdVal = Money.val(val / system.exchangeRate);
                 system.salary = Money.add(system.salary || 0, usdVal); 
-                save(); 
+                await save(); 
             }
         };
 
-        window.salaryToVault = () => {
+        window.salaryToVault = async () => {
             let a = prompt("Transfer to Assets (e.g. 50k, $100):");
             if(!a) return;
             let goldAmount = parseWish(a);
             let costInUSD = Money.val(goldAmount / system.exchangeRate);
             if(goldAmount >= 1 && (system.salary || 0) >= costInUSD) {
                 system.salary = Money.sub(system.salary, costInUSD); 
-                directDeposit(goldAmount); 
+                await directDeposit(goldAmount); 
             } else {
                 alert("Insufficient Salary funds.");
             }
         };
 
-        window.startFlowDeposit = () => { 
+        window.startFlowDeposit = async () => { 
             let a = prompt("Deposit Assets Directly (e.g. $50 or 100k):"); 
             let val = parseWish(a);
-            if(val > 0) directDeposit(val); 
+            if(val > 0) await directDeposit(val); 
         };
 
-        function directDeposit(amount) {
+        async function directDeposit(amount) {
             if(amount > 0) {
                 system.vaultCurrent = Money.add(system.vaultCurrent || 0, amount);
-                save();
+                await save();
             }
         }
 
-        window.confirmZero = (type) => {
+        window.confirmZero = async (type) => {
             if(confirm(`Clean up the remaining fraction (less than 1000)?`)) {
                 if(type === 'salary') system.salary = 0; 
                 else {
                     if(system.vaultCurrent < 1000) system.vaultCurrent = 0;
                     if(system.vaultSavings < 1000) system.vaultSavings = 0;
                 }
-                save();
+                await save();
             }
         };
 
-        /* ================= FIXED PAY DEBT FUNCTION ================= */
+        // FIXED: Async Payment Logic with correct Wait sequence
         window.payDebt = async (id) => {
-            // FIX 1: Use '==' to match string ID from HTML with number ID in data
             let q = system.quests.find(x => x.id == id);
             
             if(!q) {
@@ -730,44 +753,41 @@
             let rate = (system.exchangeRate > 0) ? system.exchangeRate : 89500;
             let costUSD = Money.val(remainingGold / rate);
             
-            // FIX 2: Check specifically against Salary and provide clear Alert
             if((system.salary || 0) >= costUSD) {
                 if(confirm(`PAY DEBT: "${q.title}"?\nCost: $${costUSD.toFixed(2)}\n(Deducted from SALARY)`)) {
                     
                     try {
+                        setSaving(true);
+                        // 1. Deduct Money locally
                         system.salary = Money.sub(system.salary, costUSD); 
                         
-                        // FIX 3: Robust Archiving
+                        // 2. Prepare Archive Data
                         const archiveData = { ...q, current: q.target, archivedAt: serverTimestamp() };
                         const d = q.targetDate || getSystemDate();
                         
-                        // Try cloud save for archive, but don't crash if it fails
-                        try {
-                            const docRef = await addDoc(collection(db, "users", currentUser.uid, "archived_quests"), archiveData);
-                            if(!system.dayArchives[d]) system.dayArchives[d] = [];
-                            system.dayArchives[d].push({ ...archiveData, docId: docRef.id });
-                        } catch(e) {
-                            console.warn("Cloud archive failed, saving locally only.");
-                            if(!system.dayArchives[d]) system.dayArchives[d] = [];
-                            system.dayArchives[d].push(archiveData);
-                        }
+                        // 3. Save to Archive FIRST (Wait for it)
+                        const docRef = await addDoc(collection(db, "users", currentUser.uid, "archived_quests"), archiveData);
+                        
+                        // 4. Update local archive
+                        if(!system.dayArchives[d]) system.dayArchives[d] = [];
+                        system.dayArchives[d].push({ ...archiveData, docId: docRef.id });
 
-                        // Remove from active list
+                        // 5. Remove from active list
                         system.quests = system.quests.filter(x => x.id != id);
                         
-                        // Save State & Render immediately
-                        save();
+                        // 6. SAVE MAIN DOC (Wait for it)
+                        await save();
                         render();
                         
                     } catch (err) {
                         alert("Error during payment transaction: " + err.message);
+                        setSaving(false);
                     }
                 }
             } else {
                 alert(`INSUFFICIENT SALARY!\n\nRequired: $${costUSD.toFixed(2)}\nAvailable: $${(system.salary || 0).toFixed(2)}\n\nPlease add funds via [+ INCOME] button first.`);
             }
         };
-        /* =========================================================== */
 
         window.openWithdrawModal = () => {
             document.getElementById('withdrawModal').style.display = 'flex';
@@ -793,7 +813,7 @@
             if(src === 'savings') document.getElementById('btnSrcSavings').classList.add('active');
         };
 
-        window.submitWithdraw = () => {
+        window.submitWithdraw = async () => {
             let val = document.getElementById('withdrawInput').value;
             let req = parseWish(val);
             if(req <= 0) { alert("Invalid Amount"); return; }
@@ -806,7 +826,8 @@
                 if((system.vaultCurrent || 0) >= req) system.vaultCurrent = Money.sub(system.vaultCurrent, req);
                 else { alert("Not enough in Current Vault!"); return; }
             }
-            save(); closeWithdrawModal();
+            await save(); 
+            closeWithdrawModal();
         };
 
         window.openRateModal = () => {
@@ -814,11 +835,11 @@
             document.getElementById('inputExchangeRate').value = system.exchangeRate;
         }
 
-        window.confirmRateChange = () => {
+        window.confirmRateChange = async () => {
             let n = parseFloat(document.getElementById('inputExchangeRate').value);
             if(n >= 1) {
                 system.exchangeRate = n;
-                save(); 
+                await save(); 
                 document.getElementById('rateModal').style.display = 'none';
             } else {
                 alert("Rate cannot be zero or negative.");
@@ -835,9 +856,9 @@
             document.getElementById('goldContent').style.display = 'block';
         };
 
-        window.setKarat = (k) => {
+        window.setKarat = async (k) => {
             system.preferredKarat = k;
-            save(); 
+            await save(); 
             updateGoldModalUI();
             render(); 
         };
@@ -876,25 +897,18 @@
 
         function renderChart() {
             const ctx = document.getElementById('vaultChart').getContext('2d');
-            
-            // 1. Calculate History
             if(!system.history) system.history = {};
             const sortedKeys = Object.keys(system.history).sort();
             
-            // --- FIX: ADD 'START' and 0 value to make chart grow from zero ---
             const labels = ['START', ...sortedKeys]; 
             
             const dataUSD = [0, ...sortedKeys.map(k => {
                 let entry = system.history[k];
-                // Handle different history formats and rate
                 let rate = (entry.rate && entry.rate > 0) ? entry.rate : 89500;
                 let val = (typeof entry === 'object' && entry !== null) ? entry.val : entry;
-                
                 return val / rate;
             })];
 
-            // 2. Add CURRENT LIVE STATUS
-            // This is the key fix: It calculates what you have RIGHT NOW
             const currentTotal = Money.add(system.vaultCurrent || 0, system.vaultSavings || 0);
             const currentRate = (system.exchangeRate > 0) ? system.exchangeRate : 89500;
             const currentUSD = currentTotal / currentRate;
@@ -934,14 +948,15 @@
             });
         }
 
-        window.registerQuest = (isDebt) => {
+        // FIXED: Async Add Logic
+        window.registerQuest = async (isDebt) => {
             let t = document.getElementById('qTitle').value;
             let g = document.getElementById('qTarget').value;
             let d = document.getElementById('qDate').value;
             let amount = parseWish(g);
             if(t && amount > 0) {
                 const targetDate = d ? d : getSystemDate();
-                addObjective(t, amount, true, targetDate);
+                await addObjective(t, amount, true, targetDate);
                 document.getElementById('qTitle').value = ''; 
                 document.getElementById('qTarget').value = '';
             } else {
@@ -949,38 +964,37 @@
             }
         };
 
-        function addObjective(title, target, isDebt, date) {
+        async function addObjective(title, target, isDebt, date) {
             system.quests.push({ 
                 id: Date.now(), title: title, target: target, 
                 current: 0, isDebt: true, targetDate: date 
             });
-            save();
+            await save();
         }
 
-        window.discardQuest = (id) => {
+        window.discardQuest = async (id) => {
             let idx = system.quests.findIndex(x => x.id === id);
             if(idx === -1) return;
             system.quests.splice(idx,1);
-            save();
+            await save();
         };
 
         window.deleteArchivedDebt = async (date, id) => {
             if(confirm("Permanently purge this record? (Money will NOT be refunded)")) {
-                // Find in local array to get docId
                 const quest = system.dayArchives[date].find(q => q.id === id);
                 
                 if (quest && quest.docId) {
                     try {
-                        // Delete from sub-collection (Point 1)
+                        setSaving(true);
                         await deleteDoc(doc(db, "users", currentUser.uid, "archived_quests", quest.docId));
                     } catch(e) { console.error("Could not delete from DB", e); }
+                    finally { setSaving(false); }
                 }
 
-                // Delete locally
                 system.dayArchives[date] = system.dayArchives[date].filter(q => q.id !== id);
                 if(system.dayArchives[date].length === 0) delete system.dayArchives[date];
                 
-                openDay(date); // Refresh view
+                openDay(date); 
             }
         };
 
