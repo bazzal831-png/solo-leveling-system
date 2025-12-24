@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | GOLD MASTER V2</title>
+    <title>SUNG JIN-WOO SYSTEM | GOLD MASTER V3</title>
     <!-- CHART.JS LIBRARY -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -21,7 +21,6 @@
             --rank-b: #00d2ff; --rank-c: #4caf50; --rank-e: #9e9e9e;
 
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
-            --inventory: #ff79c6; 
         }
 
         body { 
@@ -66,7 +65,7 @@
         .net-gold { font-size: 2.8rem; font-weight: bold; color: var(--gold); font-family: monospace; text-shadow: 0 0 20px rgba(255, 215, 0, 0.1); margin: 5px 0; display: block;}
         .net-usd { font-size: 1.1rem; color: var(--success); font-weight: bold; background: rgba(80, 250, 123, 0.1); padding: 2px 10px; border-radius: 10px; }
 
-        /* CUSTOM MODAL STYLES */
+        /* MODAL STYLES */
         .modal-backdrop {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000;
             display: none; justify-content: center; align-items: center;
@@ -111,7 +110,7 @@
             padding: 40px 20px; text-align: center; background: rgba(0, 30, 50, 0.3);
         }
 
-        /* HP BAR SECTION */
+        /* HP BAR */
         .hp-section {
             background: rgba(0, 0, 0, 0.5); border: 1px solid #333;
             padding: 10px; margin-bottom: 15px; border-radius: 4px;
@@ -130,7 +129,6 @@
         .hp-fill.lvl-1 { background: linear-gradient(90deg, #cc0000, #ff0000); box-shadow: 0 0 10px #ff0000; }
         .hp-fill.lvl-2 { background: linear-gradient(90deg, #005f73, #00d2ff); box-shadow: 0 0 10px #00d2ff; }
         .hp-fill.lvl-3 { background: linear-gradient(90deg, #5a189a, #bc13fe); box-shadow: 0 0 10px #bc13fe; }
-
         .hp-text {
             position: absolute; width: 100%; text-align: center; top: 0; line-height: 25px;
             font-size: 0.8rem; color: white; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 2;
@@ -153,6 +151,7 @@
         .btn-pay { background: var(--success); color: black; border: none; padding: 8px 15px; font-weight: bold; font-size: 0.75rem; cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 0 10px rgba(80, 250, 123, 0.3); position: relative; z-index: 2; }
         .discard-btn { color: var(--danger); background: none; border: 1px solid rgba(255,49,49,0.2); padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 10px; display: inline-block; position: relative; z-index: 2; }
         .btn-zero { background: var(--danger); color: white; border: none; padding: 6px 12px; font-size: 0.7rem; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 8px; display: none; box-shadow: 0 0 8px var(--danger); }
+        .btn-rate { background: transparent; border: 1px solid #444; color: #888; font-size: 0.6rem; padding: 2px 6px; cursor: pointer; margin-left: 5px; border-radius: 4px; }
 
         .salary-container { border: 1px solid var(--success); background: rgba(80, 250, 123, 0.05); padding: 12px; margin-bottom: 15px; text-align: center; border-radius: 4px; }
         .salary-value { font-size: 1.8rem; color: var(--success); font-weight: bold; font-family: monospace; display: block; }
@@ -170,7 +169,6 @@
         .gold-fill.lvl-0 { background: linear-gradient(90deg, #b8860b, #ffd700); box-shadow: 0 0 10px #ffd700; }
         .gold-fill.lvl-1 { background: linear-gradient(90deg, #005f73, #00d2ff); box-shadow: 0 0 10px #00d2ff; }
         .gold-fill.lvl-2 { background: linear-gradient(90deg, #5a189a, #bc13fe); box-shadow: 0 0 10px #bc13fe; }
-        
         .gold-bar-text {
             position: absolute; width: 100%; text-align: center; top: 0; line-height: 20px;
             font-size: 0.75rem; color: white; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 2; font-family: monospace;
@@ -193,7 +191,7 @@
 
         .archive-debt { border-left: 4px solid var(--debt-color) !important; }
 
-        /* GOLD TICKER & KARAT SELECTOR STYLES */
+        /* GOLD & KARAT SELECTOR */
         .gold-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #333; }
         .gold-label { font-size: 0.8rem; color: var(--gold); font-weight: bold; }
         .gold-value { font-family: monospace; font-size: 1rem; color: white; }
@@ -201,8 +199,6 @@
         .karat-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 15px; }
         .k-btn { background: rgba(0,0,0,0.5); border: 1px solid #444; color: #888; padding: 8px 0; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
         .k-btn.active { border-color: var(--gold); color: black; background: var(--gold); box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-
-        .mini-tag { font-size: 0.6rem; background: var(--gold); color: black; padding: 1px 4px; border-radius: 2px; font-weight: bold; margin-left: 5px; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -214,13 +210,24 @@
         </div>
     </div>
 
+    <!-- RATE SETTING MODAL -->
+    <div id="rateModal" class="modal-backdrop">
+        <div class="modal-window">
+            <div class="modal-title">EXCHANGE RATE SETTING</div>
+            <p style="font-size:0.7rem; color:#888; margin-bottom:15px;">Set the current Black Market Dollar Rate (Lira).</p>
+            <input type="number" id="inputExchangeRate" class="modal-input" placeholder="e.g. 89500">
+            <div class="modal-actions">
+                <button class="modal-btn btn-cancel" onclick="document.getElementById('rateModal').style.display='none'">CANCEL</button>
+                <button class="modal-btn btn-confirm" onclick="confirmRateChange()">SAVE RATE</button>
+            </div>
+        </div>
+    </div>
+
     <!-- WITHDRAWAL MODAL -->
     <div id="withdrawModal" class="modal-backdrop">
         <div class="modal-window">
             <div class="modal-title">SYSTEM WITHDRAWAL</div>
-            
             <input type="text" id="withdrawInput" class="modal-input" placeholder="Amount (e.g. 50$ or 5k)">
-            
             <div style="font-size:0.6rem; color:#888; text-align:left; margin-left:2px;">SELECT SOURCE:</div>
             <div class="source-grid">
                 <div id="btnSrcCurrent" class="source-btn" onclick="selectSource('current')">
@@ -232,7 +239,6 @@
                     <span class="src-val" id="dispSavings">0</span>
                 </div>
             </div>
-
             <div class="modal-actions">
                 <button class="modal-btn btn-cancel" onclick="closeWithdrawModal()">CANCEL</button>
                 <button class="modal-btn btn-confirm" onclick="submitWithdraw()">CONFIRM</button>
@@ -240,13 +246,14 @@
         </div>
     </div>
 
-    <!-- GOLD PRICES MODAL (UPDATED) -->
+    <!-- GOLD PRICES MODAL (KARAT SELECTOR) -->
     <div id="goldModal" class="modal-backdrop">
         <div class="modal-window">
             <div class="modal-title" style="color:var(--gold); border-color:var(--gold);">
                 MARKET PRICES
             </div>
             
+            <p style="font-size:0.6rem; color:#aaa; margin-bottom:10px;">SELECT SYSTEM KARAT (SAVES AUTOMATICALLY)</p>
             <!-- Karat Selector Buttons -->
             <div class="karat-selector">
                 <button class="k-btn" id="k18" onclick="setKarat(18)">18K</button>
@@ -264,7 +271,7 @@
                     <span class="gold-value" id="priceDynamicGram">$0.00</span>
                 </div>
 
-                <!-- Conditional Rows based on Karat -->
+                <!-- Conditional Rows -->
                 <div id="rowOunce" class="gold-row" style="display:none;">
                     <span class="gold-label">OUNCE (24K)</span>
                     <span class="gold-value" id="priceOunce">$0.00</span>
@@ -279,7 +286,7 @@
                 </div>
 
             </div>
-            <button class="modal-btn btn-cancel" style="margin-top:20px; width:100%" onclick="closeGoldModal()">CLOSE & UPDATE BAR</button>
+            <button class="modal-btn btn-cancel" style="margin-top:20px; width:100%" onclick="closeGoldModal()">CLOSE & SAVE</button>
         </div>
     </div>
 
@@ -312,7 +319,7 @@
         <div class="salary-container">
             <div style="font-size:0.6rem; color:var(--success); letter-spacing:2px;">SALARY WALLET</div>
             <span class="salary-value" id="salaryDisplay">$0.00</span>
-            <div style="font-size:0.7rem; color:#888;">≈ <span id="salaryGoldDisplay">0</span> Gold</div>
+            <div style="font-size:0.7rem; color:#888;">Rate: <span id="displayRate">89500</span> <button class="btn-rate" onclick="openRateModal()">CHANGE</button></div>
             <button id="zeroSalary" class="btn-zero" onclick="confirmZero('salary')">Zero Remainder (<1k)</button>
             <div style="display:flex; gap:5px; margin-top:10px;">
                 <button class="btn-system" style="border-color:var(--success); color:var(--success); flex:1;" onclick="addSalary()">+ Income</button>
@@ -343,7 +350,7 @@
                 <div style="margin: 20px 15px 5px 15px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
                         <span style="font-size:0.6rem; color:#666;">RESERVE</span>
-                        <span style="font-size:0.6rem; color:var(--gold); font-weight:bold;" id="barKaratIndicator">24K</span>
+                        <span style="font-size:0.6rem; color:var(--gold); font-weight:bold; cursor:pointer;" onclick="showGoldPrices()" id="barKaratIndicator">24K ⚙️</span>
                     </div>
                     <div class="gold-bar-container">
                         <div class="gold-fill" id="goldFill"></div>
@@ -447,21 +454,29 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        const RATE = 89500;
-        
-        let system = { vaultCurrent: 0, vaultSavings: 0, salary: 0, quests: [], dayArchives: {}, history: {}, hpMonth: "" };
+        // System data now includes exchangeRate and preferredKarat
+        let system = { 
+            vaultCurrent: 0, 
+            vaultSavings: 0, 
+            salary: 0, 
+            quests: [], 
+            dayArchives: {}, 
+            history: {}, 
+            hpMonth: "",
+            exchangeRate: 89500, // Default if not found
+            preferredKarat: 24   // Default if not found
+        };
+
         let navDate = new Date();
         let currentOpenDate = null;
         let currentUser = null;
         let myChart = null; 
         let selectedWithdrawSource = null;
-
-        // --- NEW GOLD LOGIC VARIABLES ---
         let global24kGramPrice = 88.0; 
-        let selectedKarat = 24; 
+        
+        // Karat Ratios
         const karatRatios = { 18: 0.75, 21: 0.875, 22: 0.9167, 24: 1.0 };
 
-        // --- AUTH & CLOUD ---
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
         window.logout = () => { if(confirm("Disconnect?")) signOut(auth).then(()=>location.reload()); };
 
@@ -477,15 +492,21 @@
                 onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
+                        
+                        // Data Migration & Defaults
                         if(data.vault !== undefined && data.vaultSavings === undefined) {
                             data.vaultSavings = data.vault;
                             data.vaultCurrent = 0;
                             delete data.vault;
                         }
                         if(!data.history) data.history = {};
+                        if(!data.exchangeRate) data.exchangeRate = 89500;
+                        if(!data.preferredKarat) data.preferredKarat = 24;
+
                         system = data;
                         checkMonthRollover(); 
                         render();
+                        updateGoldModalUI(); // Update modal to reflect saved karat
                     } else {
                         system.hpMonth = getLocalTodayStr().substring(0, 7);
                         save();
@@ -532,10 +553,11 @@
             }
         }
 
+        // Logic now uses system.exchangeRate instead of const
         function parseWish(val) {
             if (!val) return 0;
             val = String(val).toLowerCase().trim();
-            if (val.endsWith('$')) return parseFloat(val) * RATE;
+            if (val.endsWith('$')) return parseFloat(val) * system.exchangeRate;
             if (val.endsWith('k')) return parseFloat(val) * 1000;
             if (val.endsWith('m')) return parseFloat(val) * 1000000;
             return parseFloat(val) || 0;
@@ -566,14 +588,14 @@
 
         window.addSalary = () => {
             let a = prompt("Add Salary Income (e.g. 500$):");
-            if(a) { system.salary = (system.salary || 0) + (parseWish(a) / RATE); save(); }
+            if(a) { system.salary = (system.salary || 0) + (parseWish(a) / system.exchangeRate); save(); }
         };
 
         window.salaryToVault = () => {
             let a = prompt("Transfer to Assets (e.g. 50k, 100$):");
             if(!a) return;
             let goldAmount = parseWish(a);
-            let costInUSD = goldAmount / RATE;
+            let costInUSD = goldAmount / system.exchangeRate;
 
             if(goldAmount >= 1 && (system.salary || 0) >= costInUSD) {
                 system.salary -= costInUSD; 
@@ -610,7 +632,7 @@
             let q = system.quests.find(x => x.id === id);
             if(!q) return;
             let remainingGold = q.target - q.current;
-            let costUSD = remainingGold / RATE;
+            let costUSD = remainingGold / system.exchangeRate;
 
             if((system.salary || 0) >= costUSD) {
                 if(confirm(`Pay $${costUSD.toFixed(2)} from SALARY?`)) {
@@ -627,6 +649,7 @@
             }
         };
 
+        // --- WITHDRAWAL LOGIC ---
         window.openWithdrawModal = () => {
             document.getElementById('withdrawModal').style.display = 'flex';
             document.getElementById('withdrawInput').value = '';
@@ -663,21 +686,32 @@
             save(); closeWithdrawModal();
         };
 
-        // --- NEW GOLD LOGIC & MODAL CONTROL ---
+        // --- RATE CHANGE LOGIC ---
+        window.openRateModal = () => {
+            document.getElementById('rateModal').style.display = 'flex';
+            document.getElementById('inputExchangeRate').value = system.exchangeRate;
+        }
 
+        window.confirmRateChange = () => {
+            let n = parseFloat(document.getElementById('inputExchangeRate').value);
+            if(n > 0) {
+                system.exchangeRate = n;
+                save(); 
+                document.getElementById('rateModal').style.display = 'none';
+            }
+        }
+
+        // --- GOLD LOGIC ---
         window.showGoldPrices = async () => {
             document.getElementById('goldModal').style.display = 'flex';
             document.getElementById('goldLoading').style.display = 'block';
             document.getElementById('goldContent').style.display = 'none';
             
             try {
-                // Fetch live price again to be sure
                 const response = await fetch('https://api.gold-api.com/price/XAU');
                 const data = await response.json();
                 global24kGramPrice = data.price / 31.1035;
-
-                updateGoldModalUI(); // This function will handle display based on selectedKarat
-                
+                updateGoldModalUI();
                 document.getElementById('goldLoading').style.display = 'none';
                 document.getElementById('goldContent').style.display = 'block';
             } catch (error) {
@@ -689,24 +723,27 @@
         };
 
         window.setKarat = (k) => {
-            selectedKarat = k;
-            // Update Active Buttons
-            document.querySelectorAll('.k-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('k'+k).classList.add('active');
-            
+            system.preferredKarat = k;
+            save(); // SAVE TO DB IMMEDIATELY
             updateGoldModalUI();
-            render(); // To update the Gold Bar in background
+            render(); 
         };
 
         function updateGoldModalUI() {
-            // Calculate current prices
-            const ratio = karatRatios[selectedKarat];
+            let k = system.preferredKarat || 24;
+            
+            // Highlight Buttons
+            document.querySelectorAll('.k-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('k'+k).classList.add('active');
+            
+            // Calc
+            const ratio = karatRatios[k];
             const currentGramPrice = global24kGramPrice * ratio;
 
-            document.getElementById('dispKaratTitle').textContent = selectedKarat + 'K';
+            document.getElementById('dispKaratTitle').textContent = k + 'K';
             document.getElementById('priceDynamicGram').textContent = '$' + currentGramPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
 
-            // LOGIC: Show everything 24 if 24 selected. If 22, show Lira.
+            // Rows Display
             const rowOunce = document.getElementById('rowOunce');
             const rowLira = document.getElementById('rowLira');
             const rowHalf = document.getElementById('rowHalfLira');
@@ -715,26 +752,23 @@
             rowLira.style.display = 'none';
             rowHalf.style.display = 'none';
 
-            if (selectedKarat === 24) {
+            if (k === 24) {
                 rowOunce.style.display = 'flex';
                 let ouncePrice = global24kGramPrice * 31.1035;
                 document.getElementById('priceOunce').textContent = '$' + ouncePrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             }
-            else if (selectedKarat === 22) {
+            else if (k === 22) {
                 rowLira.style.display = 'flex';
                 rowHalf.style.display = 'flex';
-                // Lira is strictly 22k gold, approx 8g (in this app logic)
                 let liraPrice = (global24kGramPrice * 0.9167) * 8; 
                 document.getElementById('priceLira').textContent = '$' + liraPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
                 document.getElementById('priceHalfLira').textContent = '$' + (liraPrice/2).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             }
-            // For 21k and 18k, we only show the Gram price (already shown in Dynamic Row)
         }
 
         window.closeGoldModal = () => document.getElementById('goldModal').style.display = 'none';
 
-        // --------------------------------------
-
+        // --- CHART & QUESTS ---
         window.openChart = () => {
             document.getElementById('chartView').style.display = 'block';
             renderChart();
@@ -745,7 +779,7 @@
             if(!system.history) system.history = {};
             const sortedKeys = Object.keys(system.history).sort();
             const labels = sortedKeys.map(k => k); 
-            const dataUSD = sortedKeys.map(k => (system.history[k] / RATE));
+            const dataUSD = sortedKeys.map(k => (system.history[k] / system.exchangeRate));
 
             if(myChart) myChart.destroy();
 
@@ -829,15 +863,16 @@
 
         function render() {
             const todayStr = getLocalTodayStr(); 
+            const rate = system.exchangeRate; // Dynamic Rate
             
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
             const vTotal = vCurrent + vSavings;
             const totalWealth = vTotal;
 
-            // HP BAR LOGIC
+            // HP LOGIC
             const hpBase = 15; 
-            let currentMonthUSD = vCurrent / RATE; 
+            let currentMonthUSD = vCurrent / rate; 
             let hpLevel = Math.floor(currentMonthUSD / hpBase) + 1;
             let hpProgressVal = currentMonthUSD % hpBase;
             let hpPerc = (hpProgressVal / hpBase) * 100;
@@ -852,21 +887,20 @@
             else if(hpLevel % 3 === 2) hpFill.classList.add('lvl-2');
             else hpFill.classList.add('lvl-3');
 
-            // --- MASTER CARD UPDATES ---
+            // --- MASTER CARD ---
             document.getElementById('totalAssets').textContent = formatVal(totalWealth);
-            document.getElementById('totalUSD').textContent = `$${(totalWealth/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            document.getElementById('totalUSD').textContent = `$${(totalWealth/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
 
-            // --- GOLD BAR (UPDATED FOR KARAT SELECTOR) ---
-            // Calculate active price based on selectedKarat
-            let activeRatio = karatRatios[selectedKarat];
+            // --- GOLD BAR (USES PREFERRED KARAT) ---
+            let activeKarat = system.preferredKarat || 24;
+            let activeRatio = karatRatios[activeKarat];
             let activeGramPrice = global24kGramPrice * activeRatio;
 
-            // Update the small indicator
-            document.getElementById('barKaratIndicator').textContent = selectedKarat + 'K';
+            document.getElementById('barKaratIndicator').textContent = activeKarat + 'K ⚙️';
 
-            let gramsOwned = (totalWealth / RATE) / activeGramPrice;
+            let gramsOwned = (totalWealth / rate) / activeGramPrice;
             let goldLevel = Math.floor(gramsOwned); 
             let goldProgress = gramsOwned % 1;
             let goldPerc = goldProgress * 100;
@@ -875,34 +909,36 @@
             const goldFill = document.getElementById('goldFill');
             const goldText = document.getElementById('goldText');
             goldFill.style.width = goldPerc + "%";
-            goldText.textContent = `Reserve: ${gramsOwned.toFixed(2)}g (${selectedKarat}K)`;
+            goldText.textContent = `Reserve: ${gramsOwned.toFixed(2)}g (${activeKarat}K)`;
             
             goldFill.className = 'gold-fill';
             if(goldLevel % 3 === 0) goldFill.classList.add('lvl-0'); 
             else if(goldLevel % 3 === 1) goldFill.classList.add('lvl-1'); 
             else goldFill.classList.add('lvl-2');
 
-            // Rank & Level
+            // Rank
             const playerRank = getRankInfo(totalWealth);
             const pBadge = document.getElementById('playerRankBadge');
             pBadge.textContent = "RANK " + playerRank.r;
             pBadge.style.color = playerRank.c;
             pBadge.style.boxShadow = `0 0 10px ${playerRank.c}`;
             document.getElementById('playerLevel').textContent = hpLevel;
-            // ---------------------------
 
+            // Salary & Rate
             document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-            document.getElementById('salaryGoldDisplay').textContent = formatVal((system.salary||0)*RATE);
+            document.getElementById('salaryGoldDisplay').textContent = formatVal((system.salary||0)*rate);
+            document.getElementById('displayRate').textContent = rate.toLocaleString();
             
-            const salInGold = (system.salary || 0) * RATE;
+            const salInGold = (system.salary || 0) * rate;
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (vTotal > 0.1 && vTotal < 1000) ? 'block' : 'none';
 
+            // Quests
             const list = document.getElementById('questList'); list.innerHTML = '';
             let displayList = system.quests.filter(q => q.isDebt).sort((a,b) => new Date(a.targetDate) - new Date(b.targetDate));
 
             displayList.forEach(q => {
-                let actionButton = `<button class="btn-pay" onclick="payDebt(${q.id})">PAY & ARCHIVE ($${(q.target/RATE).toFixed(2)})</button>`;
+                let actionButton = `<button class="btn-pay" onclick="payDebt(${q.id})">PAY & ARCHIVE ($${(q.target/rate).toFixed(2)})</button>`;
                 let rankBadgeHTML = `<div class="card-rank-badge" style="color:${getRankInfo(q.target).c}">${getRankInfo(q.target).r}</div>`;
 
                 list.innerHTML += `<div class="quest-card" style="border-left: 4px solid var(--debt-color)">
@@ -914,7 +950,7 @@
                     <div style="font-weight:bold; color:white; margin:5px 0; position:relative; z-index:2;">${q.title.toUpperCase()}</div>
                     <div style="font-size:0.8rem; font-family:monospace; display:flex; justify-content:space-between; position:relative; z-index:2;">
                         <span>Pending: ${formatVal(q.target)}</span>
-                        <span>$${(q.target/RATE).toFixed(2)}</span>
+                        <span>$${(q.target/rate).toFixed(2)}</span>
                     </div>
                     ${actionButton}
                     <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
@@ -923,7 +959,7 @@
             
             let unpaidGold = system.quests.reduce((acc, q) => acc + q.target, 0);
             document.getElementById('countUnpaidDebts').textContent = system.quests.length;
-            document.getElementById('valUnpaidDebts').textContent = `$${(unpaidGold/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            document.getElementById('valUnpaidDebts').textContent = `$${(unpaidGold/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
             let paidCount = 0;
             let paidGold = 0;
@@ -931,7 +967,7 @@
                 dayList.forEach(q => { paidCount++; paidGold += q.target; });
             });
             document.getElementById('countPaidDebts').textContent = paidCount;
-            document.getElementById('valPaidDebts').textContent = `$${(paidGold/RATE).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            document.getElementById('valPaidDebts').textContent = `$${(paidGold/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
             drawCalendar();
         }
@@ -966,12 +1002,13 @@
             document.getElementById('dayView').style.display = 'block';
             document.getElementById('dayTitle').textContent = d;
             const l = document.getElementById('dayList'); l.innerHTML = '';
+            const rate = system.exchangeRate;
             (system.dayArchives[d] || []).forEach(q => {
                 let delButton = `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge Record</button>`;
                 l.innerHTML += `<div class="quest-card archive-debt">
                     <div style="font-size:0.65rem; color:var(--debt-color); font-weight:bold;">[PAID] DEBT</div>
                     <div style="font-weight:bold; margin-top:5px;">${q.title}</div>
-                    <div style="font-family:monospace;">Amount: ${formatVal(q.target)} ($${(q.target/RATE).toFixed(2)})</div>
+                    <div style="font-family:monospace;">Amount: ${formatVal(q.target)} ($${(q.target/rate).toFixed(2)})</div>
                     <div style="margin-top:10px;">${delButton}</div>
                 </div>`;
             });
