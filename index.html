@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | GOLD MASTER V3</title>
+    <title>SUNG JIN-WOO SYSTEM | DEBT MANAGER</title>
     <!-- CHART.JS LIBRARY -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -177,6 +177,12 @@
         .full-view { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 9999; padding: 20px; overflow-y: auto; }
         input { width: 100%; padding: 15px; margin-bottom: 10px; background: #080a0f; border: 1px solid #333; color: white; box-sizing: border-box; }
         
+        /* DATE INPUT STYLING */
+        input[type="date"] {
+            background: #080a0f; color: white; border: 1px solid #333; padding: 12px; font-family: sans-serif;
+            color-scheme: dark; /* Dark mode for calendar picker */
+        }
+
         .calendar-box { background: var(--panel); padding: 15px; border: 1px solid #222; margin-bottom: 20px; }
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
         .day-cell { aspect-ratio: 1; background: #080a0f; border: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #444; cursor: pointer; position: relative; }
@@ -387,8 +393,10 @@
             <div class="days-grid" id="daysGrid"></div>
         </div>
 
+        <!-- NEW REGISTER DEBT WITH DATE PICKER -->
         <div style="background:rgba(188, 19, 254, 0.05); padding:15px; border:1px solid var(--debt-color);">
-            <div style="font-size:0.6rem; color:var(--debt-color); margin-bottom:5px;">REGISTER NEW DEBT</div>
+            <div style="font-size:0.6rem; color:var(--debt-color); margin-bottom:5px;">REGISTER NEW DEBT (PLANNER)</div>
+            <input type="date" id="qDate" placeholder="Target Date">
             <input type="text" id="qTitle" placeholder="Debt Name / Title">
             <input type="text" id="qTarget" placeholder="Amount (e.g. 50$ or 1k)">
             <button class="btn-system" style="background:var(--debt-color); color:#fff; border:none;" onclick="registerQuest(true)">ADD DEBT RECORD</button>
@@ -431,7 +439,7 @@
             <input type="text" id="dTarget" placeholder="Target">
             <button class="btn-system" style="background:var(--debt-color); color:#fff; border:none;" onclick="registerFromDayView(true)">Add Debt</button>
         </div>
-        <h3 style="color:#666; font-size:0.7rem; margin-top:20px;">ARCHIVED DEBTS</h3>
+        <h3 style="color:#666; font-size:0.7rem; margin-top:20px;">ARCHIVED DEBTS (PAID)</h3>
         <div id="dayList"></div>
     </div>
 
@@ -454,7 +462,12 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        // System data now includes exchangeRate and preferredKarat
+        // Set Date Picker default to today on load
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('qDate').valueAsDate = new Date();
+        });
+
+        // System data
         let system = { 
             vaultCurrent: 0, 
             vaultSavings: 0, 
@@ -463,8 +476,8 @@
             dayArchives: {}, 
             history: {}, 
             hpMonth: "",
-            exchangeRate: 89500, // Default if not found
-            preferredKarat: 24   // Default if not found
+            exchangeRate: 89500, 
+            preferredKarat: 24
         };
 
         let navDate = new Date();
@@ -474,7 +487,6 @@
         let selectedWithdrawSource = null;
         let global24kGramPrice = 88.0; 
         
-        // Karat Ratios
         const karatRatios = { 18: 0.75, 21: 0.875, 22: 0.9167, 24: 1.0 };
 
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
@@ -493,7 +505,6 @@
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
                         
-                        // Data Migration & Defaults
                         if(data.vault !== undefined && data.vaultSavings === undefined) {
                             data.vaultSavings = data.vault;
                             data.vaultCurrent = 0;
@@ -506,7 +517,7 @@
                         system = data;
                         checkMonthRollover(); 
                         render();
-                        updateGoldModalUI(); // Update modal to reflect saved karat
+                        updateGoldModalUI(); 
                     } else {
                         system.hpMonth = getLocalTodayStr().substring(0, 7);
                         save();
@@ -553,7 +564,6 @@
             }
         }
 
-        // Logic now uses system.exchangeRate instead of const
         function parseWish(val) {
             if (!val) return 0;
             val = String(val).toLowerCase().trim();
@@ -628,24 +638,29 @@
             }
         };
 
+        // --- NEW DEBT LOGIC (DEDUCT ONLY ON PAY) ---
         window.payDebt = (id) => {
             let q = system.quests.find(x => x.id === id);
             if(!q) return;
-            let remainingGold = q.target - q.current;
+            let remainingGold = q.target;
             let costUSD = remainingGold / system.exchangeRate;
 
             if((system.salary || 0) >= costUSD) {
-                if(confirm(`Pay $${costUSD.toFixed(2)} from SALARY?`)) {
-                    system.salary -= costUSD;
+                if(confirm(`Pay ($${costUSD.toFixed(2)}) from SALARY for "${q.title}"?`)) {
+                    system.salary -= costUSD; // Deduct money only now
                     q.current = q.target;
-                    let d = q.targetDate;
+                    
+                    // Archive to the Planned Date (or today if undefined)
+                    let d = q.targetDate || getLocalTodayStr();
                     if(!system.dayArchives[d]) system.dayArchives[d] = [];
                     system.dayArchives[d].push(q);
+                    
+                    // Remove from pending
                     system.quests = system.quests.filter(x => x.id !== id);
                     save();
                 }
             } else {
-                alert(`Insufficient Salary! Need $${costUSD.toFixed(2)}`);
+                alert(`Insufficient Salary! You need $${costUSD.toFixed(2)}.`);
             }
         };
 
@@ -724,7 +739,7 @@
 
         window.setKarat = (k) => {
             system.preferredKarat = k;
-            save(); // SAVE TO DB IMMEDIATELY
+            save(); 
             updateGoldModalUI();
             render(); 
         };
@@ -813,13 +828,19 @@
             });
         }
 
+        // --- NEW REGISTER WITH DATE ---
         window.registerQuest = (isDebt) => {
-            let t = document.getElementById('qTitle').value, g = document.getElementById('qTarget').value;
+            let t = document.getElementById('qTitle').value;
+            let g = document.getElementById('qTarget').value;
+            let d = document.getElementById('qDate').value;
+
             if(t && g) {
-                const todayStr = getLocalTodayStr(); 
-                addObjective(t, g, true, todayStr);
+                // Default to today if empty, otherwise use picker value
+                const targetDate = d ? d : getLocalTodayStr();
+                addObjective(t, g, true, targetDate);
                 document.getElementById('qTitle').value = ''; 
                 document.getElementById('qTarget').value = '';
+                // Keep date as is for easier multiple entries
             }
         };
 
@@ -853,17 +874,19 @@
             save();
         };
 
+        // --- PURGE RECORD (NO REFUND) ---
         window.deleteArchivedDebt = (date, id) => {
-            if(confirm("Permanently purge this Debt record?")) {
+            if(confirm("Permanently purge this record? (Money will NOT be refunded)")) {
                 system.dayArchives[date] = system.dayArchives[date].filter(q => q.id !== id);
                 if(system.dayArchives[date].length === 0) delete system.dayArchives[date];
-                save(); openDay(date);
+                save(); 
+                openDay(date);
             }
         };
 
         function render() {
             const todayStr = getLocalTodayStr(); 
-            const rate = system.exchangeRate; // Dynamic Rate
+            const rate = system.exchangeRate; 
             
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
@@ -893,7 +916,7 @@
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
 
-            // --- GOLD BAR (USES PREFERRED KARAT) ---
+            // --- GOLD BAR ---
             let activeKarat = system.preferredKarat || 24;
             let activeRatio = karatRatios[activeKarat];
             let activeGramPrice = global24kGramPrice * activeRatio;
@@ -926,7 +949,6 @@
 
             // Salary & Rate
             document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-            document.getElementById('salaryGoldDisplay').textContent = formatVal((system.salary||0)*rate);
             document.getElementById('displayRate').textContent = rate.toLocaleString();
             
             const salInGold = (system.salary || 0) * rate;
@@ -944,8 +966,8 @@
                 list.innerHTML += `<div class="quest-card" style="border-left: 4px solid var(--debt-color)">
                     ${rankBadgeHTML}
                     <div style="font-size:0.6rem; color:#666; display:flex; justify-content:space-between; position:relative; z-index:2;">
-                        <span>Target: ${q.targetDate}</span>
-                        <span style="color:var(--debt-color); font-weight:bold;">DEBT</span>
+                        <span>Target: ${q.targetDate || "No Date"}</span>
+                        <span style="color:var(--debt-color); font-weight:bold;">PENDING</span>
                     </div>
                     <div style="font-weight:bold; color:white; margin:5px 0; position:relative; z-index:2;">${q.title.toUpperCase()}</div>
                     <div style="font-size:0.8rem; font-family:monospace; display:flex; justify-content:space-between; position:relative; z-index:2;">
@@ -953,7 +975,7 @@
                         <span>$${(q.target/rate).toFixed(2)}</span>
                     </div>
                     ${actionButton}
-                    <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
+                    <button class="discard-btn" onclick="discardQuest(${q.id})">Discard (No Pay)</button>
                 </div>`;
             });
             
@@ -1006,7 +1028,7 @@
             (system.dayArchives[d] || []).forEach(q => {
                 let delButton = `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge Record</button>`;
                 l.innerHTML += `<div class="quest-card archive-debt">
-                    <div style="font-size:0.65rem; color:var(--debt-color); font-weight:bold;">[PAID] DEBT</div>
+                    <div style="font-size:0.65rem; color:var(--debt-color); font-weight:bold;">[PAID] ARCHIVE</div>
                     <div style="font-weight:bold; margin-top:5px;">${q.title}</div>
                     <div style="font-family:monospace;">Amount: ${formatVal(q.target)} ($${(q.target/rate).toFixed(2)})</div>
                     <div style="margin-top:10px;">${delButton}</div>
