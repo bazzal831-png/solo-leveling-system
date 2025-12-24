@@ -716,35 +716,58 @@
             }
         };
 
+        /* ================= FIXED PAY DEBT FUNCTION ================= */
         window.payDebt = async (id) => {
-            let q = system.quests.find(x => x.id === id);
-            if(!q) return;
-            let remainingGold = q.target;
-            let costUSD = Money.val(remainingGold / system.exchangeRate);
+            // FIX 1: Use '==' to match string ID from HTML with number ID in data
+            let q = system.quests.find(x => x.id == id);
             
+            if(!q) {
+                console.error("Debt ID not found:", id);
+                return;
+            }
+            
+            let remainingGold = q.target;
+            let rate = (system.exchangeRate > 0) ? system.exchangeRate : 89500;
+            let costUSD = Money.val(remainingGold / rate);
+            
+            // FIX 2: Check specifically against Salary and provide clear Alert
             if((system.salary || 0) >= costUSD) {
-                if(confirm(`Pay ($${costUSD.toFixed(2)}) from SALARY for "${q.title}"?`)) {
-                    system.salary = Money.sub(system.salary, costUSD); 
+                if(confirm(`PAY DEBT: "${q.title}"?\nCost: $${costUSD.toFixed(2)}\n(Deducted from SALARY)`)) {
                     
-                    // Archive Logic (Point 1 - Sub-collection)
-                    const archiveData = { ...q, current: q.target, archivedAt: serverTimestamp() };
-                    const d = q.targetDate || getSystemDate();
-                    
-                    // Save to sub-collection
-                    const docRef = await addDoc(collection(db, "users", currentUser.uid, "archived_quests"), archiveData);
-                    
-                    // Update Local State
-                    if(!system.dayArchives[d]) system.dayArchives[d] = [];
-                    system.dayArchives[d].push({ ...archiveData, docId: docRef.id });
+                    try {
+                        system.salary = Money.sub(system.salary, costUSD); 
+                        
+                        // FIX 3: Robust Archiving
+                        const archiveData = { ...q, current: q.target, archivedAt: serverTimestamp() };
+                        const d = q.targetDate || getSystemDate();
+                        
+                        // Try cloud save for archive, but don't crash if it fails
+                        try {
+                            const docRef = await addDoc(collection(db, "users", currentUser.uid, "archived_quests"), archiveData);
+                            if(!system.dayArchives[d]) system.dayArchives[d] = [];
+                            system.dayArchives[d].push({ ...archiveData, docId: docRef.id });
+                        } catch(e) {
+                            console.warn("Cloud archive failed, saving locally only.");
+                            if(!system.dayArchives[d]) system.dayArchives[d] = [];
+                            system.dayArchives[d].push(archiveData);
+                        }
 
-                    // Remove from active quests
-                    system.quests = system.quests.filter(x => x.id !== id);
-                    save();
+                        // Remove from active list
+                        system.quests = system.quests.filter(x => x.id != id);
+                        
+                        // Save State & Render immediately
+                        save();
+                        render();
+                        
+                    } catch (err) {
+                        alert("Error during payment transaction: " + err.message);
+                    }
                 }
             } else {
-                alert(`Insufficient Salary! You need $${costUSD.toFixed(2)}.`);
+                alert(`INSUFFICIENT SALARY!\n\nRequired: $${costUSD.toFixed(2)}\nAvailable: $${(system.salary || 0).toFixed(2)}\n\nPlease add funds via [+ INCOME] button first.`);
             }
         };
+        /* =========================================================== */
 
         window.openWithdrawModal = () => {
             document.getElementById('withdrawModal').style.display = 'flex';
