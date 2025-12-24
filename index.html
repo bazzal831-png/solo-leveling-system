@@ -462,9 +462,9 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        // Set Date Picker default to today on load
+        // FIX #2: Use Local Date String for Input Initialization
         document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById('qDate').valueAsDate = new Date();
+            document.getElementById('qDate').value = getLocalTodayStr();
         });
 
         // System data
@@ -542,10 +542,36 @@
             }
         }
 
+        // FIX #4: Auto-Update Logic (Online Status & Visibility)
+        window.addEventListener('online', () => {
+            console.log("System: Connection Restored. Updating Data...");
+            fetchLiveGoldPrice();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log("System: User Returned. Refreshing Prices...");
+                fetchLiveGoldPrice();
+            }
+        });
+        
+        // Auto update every 5 minutes if visible
+        setInterval(() => {
+            if (document.visibilityState === 'visible' && navigator.onLine) {
+                fetchLiveGoldPrice();
+            }
+        }, 300000);
+
         async function save() {
             if (currentUser) {
                 const d = new Date();
                 const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                
+                // FIX #3: Rounding values to prevent floating point errors
+                system.salary = Math.round((system.salary || 0) * 10000) / 10000;
+                system.vaultCurrent = Math.round((system.vaultCurrent || 0) * 10000) / 10000;
+                system.vaultSavings = Math.round((system.vaultSavings || 0) * 10000) / 10000;
+
                 if(!system.history) system.history = {};
                 system.history[key] = (system.vaultCurrent || 0) + (system.vaultSavings || 0);
                 await setDoc(doc(db, "users", currentUser.uid), system);
@@ -1037,7 +1063,13 @@
         };
 
         window.closeViews = () => document.querySelectorAll('.full-view').forEach(v => v.style.display='none');
-        window.changeMonth = (s) => { navDate.setMonth(navDate.getMonth()+s); drawCalendar(); };
+        
+        // FIX #1: Correct Month Navigation logic (Reset Day to 1 first)
+        window.changeMonth = (s) => { 
+            navDate.setDate(1); 
+            navDate.setMonth(navDate.getMonth() + s); 
+            drawCalendar(); 
+        };
     </script>
 </body>
 </html>
