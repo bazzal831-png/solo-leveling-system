@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SUNG JIN-WOO SYSTEM | DEBT MANAGER (SECURE)</title>
-    <!-- FIXED VERSION: Chart.js 4.4.1 -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -295,16 +293,6 @@
         </div>
     </div>
 
-    <!-- CHART MODAL -->
-    <div id="chartView" class="full-view">
-        <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
-        <h2 style="color:var(--gold); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;">VAULT GROWTH CHART</h2>
-        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-top:20px;">
-            <canvas id="vaultChart"></canvas>
-        </div>
-        <p style="color:#888; font-size:0.7rem; text-align:center; margin-top:15px;">* Includes archived months AND current real-time assets.</p>
-    </div>
-
     <div id="mainView" style="display: none;">
         
         <!-- HP BAR SECTION -->
@@ -414,11 +402,9 @@
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-            <button class="btn-system" onclick="openChart()" style="border-color:var(--gold); color:var(--gold);">
-                GROWTH CHART 📈
-            </button>
-            <button class="btn-system" onclick="showGoldPrices()" style="border-color:var(--gold); color:black; background:var(--gold);">
+        <!-- REMOVED CHART BUTTON, KEPT GOLD BUTTON -->
+        <div style="margin-top:10px;">
+            <button class="btn-system" onclick="showGoldPrices()" style="border-color:var(--gold); color:black; background:var(--gold); width:100%;">
                 GOLD PRICES 🟡
             </button>
         </div>
@@ -479,7 +465,6 @@
         let navDate = new Date();
         let currentOpenDate = null;
         let currentUser = null;
-        let myChart = null; 
         let selectedWithdrawSource = null;
         let global24kGramPrice = 88.0; 
         let isSaving = false; // Prevents refresh issues
@@ -557,10 +542,6 @@
                         // If day view is open, refresh it to show new payments immediately
                         if(document.getElementById('dayView').style.display === 'block' && currentOpenDate) {
                             openDay(currentOpenDate);
-                        }
-                        
-                        if(document.getElementById('chartView').style.display === 'block') {
-                            renderChart();
                         }
                     } else {
                         system.hpMonth = getSystemDate().substring(0, 7);
@@ -916,64 +897,6 @@
 
         window.closeGoldModal = () => document.getElementById('goldModal').style.display = 'none';
 
-        window.openChart = () => {
-            document.getElementById('chartView').style.display = 'block';
-            renderChart();
-        };
-
-        function renderChart() {
-            const ctx = document.getElementById('vaultChart').getContext('2d');
-            if(!system.history) system.history = {};
-            const sortedKeys = Object.keys(system.history).sort();
-            
-            const labels = ['START', ...sortedKeys]; 
-            
-            const dataUSD = [0, ...sortedKeys.map(k => {
-                let entry = system.history[k];
-                let rate = (entry.rate && entry.rate > 0) ? entry.rate : 89500;
-                let val = (typeof entry === 'object' && entry !== null) ? entry.val : entry;
-                return val / rate;
-            })];
-
-            const currentTotal = Money.add(system.vaultCurrent || 0, system.vaultSavings || 0);
-            const currentRate = (system.exchangeRate > 0) ? system.exchangeRate : 89500;
-            const currentUSD = currentTotal / currentRate;
-
-            labels.push('NOW'); 
-            dataUSD.push(currentUSD);
-
-            if(myChart) myChart.destroy();
-
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Total Net Worth (USD)',
-                        data: dataUSD,
-                        borderColor: '#ffd700',
-                        backgroundColor: 'rgba(255, 215, 0, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.2,
-                        pointBackgroundColor: '#fff',
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255,255,255,0.1)' },
-                            ticks: { color: '#888', callback: function(value) { return '$' + value.toFixed(2); } }
-                        },
-                        x: { grid: { display: false }, ticks: { color: '#888' } }
-                    },
-                    plugins: { legend: { labels: { color: '#e6edf3' } } }
-                }
-            });
-        }
-
         window.registerQuest = async (isDebt) => {
             let t = document.getElementById('qTitle').value;
             let g = document.getElementById('qTarget').value;
@@ -1005,6 +928,7 @@
             await save();
         };
 
+        // FIXED: Deletes record AND refreshes Main View UI immediately
         window.deleteArchivedDebt = async (date, id) => {
             if(confirm("Permanently purge this record? (Money will NOT be refunded)")) {
                 const quest = system.dayArchives[date].find(q => q.id === id);
@@ -1020,7 +944,8 @@
                 system.dayArchives[date] = system.dayArchives[date].filter(q => q.id !== id);
                 if(system.dayArchives[date].length === 0) delete system.dayArchives[date];
                 
-                openDay(date); 
+                openDay(date); // Updates the list inside the open modal
+                render();      // <--- ADDED: Updates the calendar grid squares and total stats immediately
             }
         };
 
