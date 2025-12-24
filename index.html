@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | DEBT MANAGER (SECURE)</title>
+    <title>SUNG JIN-WOO SYSTEM | MONTHLY MANAGER</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -173,7 +173,8 @@
         .day-cell.today { border: 2px solid #fff !important; color: #fff !important; font-weight: 900; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); transform: scale(1.05); z-index: 2; }
 
         .stats-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
-        .stat-box { background: rgba(0,0,0,0.5); padding: 8px 4px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; min-height: 70px; }
+        .stat-box { background: rgba(0,0,0,0.5); padding: 8px 4px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; min-height: 70px; cursor: pointer; transition: 0.2s; }
+        .stat-box:active { transform: scale(0.98); background: rgba(255,255,255,0.05); }
         .stat-title { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
         .stat-val { font-size: 1.1rem; font-weight: bold; }
         .stat-sub { font-size: 0.75rem; color:var(--success); font-family: monospace; margin-top: 2px; font-weight:bold; }
@@ -203,6 +204,16 @@
             background: rgba(0,0,0,0.8); padding: 2px 5px; border-radius: 3px; z-index: 99999; display: none;
         }
         @keyframes savePulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* NEW MONTHLY LIST STYLES */
+        .monthly-header {
+            position: sticky; top: 0; background: var(--bg); z-index: 10;
+            padding-bottom: 15px; border-bottom: 1px solid #333; margin-bottom: 15px;
+        }
+        .add-box {
+            background: rgba(188, 19, 254, 0.05); padding: 15px; 
+            border: 1px solid var(--debt-color); margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -263,7 +274,7 @@
             <div class="modal-title" style="color:var(--gold); border-color:var(--gold);">
                 MARKET PRICES
             </div>
-            <p style="font-size:0.6rem; color:#aaa; margin-bottom:10px;">SELECT SYSTEM KARAT (SAVES AUTOMATICALLY)</p>
+            <p style="font-size:0.6rem; color:#aaa; margin-bottom:10px;">SELECT SYSTEM KARAT</p>
             <div class="karat-selector">
                 <button class="k-btn" id="k18" onclick="setKarat(18)">18K</button>
                 <button class="k-btn" id="k21" onclick="setKarat(21)">21K</button>
@@ -272,6 +283,7 @@
             </div>
             <div id="goldLoading" style="padding:20px; color:#888;">Connecting to Satellite...</div>
             <div id="goldContent" style="display:none;">
+                <div id="lastUpdateText" style="font-size:0.6rem; color:#666; text-align:center; margin-bottom:10px;"></div>
                 <div class="gold-row">
                     <span class="gold-label">GRAM (<span id="dispKaratTitle">24K</span>)</span>
                     <span class="gold-value" id="priceDynamicGram">$0.00</span>
@@ -293,12 +305,12 @@
         </div>
     </div>
 
+    <!-- MAIN VIEW -->
     <div id="mainView" style="display: none;">
         
-        <!-- HP BAR SECTION -->
         <div class="hp-section">
             <div class="hp-header">
-                <div class="hp-label">MONTHLY ACTIVITY (THIS MONTH ONLY)</div>
+                <div class="hp-label">MONTHLY ACTIVITY</div>
             </div>
             <div class="hp-bar-container">
                 <div class="hp-fill" id="hpFill"></div>
@@ -368,6 +380,7 @@
             <button class="btn-system btn-withdraw" style="border-color:var(--danger); color:var(--danger);" onclick="openWithdrawModal()">Withdrawal</button>
         </div>
 
+        <!-- CALENDAR -->
         <div class="calendar-box">
             <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:var(--mana); font-size:0.8rem;">
                 <button onclick="changeMonth(-1)" style="background:none; border:none; color:inherit; cursor:pointer;">&lt;</button>
@@ -377,32 +390,23 @@
             <div class="days-grid" id="daysGrid"></div>
         </div>
 
-        <div style="background:rgba(188, 19, 254, 0.05); padding:15px; border:1px solid var(--debt-color);">
-            <div style="font-size:0.6rem; color:var(--debt-color); margin-bottom:5px;">REGISTER NEW DEBT (PLANNER)</div>
-            <input type="date" id="qDate" placeholder="Target Date">
-            <input type="text" id="qTitle" placeholder="Debt Name / Title">
-            <input type="text" id="qTarget" placeholder="Amount (e.g. $50, 100k, 1m)">
-            <button class="btn-system" style="background:var(--debt-color); color:#fff; border:none;" onclick="registerQuest(true)">ADD DEBT RECORD</button>
-        </div>
-
-        <h3 style="color:var(--debt-color); font-size:0.8rem; margin-top:20px; border-bottom:1px solid #333; padding-bottom:5px;">PENDING DEBTS</h3>
-        <div id="questList" style="margin-top:10px;"></div>
-
+        <!-- STATS FOOTER / BUTTONS (MODIFIED) -->
         <div class="stats-footer">
-            <div class="stat-box" style="color:var(--debt-color); border-color:var(--debt-color);">
-                <div class="stat-title">PAID DEBTS (ARCHIVE)</div>
+            <div class="stat-box" onclick="openMonthlyList('paid')" style="color:var(--debt-color); border-color:var(--debt-color);">
+                <div class="stat-title">PAID (THIS MONTH)</div>
                 <div class="stat-val" id="countPaidDebts">0</div>
                 <div class="stat-sub" id="valPaidDebts">$0.00</div>
+                <div style="font-size:0.5rem; color:#888; margin-top:5px;">TAP TO VIEW</div>
             </div>
 
-            <div class="stat-box" style="color:var(--danger); border-color:var(--danger);">
-                <div class="stat-title">UNPAID DEBTS</div>
+            <div class="stat-box" onclick="openMonthlyList('pending')" style="color:var(--danger); border-color:var(--danger);">
+                <div class="stat-title">UNPAID (THIS MONTH)</div>
                 <div class="stat-val" id="countUnpaidDebts">0</div>
                 <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
+                <div style="font-size:0.5rem; color:#888; margin-top:5px;">TAP TO MANAGE</div>
             </div>
         </div>
 
-        <!-- REMOVED CHART BUTTON, KEPT GOLD BUTTON -->
         <div style="margin-top:10px;">
             <button class="btn-system" onclick="showGoldPrices()" style="border-color:var(--gold); color:black; background:var(--gold); width:100%;">
                 GOLD PRICES 🟡
@@ -410,11 +414,29 @@
         </div>
     </div>
 
-    <!-- DAY VIEW -->
+    <!-- MONTHLY LIST VIEW (NEW) -->
+    <div id="monthlyView" class="full-view">
+        <div class="monthly-header">
+            <button class="btn-system" onclick="closeViews()">BACK TO DASHBOARD</button>
+            <h2 id="monthlyViewTitle" style="color:var(--mana); margin-top:15px;"></h2>
+        </div>
+
+        <!-- ADD FORM (Only shows in Pending Mode) -->
+        <div id="addDebtSection" class="add-box" style="display:none;">
+            <div style="font-size:0.6rem; color:var(--debt-color); margin-bottom:5px;">ADD NEW DEBT FOR THIS MONTH</div>
+            <input type="date" id="qDate" placeholder="Target Date">
+            <input type="text" id="qTitle" placeholder="Debt Name / Title">
+            <input type="text" id="qTarget" placeholder="Amount (e.g. $50, 100k, 1m)">
+            <button class="btn-system" style="background:var(--debt-color); color:#fff; border:none;" onclick="registerQuest(true)">ADD DEBT RECORD</button>
+        </div>
+
+        <div id="monthlyListContainer"></div>
+    </div>
+
+    <!-- DAY VIEW (EXISTING) -->
     <div id="dayView" class="full-view">
-        <button class="btn-system" onclick="closeViews()">BACK TO SYSTEM</button>
+        <button class="btn-system" onclick="closeViews()">BACK TO CALENDAR</button>
         <h2 id="dayTitle" style="color:var(--mana); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;"></h2>
-        <h3 style="color:#666; font-size:0.7rem; margin-top:20px;">ARCHIVED DEBTS (PAID)</h3>
         <div id="dayList"></div>
     </div>
 
@@ -449,10 +471,6 @@
             return formatter.format(new Date());
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById('qDate').value = getSystemDate();
-        });
-
         let system = { 
             vaultCurrent: 0, vaultSavings: 0, salary: 0, 
             quests: [], 
@@ -467,14 +485,13 @@
         let currentUser = null;
         let selectedWithdrawSource = null;
         let global24kGramPrice = 88.0; 
-        let isSaving = false; // Prevents refresh issues
+        let isSaving = false;
         
         const karatRatios = { 18: 0.75, 21: 0.875, 22: 0.9167, 24: 1.0 };
 
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
         window.logout = () => { if(confirm("Disconnect?")) signOut(auth).then(()=>location.reload()); };
 
-        // Toggle Saving Indicator
         function setSaving(state) {
             isSaving = state;
             document.getElementById('saveIndicator').className = state ? 'saving' : '';
@@ -484,7 +501,6 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                // RESET SYSTEM on new user
                 system = { 
                     vaultCurrent: 0, vaultSavings: 0, salary: 0, 
                     quests: [], dayArchives: {}, history: {}, hpMonth: "",
@@ -497,9 +513,6 @@
                 
                 await loadSubCollections(user.uid);
 
-                // ====================================================
-                // FIXED ONSNAPSHOT LOGIC TO PREVENT ARCHIVE OVERWRITE
-                // ====================================================
                 onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
@@ -508,41 +521,20 @@
                             data.vaultSavings = data.vault; data.vaultCurrent = 0; delete data.vault;
                         }
                         
-                        // 1. CAPTURE EXISTING LOCAL ARCHIVES (Loaded from sub-collection)
                         const existingArchives = system.dayArchives || {};
                         const existingHistory = system.history || {};
 
-                        // 2. MERGE NEW DATA (Salary, Quests, Rates)
                         system = { ...system, ...data };
-
-                        // 3. RESTORE ARCHIVES (Don't let Main Doc overwrite them with null/missing)
                         system.dayArchives = existingArchives;
                         system.history = { ...existingHistory, ...(data.history || {}) };
 
-                        // 4. Handle Legacy Data if still on main doc
-                        if (data.dayArchives) {
-                             Object.keys(data.dayArchives).forEach(d => {
-                                 if(!system.dayArchives[d]) system.dayArchives[d] = [];
-                                 const incoming = data.dayArchives[d];
-                                 const existingIds = new Set(system.dayArchives[d].map(x => x.id));
-                                 incoming.forEach(inc => {
-                                     if(!existingIds.has(inc.id)) system.dayArchives[d].push(inc);
-                                 });
-                             });
-                        }
-
-                        if(!system.exchangeRate || system.exchangeRate < 1) system.exchangeRate = 89500;
                         if(data.storedGoldPrice) global24kGramPrice = data.storedGoldPrice;
+                        if(!system.exchangeRate || system.exchangeRate < 1) system.exchangeRate = 89500;
 
                         checkMonthRollover(); 
                         render();
                         updateGoldModalUI(); 
                         fetchLiveGoldPrice();
-                        
-                        // If day view is open, refresh it to show new payments immediately
-                        if(document.getElementById('dayView').style.display === 'block' && currentOpenDate) {
-                            openDay(currentOpenDate);
-                        }
                     } else {
                         system.hpMonth = getSystemDate().substring(0, 7);
                         save(true);
@@ -577,11 +569,24 @@
         async function fetchLiveGoldPrice() {
             try {
                 const response = await fetch('https://api.gold-api.com/price/XAU');
+                if (!response.ok) throw new Error("Network response was not ok");
                 const data = await response.json();
+                
                 if(data.price) {
                     global24kGramPrice = data.price / 31.1035;
+                    system.storedGoldPrice = global24kGramPrice; 
+                    
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString();
+                    const dateStr = document.getElementById('lastUpdateText');
+                    if(dateStr) dateStr.textContent = "LAST UPDATE: " + timeStr;
                 }
-            } catch (e) { console.log("Gold API Error - Using Stored Value"); }
+            } catch (e) { 
+                console.log("Gold API Error - Using Stored Value"); 
+                if(system.storedGoldPrice) global24kGramPrice = system.storedGoldPrice;
+                const dateStr = document.getElementById('lastUpdateText');
+                if(dateStr) dateStr.textContent = "OFFLINE MODE (STORED PRICE)";
+            }
         }
 
         const save = async (forceFull = false) => {
@@ -592,7 +597,6 @@
                 system.salary = Money.val(system.salary || 0);
                 system.storedGoldPrice = global24kGramPrice;
 
-                // Don't save full archives to main doc anymore, they are in sub-collection
                 const payload = { 
                     vaultCurrent: system.vaultCurrent,
                     vaultSavings: system.vaultSavings,
@@ -643,8 +647,6 @@
                 };
 
                 system.history[storedMonth] = { val: monthVal, rate: system.exchangeRate };
-                
-                // Add to Sub-collection
                 await addDoc(collection(db, "users", currentUser.uid, "history_log"), monthData);
 
                 system.vaultSavings = Money.add(system.vaultSavings || 0, system.vaultCurrent || 0);
@@ -736,7 +738,6 @@
             }
         };
 
-        // --- SECURE PAY DEBT FUNCTION (BATCHED) ---
         window.payDebt = async (id) => {
             let q = system.quests.find(x => x.id == id);
             
@@ -748,33 +749,20 @@
             
             if((system.salary || 0) >= costUSD) {
                 if(confirm(`PAY DEBT: "${q.title}"?\nCost: $${costUSD.toFixed(2)}\n(Deducted from SALARY)`)) {
-                    
                     try {
                         setSaving(true);
-                        
-                        // 1. Create Write Batch
                         const batch = writeBatch(db);
-
-                        // 2. Prepare Archive Document Ref
                         const archiveRef = doc(collection(db, "users", currentUser.uid, "archived_quests"));
                         const archiveData = { ...q, current: q.target, archivedAt: serverTimestamp() };
                         batch.set(archiveRef, archiveData);
 
-                        // 3. Prepare User Update
                         const userRef = doc(db, "users", currentUser.uid);
                         const newSalary = Money.sub(system.salary, costUSD);
                         const newQuests = system.quests.filter(x => x.id != id);
 
-                        batch.update(userRef, {
-                            salary: newSalary,
-                            quests: newQuests,
-                            lastUpdated: serverTimestamp()
-                        });
-
-                        // 4. Commit all at once (Atomic Transaction)
+                        batch.update(userRef, { salary: newSalary, quests: newQuests, lastUpdated: serverTimestamp() });
                         await batch.commit();
 
-                        // 5. Update Local State UI immediately
                         system.salary = newSalary;
                         system.quests = newQuests;
 
@@ -783,7 +771,10 @@
                         system.dayArchives[d].push({ ...archiveData, docId: archiveRef.id });
 
                         render();
-                        
+                        // Refresh the list view if open
+                        if(document.getElementById('monthlyView').style.display === 'block') {
+                            openMonthlyList('pending');
+                        }
                     } catch (err) {
                         console.error(err);
                         alert("Error during payment transaction: " + err.message);
@@ -889,7 +880,8 @@
                 document.getElementById('priceOunce').textContent = '$' + ouncePrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             }
             else if (k === 22) {
-                let liraPrice = (global24kGramPrice * 0.9167) * 8; 
+                // FIXED LIRA WEIGHT (7.216g)
+                let liraPrice = (global24kGramPrice * 0.9167) * 7.216; 
                 document.getElementById('priceLira').textContent = '$' + liraPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
                 document.getElementById('priceHalfLira').textContent = '$' + (liraPrice/2).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             }
@@ -901,12 +893,24 @@
             let t = document.getElementById('qTitle').value;
             let g = document.getElementById('qTarget').value;
             let d = document.getElementById('qDate').value;
+            
+            // Auto-fill date with currently viewed month if empty
+            if(!d) {
+                let year = navDate.getFullYear();
+                let month = navDate.getMonth() + 1;
+                // Default to last day of the viewed month to ensure it falls in that month
+                let lastDay = new Date(year, month, 0).getDate();
+                d = `${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+            }
+
             let amount = parseWish(g);
             if(t && amount > 0) {
-                const targetDate = d ? d : getSystemDate();
+                const targetDate = d;
                 await addObjective(t, amount, true, targetDate);
                 document.getElementById('qTitle').value = ''; 
                 document.getElementById('qTarget').value = '';
+                // Refresh Monthly List
+                openMonthlyList('pending');
             } else {
                 alert("Please enter a valid title and amount.");
             }
@@ -922,30 +926,110 @@
         }
 
         window.discardQuest = async (id) => {
-            let idx = system.quests.findIndex(x => x.id === id);
-            if(idx === -1) return;
-            system.quests.splice(idx,1);
-            await save();
+            if(confirm("Discard this debt?")) {
+                let idx = system.quests.findIndex(x => x.id === id);
+                if(idx === -1) return;
+                system.quests.splice(idx,1);
+                await save();
+                openMonthlyList('pending'); // Refresh list
+            }
         };
 
-        // FIXED: Deletes record AND refreshes Main View UI immediately
         window.deleteArchivedDebt = async (date, id) => {
-            if(confirm("Permanently purge this record? (Money will NOT be refunded)")) {
+            if(confirm("Permanently purge this record?")) {
                 const quest = system.dayArchives[date].find(q => q.id === id);
-                
                 if (quest && quest.docId) {
                     try {
                         setSaving(true);
                         await deleteDoc(doc(db, "users", currentUser.uid, "archived_quests", quest.docId));
-                    } catch(e) { console.error("Could not delete from DB", e); }
+                    } catch(e) { console.error("Could not delete", e); }
                     finally { setSaving(false); }
                 }
-
                 system.dayArchives[date] = system.dayArchives[date].filter(q => q.id !== id);
                 if(system.dayArchives[date].length === 0) delete system.dayArchives[date];
                 
-                openDay(date); // Updates the list inside the open modal
-                render();      // <--- ADDED: Updates the calendar grid squares and total stats immediately
+                render();
+                // If viewing Monthly List, refresh it
+                if(document.getElementById('monthlyView').style.display === 'block') {
+                    openMonthlyList('paid');
+                }
+            }
+        };
+
+        // NEW FUNCTION: Handle Monthly Lists
+        window.openMonthlyList = (type) => {
+            const container = document.getElementById('monthlyListContainer');
+            const title = document.getElementById('monthlyViewTitle');
+            const addSec = document.getElementById('addDebtSection');
+            const year = navDate.getFullYear();
+            const month = String(navDate.getMonth() + 1).padStart(2,'0');
+            const currentMonthPrefix = `${year}-${month}`;
+            const monthName = navDate.toLocaleString('default', {month:'long'}).toUpperCase();
+
+            document.getElementById('monthlyView').style.display = 'block';
+            container.innerHTML = '';
+
+            let rate = (system.exchangeRate > 0) ? system.exchangeRate : 89500;
+
+            if(type === 'pending') {
+                title.textContent = `UNPAID DEBTS: ${monthName} ${year}`;
+                addSec.style.display = 'block';
+                // Set default date input to this month
+                let lastDay = new Date(year, navDate.getMonth() + 1, 0).getDate();
+                document.getElementById('qDate').value = `${currentMonthPrefix}-${lastDay}`;
+
+                // Filter Pending Debts by Month String match
+                let list = system.quests.filter(q => q.isDebt && q.targetDate && q.targetDate.startsWith(currentMonthPrefix));
+                
+                if(list.length === 0) container.innerHTML = `<div style="text-align:center; color:#666; margin-top:30px;">NO PENDING DEBTS FOR ${monthName}</div>`;
+
+                list.sort((a,b) => new Date(a.targetDate) - new Date(b.targetDate));
+                list.forEach(q => {
+                    let actionButton = `<button class="btn-pay" onclick="payDebt(${q.id})">PAY & ARCHIVE ($${(q.target/rate).toFixed(2)})</button>`;
+                    container.innerHTML += `<div class="quest-card" style="border-left: 4px solid var(--danger)">
+                        <div style="font-size:0.6rem; color:#666; display:flex; justify-content:space-between;">
+                            <span>Target: ${q.targetDate}</span>
+                            <span style="color:var(--danger); font-weight:bold;">PENDING</span>
+                        </div>
+                        <div style="font-weight:bold; color:white; margin:5px 0;">${q.title.toUpperCase()}</div>
+                        <div style="font-size:0.8rem; font-family:monospace; display:flex; justify-content:space-between;">
+                            <span>Pending: ${formatVal(q.target)}</span>
+                            <span>$${(q.target/rate).toFixed(2)}</span>
+                        </div>
+                        ${actionButton}
+                        <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
+                    </div>`;
+                });
+
+            } else {
+                title.textContent = `PAID ARCHIVE: ${monthName} ${year}`;
+                addSec.style.display = 'none';
+                
+                let monthlyPaid = [];
+                // Aggregate all days of this month
+                if(system.dayArchives) {
+                    Object.keys(system.dayArchives).forEach(dateKey => {
+                        if(dateKey.startsWith(currentMonthPrefix)) {
+                            system.dayArchives[dateKey].forEach(q => monthlyPaid.push({...q, dateKey: dateKey}));
+                        }
+                    });
+                }
+
+                if(monthlyPaid.length === 0) container.innerHTML = `<div style="text-align:center; color:#666; margin-top:30px;">NO RECORDS FOUND FOR ${monthName}</div>`;
+
+                monthlyPaid.sort((a,b) => new Date(b.dateKey) - new Date(a.dateKey)); // Newest first
+                monthlyPaid.forEach(q => {
+                    let delButton = `<button class="discard-btn" onclick="deleteArchivedDebt('${q.dateKey}', ${q.id})">Purge Record</button>`;
+                    container.innerHTML += `<div class="quest-card archive-debt">
+                        <div style="font-size:0.65rem; color:var(--debt-color); font-weight:bold; display:flex; justify-content:space-between;">
+                            <span>[PAID] ${q.dateKey}</span>
+                            <span>✓</span>
+                        </div>
+                        <div style="font-weight:bold; margin-top:5px;">${q.title}</div>
+                        <div style="font-family:monospace;">Amount: ${formatVal(q.target)} ($${(q.target/rate).toFixed(2)})</div>
+                        <div style="margin-top:10px;">${delButton}</div>
+                    </div>`;
+                });
             }
         };
 
@@ -957,7 +1041,6 @@
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
             const vTotal = vCurrent + vSavings;
-            const totalWealth = vTotal;
 
             // HP LOGIC
             const hpBase = 15; 
@@ -977,8 +1060,8 @@
             else hpFill.classList.add('lvl-3');
 
             // MASTER CARD
-            document.getElementById('totalAssets').textContent = formatVal(totalWealth);
-            document.getElementById('totalUSD').textContent = `$${(totalWealth/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            document.getElementById('totalAssets').textContent = formatVal(vTotal);
+            document.getElementById('totalUSD').textContent = `$${(vTotal/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
             document.getElementById('vaultCurrentUSD').textContent = `$${(vCurrent/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
@@ -991,7 +1074,7 @@
 
             document.getElementById('barKaratIndicator').textContent = activeKarat + 'K ⚙️';
 
-            let gramsOwned = (totalWealth / rate) / activeGramPrice;
+            let gramsOwned = (vTotal / rate) / activeGramPrice;
             let goldLevel = Math.floor(gramsOwned); 
             let goldProgress = gramsOwned % 1;
             let goldPerc = goldProgress * 100;
@@ -1007,7 +1090,7 @@
             else if(goldLevel % 3 === 1) goldFill.classList.add('lvl-1'); 
             else goldFill.classList.add('lvl-2');
 
-            const playerRank = getRankInfo(totalWealth);
+            const playerRank = getRankInfo(vTotal);
             const pBadge = document.getElementById('playerRankBadge');
             pBadge.textContent = "RANK " + playerRank.r;
             pBadge.style.color = playerRank.c;
@@ -1020,37 +1103,29 @@
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (vTotal > 0.1 && vTotal < 1000) ? 'block' : 'none';
 
-            const list = document.getElementById('questList'); list.innerHTML = '';
-            let displayList = system.quests.filter(q => q.isDebt).sort((a,b) => new Date(a.targetDate) - new Date(b.targetDate));
+            // --- CALCULATE MONTHLY STATS ---
+            const year = navDate.getFullYear();
+            const month = String(navDate.getMonth() + 1).padStart(2,'0');
+            const currentMonthPrefix = `${year}-${month}`;
 
-            displayList.forEach(q => {
-                let actionButton = `<button class="btn-pay" onclick="payDebt(${q.id})">PAY & ARCHIVE ($${(q.target/rate).toFixed(2)})</button>`;
-                let rankBadgeHTML = `<div class="card-rank-badge" style="color:${getRankInfo(q.target).c}">${getRankInfo(q.target).r}</div>`;
-                list.innerHTML += `<div class="quest-card" style="border-left: 4px solid var(--debt-color)">
-                    ${rankBadgeHTML}
-                    <div style="font-size:0.6rem; color:#666; display:flex; justify-content:space-between; position:relative; z-index:2;">
-                        <span>Target: ${q.targetDate || "No Date"}</span>
-                        <span style="color:var(--debt-color); font-weight:bold;">PENDING</span>
-                    </div>
-                    <div style="font-weight:bold; color:white; margin:5px 0; position:relative; z-index:2;">${q.title.toUpperCase()}</div>
-                    <div style="font-size:0.8rem; font-family:monospace; display:flex; justify-content:space-between; position:relative; z-index:2;">
-                        <span>Pending: ${formatVal(q.target)}</span>
-                        <span>$${(q.target/rate).toFixed(2)}</span>
-                    </div>
-                    ${actionButton}
-                    <button class="discard-btn" onclick="discardQuest(${q.id})">Discard (No Pay)</button>
-                </div>`;
-            });
+            // Unpaid Filter
+            let unpaidList = system.quests.filter(q => q.isDebt && q.targetDate && q.targetDate.startsWith(currentMonthPrefix));
+            let unpaidGold = unpaidList.reduce((acc, q) => acc + q.target, 0);
             
-            let unpaidGold = system.quests.reduce((acc, q) => acc + q.target, 0);
-            document.getElementById('countUnpaidDebts').textContent = system.quests.length;
+            document.getElementById('countUnpaidDebts').textContent = unpaidList.length;
             document.getElementById('valUnpaidDebts').textContent = `$${(unpaidGold/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
+            // Paid Filter
             let paidCount = 0;
             let paidGold = 0;
             if(system.dayArchives) {
-                Object.values(system.dayArchives).forEach(dayList => {
-                    dayList.forEach(q => { paidCount++; paidGold += q.target; });
+                Object.keys(system.dayArchives).forEach(dateKey => {
+                    if(dateKey.startsWith(currentMonthPrefix)) {
+                        system.dayArchives[dateKey].forEach(q => { 
+                            paidCount++; 
+                            paidGold += q.target; 
+                        });
+                    }
                 });
             }
             document.getElementById('countPaidDebts').textContent = paidCount;
@@ -1099,11 +1174,16 @@
             }
         };
 
-        window.closeViews = () => document.querySelectorAll('.full-view').forEach(v => v.style.display='none');
+        window.closeViews = () => {
+            document.querySelectorAll('.full-view').forEach(v => v.style.display='none');
+            // Refresh main dashboard stats when closing views
+            render();
+        };
         window.changeMonth = (s) => { 
             navDate.setDate(1); 
             navDate.setMonth(navDate.getMonth() + s); 
             drawCalendar(); 
+            render(); // Re-calculate monthly stats for the new month
         };
     </script>
 </body>
