@@ -435,7 +435,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, addDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, addDoc, getDocs, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD-j_kXAR8PqOPd1GBEst-sRWZNCpuFM7w",
@@ -506,9 +506,6 @@
                 await loadSubCollections(user.uid);
 
                 onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
-                    // Safety check: if we are in the middle of a local save, don't overwrite
-                    // unless the remote data is strictly newer (handled by firebase, but logic helps)
-                    
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
                         
@@ -526,7 +523,6 @@
                         if (data.dayArchives) {
                              Object.keys(data.dayArchives).forEach(d => {
                                  if(!system.dayArchives[d]) system.dayArchives[d] = [];
-                                 // Simple merge to avoid duplicates if ID exists
                                  const incoming = data.dayArchives[d];
                                  const existingIds = new Set(system.dayArchives[d].map(x => x.id));
                                  incoming.forEach(inc => {
@@ -587,7 +583,6 @@
             } catch (e) { console.log("Gold API Error - Using Stored Value"); }
         }
 
-        // FIXED: Async Save with Indicator
         const save = async (forceFull = false) => {
             if (currentUser) {
                 setSaving(true);
@@ -627,7 +622,6 @@
         }
 
         async function checkMonthRollover() {
-            // Prevent rollover loop if we are just loading
             if(isSaving) return; 
 
             const currentMonthStr = getSystemDate().substring(0, 7); 
@@ -740,14 +734,11 @@
             }
         };
 
-        // FIXED: Async Payment Logic with correct Wait sequence
+        // --- NEW SECURE PAY DEBT FUNCTION (BATCHED) ---
         window.payDebt = async (id) => {
             let q = system.quests.find(x => x.id == id);
             
-            if(!q) {
-                console.error("Debt ID not found:", id);
-                return;
-            }
+            if(!q) { console.error("Debt ID not found:", id); return; }
             
             let remainingGold = q.target;
             let rate = (system.exchangeRate > 0) ? system.exchangeRate : 89500;
@@ -758,29 +749,43 @@
                     
                     try {
                         setSaving(true);
-                        // 1. Deduct Money locally
-                        system.salary = Money.sub(system.salary, costUSD); 
                         
-                        // 2. Prepare Archive Data
-                        const archiveData = { ...q, current: q.target, archivedAt: serverTimestamp() };
-                        const d = q.targetDate || getSystemDate();
-                        
-                        // 3. Save to Archive FIRST (Wait for it)
-                        const docRef = await addDoc(collection(db, "users", currentUser.uid, "archived_quests"), archiveData);
-                        
-                        // 4. Update local archive
-                        if(!system.dayArchives[d]) system.dayArchives[d] = [];
-                        system.dayArchives[d].push({ ...archiveData, docId: docRef.id });
+                        // 1. Create Write Batch
+                        const batch = writeBatch(db);
 
-                        // 5. Remove from active list
-                        system.quests = system.quests.filter(x => x.id != id);
-                        
-                        // 6. SAVE MAIN DOC (Wait for it)
-                        await save();
+                        // 2. Prepare Archive Document Ref
+                        const archiveRef = doc(collection(db, "users", currentUser.uid, "archived_quests"));
+                        const archiveData = { ...q, current: q.target, archivedAt: serverTimestamp() };
+                        batch.set(archiveRef, archiveData);
+
+                        // 3. Prepare User Update
+                        const userRef = doc(db, "users", currentUser.uid);
+                        const newSalary = Money.sub(system.salary, costUSD);
+                        const newQuests = system.quests.filter(x => x.id != id);
+
+                        batch.update(userRef, {
+                            salary: newSalary,
+                            quests: newQuests,
+                            lastUpdated: serverTimestamp()
+                        });
+
+                        // 4. Commit all at once (Atomic Transaction)
+                        await batch.commit();
+
+                        // 5. Update Local State & UI only after success
+                        system.salary = newSalary;
+                        system.quests = newQuests;
+
+                        const d = q.targetDate || getSystemDate();
+                        if(!system.dayArchives[d]) system.dayArchives[d] = [];
+                        system.dayArchives[d].push({ ...archiveData, docId: archiveRef.id });
+
                         render();
                         
                     } catch (err) {
+                        console.error(err);
                         alert("Error during payment transaction: " + err.message);
+                    } finally {
                         setSaving(false);
                     }
                 }
@@ -948,7 +953,6 @@
             });
         }
 
-        // FIXED: Async Add Logic
         window.registerQuest = async (isDebt) => {
             let t = document.getElementById('qTitle').value;
             let g = document.getElementById('qTarget').value;
@@ -965,8 +969,10 @@
         };
 
         async function addObjective(title, target, isDebt, date) {
+            // Updated ID generation to be safer
+            const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
             system.quests.push({ 
-                id: Date.now(), title: title, target: target, 
+                id: uniqueId, title: title, target: target, 
                 current: 0, isDebt: true, targetDate: date 
             });
             await save();
