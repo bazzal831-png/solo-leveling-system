@@ -3,23 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | DEBT MANAGER</title>
+    <title>SUNG JIN-WOO SYSTEM | DEBT MANAGER (SECURE)</title>
     <!-- CHART.JS LIBRARY -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
-            
-            /* Logic Colors */
-            --mana: #00d2ff;      
-            --debt-color: #bc13fe; 
-            --hp-bg: #4a0000;     
-            --hp-fill: #ff0000;   
-
-            /* Rank Colors */
+            --mana: #00d2ff; --debt-color: #bc13fe; 
+            --hp-bg: #4a0000; --hp-fill: #ff0000;   
             --rank-ss: #ffcc00; --rank-s: #ff3131; --rank-a: #bc13fe;
             --rank-b: #00d2ff; --rank-c: #4caf50; --rank-e: #9e9e9e;
-
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
         }
 
@@ -27,42 +20,30 @@
             background-color: var(--bg); color: var(--text); 
             font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; 
             background-image: radial-gradient(circle at center, #101525 0%, #05070b 100%);
-            -webkit-tap-highlight-color: transparent;
-            padding-bottom: 90px;
+            -webkit-tap-highlight-color: transparent; padding-bottom: 90px;
         }
 
         /* MASTER CARD STYLES */
         .master-card {
             background: linear-gradient(180deg, rgba(17, 20, 29, 0.95) 0%, rgba(5, 7, 11, 0.95) 100%);
-            border: 1px solid var(--mana);
-            border-radius: 8px;
-            padding: 0;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
+            border: 1px solid var(--mana); border-radius: 8px; padding: 0;
+            margin-bottom: 20px; position: relative; overflow: hidden;
             box-shadow: 0 0 15px rgba(0, 210, 255, 0.05);
         }
 
         .master-top-row {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 15px;
-            background: rgba(0, 210, 255, 0.05);
+            padding: 12px 15px; background: rgba(0, 210, 255, 0.05);
             border-bottom: 1px solid rgba(0, 210, 255, 0.1);
         }
 
         .master-main-val { text-align: center; padding: 20px 10px; }
-
-        .master-grid {
-            display: grid; grid-template-columns: 1fr 1fr;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
+        .master-grid { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid rgba(255, 255, 255, 0.1); }
         .m-col { padding: 15px; text-align: center; position: relative; }
         .m-col:first-child { border-right: 1px solid rgba(255, 255, 255, 0.1); }
 
         .lbl-sm { font-size: 0.6rem; color: #888; letter-spacing: 1px; margin-bottom: 4px; display: block; }
         .val-lg { font-size: 1.1rem; font-family: monospace; font-weight: bold; color: white; }
-        /* Style for the new USD display in master card */
         .val-usd-sub { font-size: 0.75rem; color: #666; font-family: monospace; margin-top: 2px; }
 
         .net-gold { font-size: 2.8rem; font-weight: bold; color: var(--gold); font-family: monospace; text-shadow: 0 0 20px rgba(255, 215, 0, 0.1); margin: 5px 0; display: block;}
@@ -182,10 +163,9 @@
         .full-view { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 9999; padding: 20px; overflow-y: auto; }
         input { width: 100%; padding: 15px; margin-bottom: 10px; background: #080a0f; border: 1px solid #333; color: white; box-sizing: border-box; }
         
-        /* DATE INPUT STYLING */
         input[type="date"] {
             background: #080a0f; color: white; border: 1px solid #333; padding: 12px; font-family: sans-serif;
-            color-scheme: dark; /* Dark mode for calendar picker */
+            color-scheme: dark; 
         }
 
         .calendar-box { background: var(--panel); padding: 15px; border: 1px solid #222; margin-bottom: 20px; }
@@ -202,7 +182,6 @@
 
         .archive-debt { border-left: 4px solid var(--debt-color) !important; }
 
-        /* GOLD & KARAT SELECTOR */
         .gold-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #333; }
         .gold-label { font-size: 0.8rem; color: var(--gold); font-weight: bold; }
         .gold-value { font-family: monospace; font-size: 1rem; color: white; }
@@ -234,11 +213,11 @@
         </div>
     </div>
 
-    <!-- WITHDRAWAL MODAL UPDATED -->
+    <!-- WITHDRAWAL MODAL -->
     <div id="withdrawModal" class="modal-backdrop">
         <div class="modal-window">
             <div class="modal-title">SYSTEM WITHDRAWAL</div>
-            <input type="text" id="withdrawInput" class="modal-input" placeholder="Amount (e.g. 50$ or 5k)">
+            <input type="text" id="withdrawInput" class="modal-input" placeholder="Amount (e.g. $50 or 5k)">
             <div style="font-size:0.6rem; color:#888; text-align:left; margin-left:2px;">SELECT SOURCE:</div>
             
             <div class="source-grid">
@@ -261,32 +240,25 @@
         </div>
     </div>
 
-    <!-- GOLD PRICES MODAL (KARAT SELECTOR) -->
+    <!-- GOLD PRICES MODAL -->
     <div id="goldModal" class="modal-backdrop">
         <div class="modal-window">
             <div class="modal-title" style="color:var(--gold); border-color:var(--gold);">
                 MARKET PRICES
             </div>
-            
             <p style="font-size:0.6rem; color:#aaa; margin-bottom:10px;">SELECT SYSTEM KARAT (SAVES AUTOMATICALLY)</p>
-            <!-- Karat Selector Buttons -->
             <div class="karat-selector">
                 <button class="k-btn" id="k18" onclick="setKarat(18)">18K</button>
                 <button class="k-btn" id="k21" onclick="setKarat(21)">21K</button>
                 <button class="k-btn" id="k22" onclick="setKarat(22)">22K</button>
                 <button class="k-btn active" id="k24" onclick="setKarat(24)">24K</button>
             </div>
-
             <div id="goldLoading" style="padding:20px; color:#888;">Connecting to Satellite...</div>
             <div id="goldContent" style="display:none;">
-                
-                <!-- Dynamic Gram Price Row -->
                 <div class="gold-row">
                     <span class="gold-label">GRAM (<span id="dispKaratTitle">24K</span>)</span>
                     <span class="gold-value" id="priceDynamicGram">$0.00</span>
                 </div>
-
-                <!-- Conditional Rows -->
                 <div id="rowOunce" class="gold-row" style="display:none;">
                     <span class="gold-label">OUNCE (24K)</span>
                     <span class="gold-value" id="priceOunce">$0.00</span>
@@ -299,7 +271,6 @@
                     <span class="gold-label">HALF LIRA (22K)</span>
                     <span class="gold-value" id="priceHalfLira">$0.00</span>
                 </div>
-
             </div>
             <button class="modal-btn btn-cancel" style="margin-top:20px; width:100%" onclick="closeGoldModal()">CLOSE & SAVE</button>
         </div>
@@ -312,7 +283,7 @@
         <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-top:20px;">
             <canvas id="vaultChart"></canvas>
         </div>
-        <p style="color:#888; font-size:0.7rem; text-align:center; margin-top:15px;">* Shows Total Vault (Current + Savings).</p>
+        <p style="color:#888; font-size:0.7rem; text-align:center; margin-top:15px;">* Values are calculated using the historical exchange rate of each month.</p>
     </div>
 
     <div id="mainView" style="display: none;">
@@ -325,9 +296,6 @@
             <div class="hp-bar-container">
                 <div class="hp-fill" id="hpFill"></div>
                 <div class="hp-text" id="hpText">Loading...</div>
-            </div>
-            <div style="font-size:0.6rem; color:#666; margin-top:4px; text-align:center;">
-                Resets every month. Measures current activity.
             </div>
         </div>
 
@@ -342,7 +310,7 @@
             </div>
         </div>
 
-        <!-- MASTER CARD UPDATED -->
+        <!-- MASTER CARD -->
         <div class="master-card">
             <div class="master-top-row">
                 <div style="display:flex; flex-direction:column; gap:2px;">
@@ -355,13 +323,11 @@
                 </div>
             </div>
 
-            <!-- MAIN VALUE -->
             <div class="master-main-val">
                 <span class="lbl-sm" style="color:var(--mana);">NET WORTH (TOTAL ASSETS)</span>
                 <span class="net-gold" id="totalAssets">0</span>
                 <span class="net-usd" id="totalUSD">$0.00</span>
                 
-                <!-- Gold Bar Integrated -->
                 <div style="margin: 20px 15px 5px 15px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
                         <span style="font-size:0.6rem; color:#666;">RESERVE</span>
@@ -374,7 +340,6 @@
                 </div>
             </div>
 
-            <!-- UPDATED GRID WITH USD SUB-LABELS -->
             <div class="master-grid">
                 <div class="m-col">
                     <span class="lbl-sm" style="color:var(--hp-bg);">THIS MONTH</span>
@@ -405,12 +370,11 @@
             <div class="days-grid" id="daysGrid"></div>
         </div>
 
-        <!-- NEW REGISTER DEBT WITH DATE PICKER -->
         <div style="background:rgba(188, 19, 254, 0.05); padding:15px; border:1px solid var(--debt-color);">
             <div style="font-size:0.6rem; color:var(--debt-color); margin-bottom:5px;">REGISTER NEW DEBT (PLANNER)</div>
             <input type="date" id="qDate" placeholder="Target Date">
             <input type="text" id="qTitle" placeholder="Debt Name / Title">
-            <input type="text" id="qTarget" placeholder="Amount (e.g. 50$ or 1k)">
+            <input type="text" id="qTarget" placeholder="Amount (e.g. $50, 100k, 1m)">
             <button class="btn-system" style="background:var(--debt-color); color:#fff; border:none;" onclick="registerQuest(true)">ADD DEBT RECORD</button>
         </div>
 
@@ -452,7 +416,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD-j_kXAR8PqOPd1GBEst-sRWZNCpuFM7w",
@@ -468,22 +432,22 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
+        // FIX 1: Robust Date Function (Uses Local Time not UTC)
+        function getSystemDate() {
+            const now = new Date();
+            const offsetMs = now.getTimezoneOffset() * 60000; 
+            const localISOTime = (new Date(now - offsetMs)).toISOString().slice(0, 10);
+            return localISOTime;
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById('qDate').value = getLocalTodayStr();
+            document.getElementById('qDate').value = getSystemDate();
         });
 
-        // System data
         let system = { 
-            vaultCurrent: 0, 
-            vaultSavings: 0, 
-            salary: 0, 
-            quests: [], 
-            dayArchives: {}, 
-            history: {}, 
-            hpMonth: "",
-            exchangeRate: 89500, 
-            preferredKarat: 24,
-            storedGoldPrice: 88.0 // Fallback price
+            vaultCurrent: 0, vaultSavings: 0, salary: 0, 
+            quests: [], dayArchives: {}, history: {}, hpMonth: "",
+            exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0
         };
 
         let navDate = new Date();
@@ -509,26 +473,22 @@
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
                         
-                        // Migrate legacy structure if needed
+                        // Validations for null values
                         if(data.vault !== undefined && data.vaultSavings === undefined) {
-                            data.vaultSavings = data.vault;
-                            data.vaultCurrent = 0;
-                            delete data.vault;
+                            data.vaultSavings = data.vault; data.vaultCurrent = 0; delete data.vault;
                         }
                         if(!data.history) data.history = {};
-                        if(!data.exchangeRate) data.exchangeRate = 89500;
-                        if(!data.preferredKarat) data.preferredKarat = 24;
-                        if(data.storedGoldPrice) global24kGramPrice = data.storedGoldPrice; // Load stored price
+                        if(!data.exchangeRate || data.exchangeRate < 1) data.exchangeRate = 89500;
+                        if(data.storedGoldPrice) global24kGramPrice = data.storedGoldPrice;
 
                         system = data;
                         checkMonthRollover(); 
                         render();
                         updateGoldModalUI(); 
-                        // Fetch fresh price after loading
                         fetchLiveGoldPrice();
                     } else {
-                        system.hpMonth = getLocalTodayStr().substring(0, 7);
-                        save();
+                        system.hpMonth = getSystemDate().substring(0, 7);
+                        save(true);
                     }
                 });
             } else {
@@ -543,97 +503,96 @@
                 const data = await response.json();
                 if(data.price) {
                     global24kGramPrice = data.price / 31.1035;
-                    system.storedGoldPrice = global24kGramPrice; // Update stored price
-                    // We trigger a save lightly to persist the new price, but only if it changed significantly to avoid loop
-                    render();
                 }
-            } catch (e) {
-                console.log("Gold Fetch Error, using stored value.");
+            } catch (e) { console.log("Gold API Error - Using Stored Value"); }
+        }
+
+        // FIX 2: Strict Safe Float to avoid 14.99999999 issues
+        function safeFloat(num) {
+            return Math.round((num + Number.EPSILON) * 100) / 100;
+        }
+
+        async function save(forceFull = false) {
+            if (currentUser) {
+                if(isNaN(system.vaultCurrent)) system.vaultCurrent = 0;
+                if(isNaN(system.vaultSavings)) system.vaultSavings = 0;
+                if(isNaN(system.salary)) system.salary = 0;
+
+                system.vaultCurrent = safeFloat(system.vaultCurrent);
+                system.vaultSavings = safeFloat(system.vaultSavings);
+                system.salary = safeFloat(system.salary);
+                system.storedGoldPrice = global24kGramPrice;
+
+                const payload = { ...system, lastUpdated: serverTimestamp() };
+                
+                try {
+                    if(forceFull) await setDoc(doc(db, "users", currentUser.uid), payload);
+                    else await updateDoc(doc(db, "users", currentUser.uid), payload);
+                } catch(e) {
+                    await setDoc(doc(db, "users", currentUser.uid), payload, { merge: true });
+                }
             }
         }
 
-        window.addEventListener('online', () => { fetchLiveGoldPrice(); });
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') fetchLiveGoldPrice();
-        });
-        setInterval(() => {
-            if (document.visibilityState === 'visible' && navigator.onLine) fetchLiveGoldPrice();
-        }, 300000);
-
-        // MODIFIED SAVE FUNCTION (FIX 1 & 3 & 4)
-        async function save() {
-            if (currentUser) {
-                const d = new Date();
-                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-                
-                // Enforce strict rounding to avoid floating point errors
-                system.salary = Math.round((system.salary || 0) * 100) / 100;
-                system.vaultCurrent = Math.round((system.vaultCurrent || 0) * 100) / 100;
-                system.vaultSavings = Math.round((system.vaultSavings || 0) * 100) / 100;
-
-                if(!system.history) system.history = {};
-                // Only store history rounded
-                system.history[key] = Math.round(((system.vaultCurrent || 0) + (system.vaultSavings || 0)) * 100) / 100;
-                
-                // Add Server Timestamp for debugging/sync
-                const payload = { 
-                    ...system, 
-                    lastUpdated: serverTimestamp() 
-                };
-
-                // Use merge: true to avoid overwriting unrelated fields
-                await setDoc(doc(db, "users", currentUser.uid), payload, { merge: true });
-            }
+        function getNextMonth(yyyy_mm) {
+            let [y, m] = yyyy_mm.split('-').map(Number);
+            m++;
+            if(m > 12) { m = 1; y++; }
+            return `${y}-${String(m).padStart(2,'0')}`;
         }
 
         function checkMonthRollover() {
-            const currentMonthStr = getLocalTodayStr().substring(0, 7); 
+            const currentMonthStr = getSystemDate().substring(0, 7); 
             if (!system.hpMonth) system.hpMonth = currentMonthStr;
 
-            if (system.hpMonth !== currentMonthStr) {
-                system.vaultSavings = (system.vaultSavings || 0) + (system.vaultCurrent || 0);
+            let storedMonth = system.hpMonth;
+            let needsSave = false;
+
+            while(storedMonth < currentMonthStr) {
+                needsSave = true;
+                system.history[storedMonth] = {
+                    val: safeFloat((system.vaultCurrent || 0) + (system.vaultSavings || 0)),
+                    rate: system.exchangeRate 
+                };
+                
+                system.vaultSavings = safeFloat((system.vaultSavings || 0) + (system.vaultCurrent || 0));
                 system.vaultCurrent = 0;
-                system.hpMonth = currentMonthStr; 
+                
+                storedMonth = getNextMonth(storedMonth);
+            }
+
+            if(needsSave) {
+                system.hpMonth = currentMonthStr;
                 save();
             }
         }
 
-        // MODIFIED PARSEWISH (FIX 2)
         function parseWish(val) {
             if (!val) return 0;
-            // Clean input: remove commas, trim whitespace
-            val = String(val).toLowerCase().trim().replace(/,/g, '');
+            let str = val.toString().toLowerCase().trim().replace(/,/g, '');
             
-            let multiplier = 1;
-            if (val.endsWith('$')) {
-                multiplier = system.exchangeRate;
-                val = val.slice(0, -1);
-            } else if (val.endsWith('k')) {
-                multiplier = 1000;
-                val = val.slice(0, -1);
-            } else if (val.endsWith('m')) {
-                multiplier = 1000000;
-                val = val.slice(0, -1);
+            let mult = 1;
+            if (str.includes('k')) mult = 1000;
+            if (str.includes('m')) mult = 1000000;
+
+            let isUSD = str.includes('$');
+            let cleanVal = str.replace(/[^0-9.]/g, '');
+            let number = parseFloat(cleanVal);
+
+            if (isNaN(number)) return 0;
+            let finalVal = number * mult;
+
+            if (isUSD) {
+                finalVal = finalVal * system.exchangeRate;
             }
 
-            let result = parseFloat(val);
-            if (isNaN(result)) return 0; // Return 0 instead of NaN
-            
-            return result * multiplier;
+            return safeFloat(finalVal);
         }
 
         function formatVal(v) {
             if (v >= 1000000) return (v / 1000000).toFixed(2) + "m";
             if (v >= 1000) return (v / 1000).toFixed(1) + "k";
             return Math.floor(v);
-        }
-
-        function getLocalTodayStr() {
-            const d = new Date();
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
         }
 
         function getRankInfo(val) {
@@ -646,22 +605,23 @@
         }
 
         window.addSalary = () => {
-            let a = prompt("Add Salary Income (e.g. 500$):");
+            let a = prompt("Add Salary Income (e.g. $500 or 45000000):");
             let val = parseWish(a);
-            if(val > 0) { 
-                system.salary = (system.salary || 0) + (val / system.exchangeRate); 
+            if(val > 0 && system.exchangeRate > 0) { 
+                let usdVal = safeFloat(val / system.exchangeRate);
+                system.salary = safeFloat((system.salary || 0) + usdVal); 
                 save(); 
             }
         };
 
         window.salaryToVault = () => {
-            let a = prompt("Transfer to Assets (e.g. 50k, 100$):");
+            let a = prompt("Transfer to Assets (e.g. 50k, $100):");
             if(!a) return;
             let goldAmount = parseWish(a);
-            let costInUSD = goldAmount / system.exchangeRate;
+            let costInUSD = safeFloat(goldAmount / system.exchangeRate);
 
-            if(goldAmount >= 1 && (system.salary || 0) >= costInUSD) {
-                system.salary -= costInUSD; 
+            if(goldAmount >= 1 && safeFloat(system.salary || 0) >= costInUSD) {
+                system.salary = safeFloat(system.salary - costInUSD); 
                 directDeposit(goldAmount); 
             } else {
                 alert("Insufficient Salary funds.");
@@ -669,14 +629,14 @@
         };
 
         window.startFlowDeposit = () => { 
-            let a = prompt("Deposit Assets Directly (e.g. 50$ or 100k):"); 
+            let a = prompt("Deposit Assets Directly (e.g. $50 or 100k):"); 
             let val = parseWish(a);
             if(val > 0) directDeposit(val); 
         };
 
         function directDeposit(amount) {
             if(amount > 0) {
-                system.vaultCurrent = (system.vaultCurrent || 0) + amount;
+                system.vaultCurrent = safeFloat((system.vaultCurrent || 0) + amount);
                 save();
             }
         }
@@ -696,13 +656,13 @@
             let q = system.quests.find(x => x.id === id);
             if(!q) return;
             let remainingGold = q.target;
-            let costUSD = remainingGold / system.exchangeRate;
+            let costUSD = safeFloat(remainingGold / system.exchangeRate);
 
-            if((system.salary || 0) >= costUSD) {
+            if(safeFloat(system.salary || 0) >= costUSD) {
                 if(confirm(`Pay ($${costUSD.toFixed(2)}) from SALARY for "${q.title}"?`)) {
-                    system.salary -= costUSD; 
+                    system.salary = safeFloat(system.salary - costUSD); 
                     q.current = q.target;
-                    let d = q.targetDate || getLocalTodayStr();
+                    let d = q.targetDate || getSystemDate();
                     if(!system.dayArchives[d]) system.dayArchives[d] = [];
                     system.dayArchives[d].push(q);
                     system.quests = system.quests.filter(x => x.id !== id);
@@ -713,7 +673,6 @@
             }
         };
 
-        // --- WITHDRAWAL UPDATED LOGIC ---
         window.openWithdrawModal = () => {
             document.getElementById('withdrawModal').style.display = 'flex';
             document.getElementById('withdrawInput').value = '';
@@ -746,13 +705,13 @@
             let val = document.getElementById('withdrawInput').value;
             let req = parseWish(val);
             if(req <= 0) { alert("Invalid Amount"); return; }
-            if(!selectedWithdrawSource) { alert("Please select a Source (Current or Savings)"); return; }
+            if(!selectedWithdrawSource) { alert("Please select a Source"); return; }
 
             if(selectedWithdrawSource === 'savings') {
-                if((system.vaultSavings || 0) >= req) system.vaultSavings -= req;
+                if(safeFloat(system.vaultSavings || 0) >= req) system.vaultSavings = safeFloat(system.vaultSavings - req);
                 else { alert("Not enough in Savings!"); return; }
             } else {
-                if((system.vaultCurrent || 0) >= req) system.vaultCurrent -= req;
+                if(safeFloat(system.vaultCurrent || 0) >= req) system.vaultCurrent = safeFloat(system.vaultCurrent - req);
                 else { alert("Not enough in Current Vault!"); return; }
             }
             save(); closeWithdrawModal();
@@ -763,12 +722,15 @@
             document.getElementById('inputExchangeRate').value = system.exchangeRate;
         }
 
+        // FIX 3: Protection against Zero/Negative Rate
         window.confirmRateChange = () => {
             let n = parseFloat(document.getElementById('inputExchangeRate').value);
-            if(n > 0) {
+            if(n >= 1) {
                 system.exchangeRate = n;
                 save(); 
                 document.getElementById('rateModal').style.display = 'none';
+            } else {
+                alert("Rate cannot be zero or negative.");
             }
         }
 
@@ -776,7 +738,6 @@
             document.getElementById('goldModal').style.display = 'flex';
             document.getElementById('goldLoading').style.display = 'block';
             document.getElementById('goldContent').style.display = 'none';
-            // We force a fetch, but if it fails, the fallback is already handled in fetchLiveGoldPrice
             await fetchLiveGoldPrice();
             updateGoldModalUI();
             document.getElementById('goldLoading').style.display = 'none';
@@ -804,18 +765,15 @@
             const rowLira = document.getElementById('rowLira');
             const rowHalf = document.getElementById('rowHalfLira');
 
-            rowOunce.style.display = 'none';
-            rowLira.style.display = 'none';
-            rowHalf.style.display = 'none';
+            rowOunce.style.display = (k === 24) ? 'flex' : 'none';
+            rowLira.style.display = (k === 22) ? 'flex' : 'none';
+            rowHalf.style.display = (k === 22) ? 'flex' : 'none';
 
             if (k === 24) {
-                rowOunce.style.display = 'flex';
                 let ouncePrice = global24kGramPrice * 31.1035;
                 document.getElementById('priceOunce').textContent = '$' + ouncePrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             }
             else if (k === 22) {
-                rowLira.style.display = 'flex';
-                rowHalf.style.display = 'flex';
                 let liraPrice = (global24kGramPrice * 0.9167) * 8; 
                 document.getElementById('priceLira').textContent = '$' + liraPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
                 document.getElementById('priceHalfLira').textContent = '$' + (liraPrice/2).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -832,9 +790,17 @@
         function renderChart() {
             const ctx = document.getElementById('vaultChart').getContext('2d');
             if(!system.history) system.history = {};
+            
             const sortedKeys = Object.keys(system.history).sort();
-            const labels = sortedKeys.map(k => k); 
-            const dataUSD = sortedKeys.map(k => (system.history[k] / system.exchangeRate));
+            const labels = sortedKeys; 
+            const dataUSD = sortedKeys.map(k => {
+                let entry = system.history[k];
+                if (typeof entry === 'object' && entry !== null) {
+                    return entry.val / (entry.rate > 0 ? entry.rate : 89500);
+                } else {
+                    return entry / system.exchangeRate;
+                }
+            });
 
             if(myChart) myChart.destroy();
 
@@ -872,25 +838,22 @@
             let t = document.getElementById('qTitle').value;
             let g = document.getElementById('qTarget').value;
             let d = document.getElementById('qDate').value;
-            // Additional check for valid value
-            if(t && g && parseWish(g) > 0) {
-                const targetDate = d ? d : getLocalTodayStr();
-                addObjective(t, g, true, targetDate);
+            
+            let amount = parseWish(g);
+            if(t && amount > 0) {
+                const targetDate = d ? d : getSystemDate();
+                addObjective(t, amount, true, targetDate);
                 document.getElementById('qTitle').value = ''; 
                 document.getElementById('qTarget').value = '';
-            } else if (parseWish(g) <= 0) {
-                alert("Please enter a valid amount.");
+            } else {
+                alert("Please enter a valid title and amount.");
             }
         };
 
         function addObjective(title, target, isDebt, date) {
             system.quests.push({ 
-                id: Date.now(), 
-                title: title, 
-                target: parseWish(target), 
-                current: 0, 
-                isDebt: true, 
-                targetDate: date 
+                id: Date.now(), title: title, target: target, 
+                current: 0, isDebt: true, targetDate: date 
             });
             save();
         }
@@ -912,9 +875,11 @@
         };
 
         function render() {
-            const todayStr = getLocalTodayStr(); 
-            const rate = system.exchangeRate; 
-            
+            const todayStr = getSystemDate(); 
+            // FIX 4: Safety Check for Rate
+            let rate = system.exchangeRate; 
+            if(rate < 1) rate = 89500;
+
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
             const vTotal = vCurrent + vSavings;
@@ -937,18 +902,17 @@
             else if(hpLevel % 3 === 2) hpFill.classList.add('lvl-2');
             else hpFill.classList.add('lvl-3');
 
-            // --- MASTER CARD ---
+            // MASTER CARD
             document.getElementById('totalAssets').textContent = formatVal(totalWealth);
             document.getElementById('totalUSD').textContent = `$${(totalWealth/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             
-            // UPDATED: Show Main Values (m/k) + USD
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
             document.getElementById('vaultCurrentUSD').textContent = `$${(vCurrent/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
             document.getElementById('vaultSavingsUSD').textContent = `$${(vSavings/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
-            // --- GOLD BAR ---
+            // GOLD BAR
             let activeKarat = system.preferredKarat || 24;
             let activeRatio = karatRatios[activeKarat];
             let activeGramPrice = global24kGramPrice * activeRatio;
@@ -960,7 +924,7 @@
             let goldProgress = gramsOwned % 1;
             let goldPerc = goldProgress * 100;
             if (gramsOwned > 0 && goldProgress < 0.001) { goldPerc = 0; }
-            if (isNaN(gramsOwned)) { gramsOwned = 0; goldPerc = 0; } // Safety check
+            if (isNaN(gramsOwned)) { gramsOwned = 0; goldPerc = 0; }
 
             const goldFill = document.getElementById('goldFill');
             const goldText = document.getElementById('goldText');
@@ -972,7 +936,6 @@
             else if(goldLevel % 3 === 1) goldFill.classList.add('lvl-1'); 
             else goldFill.classList.add('lvl-2');
 
-            // Rank
             const playerRank = getRankInfo(totalWealth);
             const pBadge = document.getElementById('playerRankBadge');
             pBadge.textContent = "RANK " + playerRank.r;
@@ -980,7 +943,6 @@
             pBadge.style.boxShadow = `0 0 10px ${playerRank.c}`;
             document.getElementById('playerLevel').textContent = hpLevel;
 
-            // Salary & Rate
             document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             document.getElementById('displayRate').textContent = rate.toLocaleString();
             
@@ -988,7 +950,6 @@
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (vTotal > 0.1 && vTotal < 1000) ? 'block' : 'none';
 
-            // Quests
             const list = document.getElementById('questList'); list.innerHTML = '';
             let displayList = system.quests.filter(q => q.isDebt).sort((a,b) => new Date(a.targetDate) - new Date(b.targetDate));
 
@@ -1033,7 +994,7 @@
             const grid = document.getElementById('daysGrid'); grid.innerHTML = '';
             document.getElementById('monthTitle').textContent = navDate.toLocaleString('default', {month:'long', year:'numeric'}).toUpperCase();
             
-            const todayStr = getLocalTodayStr(); 
+            const todayStr = getSystemDate(); 
             const year = navDate.getFullYear();
             const month = navDate.getMonth();
             const first = new Date(year, month, 1).getDay();
@@ -1059,7 +1020,7 @@
             document.getElementById('dayView').style.display = 'block';
             document.getElementById('dayTitle').textContent = d;
             const l = document.getElementById('dayList'); l.innerHTML = '';
-            const rate = system.exchangeRate;
+            const rate = system.exchangeRate > 0 ? system.exchangeRate : 89500;
             if(system.dayArchives && system.dayArchives[d]) {
                 (system.dayArchives[d] || []).forEach(q => {
                     let delButton = `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge Record</button>`;
