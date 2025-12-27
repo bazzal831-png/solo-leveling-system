@@ -84,7 +84,7 @@
 
         .net-gold { font-size: 2.8rem; font-weight: bold; color: var(--mana); font-family: monospace; text-shadow: 0 0 20px rgba(0, 210, 255, 0.15); margin: 5px 0; display: block;}
         .net-usd { font-size: 1.1rem; color: var(--success); font-weight: bold; background: rgba(80, 250, 123, 0.1); padding: 2px 10px; border-radius: 10px; }
-        .net-assets-row { font-size: 0.7rem; color: #aaa; margin-top: 10px; font-family: monospace; }
+        .net-assets-row { font-size: 0.75rem; color: #aaa; margin-top: 10px; font-family: monospace; }
 
         /* MODAL STYLES */
         .modal-backdrop {
@@ -216,12 +216,13 @@
         .day-cell.has-completed { border-color: var(--debt-color); color: var(--debt-color); background: rgba(188, 19, 254, 0.1); }
         .day-cell.today { border: 2px solid #fff !important; color: #fff !important; font-weight: 900; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); transform: scale(1.05); z-index: 2; }
 
-        .stats-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
+        /* MODIFIED STATS FOOTER FOR 3 BUTTONS */
+        .stats-footer { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
         .stat-box { background: rgba(0,0,0,0.5); padding: 8px 4px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; min-height: 70px; cursor: pointer; transition: 0.2s; }
         .stat-box:active { transform: scale(0.98); background: rgba(255,255,255,0.05); }
-        .stat-title { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
-        .stat-val { font-size: 1.1rem; font-weight: bold; }
-        .stat-sub { font-size: 0.75rem; color:var(--success); font-family: monospace; margin-top: 2px; font-weight:bold; }
+        .stat-title { font-size: 0.5rem; letter-spacing: 0.5px; margin-bottom: 5px; font-weight: bold; white-space: nowrap; }
+        .stat-val { font-size: 1rem; font-weight: bold; }
+        .stat-sub { font-size: 0.7rem; color:var(--success); font-family: monospace; margin-top: 2px; font-weight:bold; }
 
         .archive-debt { border-left: 4px solid var(--debt-color) !important; }
 
@@ -508,20 +509,27 @@
             <div class="days-grid" id="daysGrid"></div>
         </div>
 
-        <!-- STATS FOOTER / BUTTONS (MODIFIED) -->
+        <!-- STATS FOOTER / BUTTONS (MODIFIED TO 3 BUTTONS) -->
         <div class="stats-footer">
+            <!-- 1. PAID THIS MONTH -->
             <div class="stat-box" onclick="openMonthlyList('paid')" style="color:var(--debt-color); border-color:var(--debt-color);">
-                <div class="stat-title">PAID (THIS MONTH)</div>
+                <div class="stat-title">PAID (MONTH)</div>
                 <div class="stat-val" id="countPaidDebts">0</div>
                 <div class="stat-sub" id="valPaidDebts">$0.00</div>
-                <div style="font-size:0.5rem; color:#888; margin-top:5px;">TAP TO VIEW</div>
             </div>
 
+            <!-- 2. UNPAID THIS MONTH -->
             <div class="stat-box" onclick="openMonthlyList('pending')" style="color:var(--danger); border-color:var(--danger);">
-                <div class="stat-title">UNPAID (THIS MONTH)</div>
+                <div class="stat-title">UNPAID (MONTH)</div>
                 <div class="stat-val" id="countUnpaidDebts">0</div>
                 <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
-                <div style="font-size:0.5rem; color:#888; margin-top:5px;">TAP TO MANAGE</div>
+            </div>
+
+            <!-- 3. ALL TIME PAID (NEW) -->
+            <div class="stat-box" style="color:var(--gold); border-color:var(--gold);" onclick="alert('Showing Total Lifetime Accomplishments.')">
+                <div class="stat-title">ALL TIME PAID</div>
+                <div class="stat-val" id="countAllPaid">0</div>
+                <div class="stat-sub" id="valAllPaid">$0.00</div>
             </div>
         </div>
 
@@ -532,7 +540,7 @@
         </div>
     </div>
 
-    <!-- MONTHLY LIST VIEW (NEW) -->
+    <!-- MONTHLY LIST VIEW -->
     <div id="monthlyView" class="full-view">
         <div class="monthly-header">
             <button class="btn-system" onclick="closeViews()">BACK TO DASHBOARD</button>
@@ -551,7 +559,7 @@
         <div id="monthlyListContainer"></div>
     </div>
 
-    <!-- DAY VIEW (EXISTING) -->
+    <!-- DAY VIEW -->
     <div id="dayView" class="full-view">
         <button class="btn-system" onclick="closeViews()">BACK TO CALENDAR</button>
         <h2 id="dayTitle" style="color:var(--mana); margin-top:20px; border-bottom:1px solid #333; padding-bottom:10px;"></h2>
@@ -1142,9 +1150,8 @@
                 if((system.goldInventory[activeVaultKarat] || 0) >= w) {
                     let gramPriceUSD = global24kGramPrice * karatRatios[activeVaultKarat];
                     let totalReturnUSD = w * gramPriceUSD;
-                    // let totalReturnLira = totalReturnUSD * rate; // REMOVED: No longer needed for adding back money
+                    // let totalReturnLira = totalReturnUSD * rate; 
 
-                    // Updated Confirmation Message
                     if(confirm(`Confirm LIQUIDATION (External)?\n\nSelling: ${w}g of ${activeVaultKarat}K Gold\nValue: $${totalReturnUSD.toFixed(2)}\n\n(Note: Money will NOT be added to System Vault)`)) {
                         let currentWeight = system.goldInventory[activeVaultKarat];
                         let sellRatio = w / currentWeight;
@@ -1153,9 +1160,6 @@
                         system.goldInventory[activeVaultKarat] = Money.sub(system.goldInventory[activeVaultKarat], w);
                         system.goldCosts[activeVaultKarat] = Money.sub(system.goldCosts[activeVaultKarat], costToRemove);
                         if(system.goldCosts[activeVaultKarat] < 0) system.goldCosts[activeVaultKarat] = 0;
-
-                        // DISABLED: Do not add money back to vault
-                        // system.vaultCurrent = Money.add(system.vaultCurrent, totalReturnLira);
 
                         await save();
                         closeGoldTransModal();
@@ -1345,6 +1349,12 @@
             
             const totalCashAvailable = vCurrent + vSavings;
             const totalNetWorth = totalCashAvailable + totalGoldValueLira;
+            
+            // --- NEW NET WORTH DISPLAY (Million + USD) ---
+            const netWorthUSD = totalNetWorth / rate;
+            document.getElementById('realNetWorth').innerHTML = 
+                `${formatVal(totalNetWorth)} <span style="font-size:0.6rem; color:#ccc;">($${netWorthUSD.toLocaleString(undefined, {minimumFractionDigits:2})})</span>`;
+            // ---------------------------------------------
 
             const hpBase = 15; 
             let currentMonthUSD = vCurrent / rate; 
@@ -1365,8 +1375,6 @@
             document.getElementById('totalAssets').textContent = formatVal(totalCashAvailable);
             document.getElementById('totalUSD').textContent = `$${(totalCashAvailable/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             
-            document.getElementById('realNetWorth').textContent = formatVal(totalNetWorth);
-            
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
             document.getElementById('vaultCurrentUSD').textContent = `$${(vCurrent/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             
@@ -1380,12 +1388,8 @@
 
             document.getElementById('barKaratIndicator').textContent = activeKarat + 'K ⚙️';
 
-            // --- FIXED RESERVE BAR LOGIC ---
-            // Recalculate grams based on LIQUID CASH ONLY (totalCashAvailable)
-            // This isolates the blue card bar from the gold vault.
             let gramsOwned = 0;
             if (activeGramPrice > 0) {
-                // Using totalCashAvailable instead of totalNetWorth
                 gramsOwned = (totalCashAvailable / rate) / activeGramPrice;
             }
 
@@ -1409,7 +1413,6 @@
             if(goldLevel % 3 === 0) goldFill.classList.add('lvl-0'); 
             else if(goldLevel % 3 === 1) goldFill.classList.add('lvl-1'); 
             else goldFill.classList.add('lvl-2');
-            // --- END FIXED RESERVE LOGIC ---
 
             document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
             document.getElementById('gt' + activeVaultKarat).classList.add('active');
@@ -1438,7 +1441,7 @@
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (totalCashAvailable > 0.1 && totalCashAvailable < 1000) ? 'block' : 'none';
 
-            // STATS
+            // STATS - THIS MONTH
             const year = navDate.getFullYear();
             const month = String(navDate.getMonth() + 1).padStart(2,'0');
             const currentMonthPrefix = `${year}-${month}`;
@@ -1463,6 +1466,22 @@
             }
             document.getElementById('countPaidDebts').textContent = paidCount;
             document.getElementById('valPaidDebts').textContent = `$${(paidGold/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+
+            // --- NEW: ALL TIME STATS CALCULATION ---
+            let allTimeCount = 0;
+            let allTimeVal = 0;
+            if(system.dayArchives) {
+                // Loop through all dates, not just current month
+                Object.values(system.dayArchives).forEach(dayList => {
+                    dayList.forEach(q => {
+                        allTimeCount++;
+                        allTimeVal += q.target;
+                    });
+                });
+            }
+            document.getElementById('countAllPaid').textContent = allTimeCount;
+            document.getElementById('valAllPaid').textContent = `$${(allTimeVal/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            // ---------------------------------------
 
             drawCalendar();
         }
@@ -1520,4 +1539,3 @@
     </script>
 </body>
 </html>
-
