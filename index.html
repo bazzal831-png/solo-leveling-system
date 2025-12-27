@@ -29,7 +29,7 @@
             box-shadow: 0 0 15px rgba(0, 210, 255, 0.05);
         }
 
-        /* GOLD VAULT CARD STYLES (NEW) */
+        /* GOLD VAULT CARD STYLES */
         .gold-vault-card {
             background: linear-gradient(180deg, rgba(30, 25, 5, 0.95) 0%, rgba(5, 7, 11, 0.95) 100%);
             border: 1px solid var(--gold); border-radius: 8px; padding: 0;
@@ -42,16 +42,30 @@
             border-bottom: 1px solid rgba(255, 215, 0, 0.2);
             font-size: 0.7rem; font-weight: bold; color: var(--gold); letter-spacing: 1px;
         }
-        .gold-tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        
+        /* PORTFOLIO SUMMARY SECTION */
+        .portfolio-summary {
+            padding: 15px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.2);
+        }
+        .portfolio-label { font-size: 0.6rem; color: #888; letter-spacing: 1px; margin-bottom: 5px; }
+        .portfolio-total { font-size: 1.8rem; font-family: monospace; color: white; font-weight: bold; }
+        .portfolio-spent { font-size: 0.8rem; color: #aaa; font-family: monospace; margin-top: 5px; }
+        .portfolio-profit { font-size: 0.9rem; font-family: monospace; margin-top: 5px; font-weight: bold; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+        .profit-plus { color: var(--success); background: rgba(80, 250, 123, 0.1); }
+        .profit-minus { color: var(--danger); background: rgba(255, 49, 49, 0.1); }
+
+        .gold-tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); }
         .g-tab { 
-            background: rgba(0,0,0,0.3); color: #666; padding: 10px 0; 
-            text-align: center; font-size: 0.7rem; font-weight: bold; cursor: pointer; 
+            color: #666; padding: 8px 0; 
+            text-align: center; font-size: 0.65rem; font-weight: bold; cursor: pointer; 
             border-right: 1px solid rgba(255,255,255,0.05); transition: 0.2s;
         }
         .g-tab.active { background: rgba(255, 215, 0, 0.15); color: var(--gold); text-shadow: 0 0 5px var(--gold); }
-        .gold-main-display { text-align: center; padding: 20px 10px; }
-        .gold-grams-display { font-size: 2.2rem; font-family: monospace; color: white; font-weight: bold; }
-        .gold-val-display { font-size: 0.9rem; color: #888; font-family: monospace; margin-top: 5px; }
+        
+        .gold-main-display { text-align: center; padding: 15px 10px; }
+        .gold-grams-display { font-size: 1.5rem; font-family: monospace; color: white; font-weight: bold; }
+        .gold-val-display { font-size: 0.8rem; color: #888; font-family: monospace; margin-top: 5px; }
 
         .master-top-row {
             display: flex; justify-content: space-between; align-items: center;
@@ -265,7 +279,7 @@
         </div>
     </div>
 
-    <!-- GOLD TRANSACTION MODAL (NEW) -->
+    <!-- GOLD TRANSACTION MODAL -->
     <div id="goldTransactionModal" class="modal-backdrop">
         <div class="modal-window" style="border-color:var(--gold); box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);">
             <div class="modal-title" id="goldTransTitle" style="color:var(--gold); border-color:var(--gold);">GOLD TRANSACTION</div>
@@ -273,7 +287,13 @@
             
             <input type="number" id="goldTransInput" class="modal-input" placeholder="Enter Weight (Grams)">
             
-            <div style="font-size:0.6rem; color:#aaa; margin-bottom:5px;">CURRENT VALUE</div>
+            <!-- ACTUAL COST INPUT (Only visible for Buying) -->
+            <div id="divManualCost" style="display:none; margin-bottom:10px;">
+                <div style="font-size:0.6rem; color:#aaa; margin-bottom:5px; text-align:left;">ACTUAL COST PAID ($)</div>
+                <input type="number" id="goldManualCostInput" class="modal-input" placeholder="Total USD Paid">
+            </div>
+
+            <div style="font-size:0.6rem; color:#aaa; margin-bottom:5px;">MARKET VALUE</div>
             <div id="goldTransValuePreview" style="font-size:1.2rem; font-family:monospace; color:white; font-weight:bold; margin-bottom:15px;">$0.00</div>
 
             <div class="modal-actions">
@@ -427,9 +447,17 @@
         <div class="gold-vault-card">
             <div class="gold-vault-header">
                 <span>PHYSICAL GOLD VAULT</span>
-                <span style="font-size:0.6rem; color:#666;">LIVE TRACKER</span>
+                <span style="font-size:0.6rem; color:#666;">PORTFOLIO TRACKER</span>
             </div>
             
+            <!-- PORTFOLIO SUMMARY (NEW) -->
+            <div class="portfolio-summary">
+                <div class="portfolio-label">TOTAL PORTFOLIO VALUE (ALL KARATS)</div>
+                <div class="portfolio-total" id="portTotalVal">$0.00</div>
+                <div class="portfolio-spent">TOTAL SPENT: <span id="portTotalSpent">$0.00</span></div>
+                <div class="portfolio-profit" id="portProfit">0.00</div>
+            </div>
+
             <div class="gold-tabs">
                 <div class="g-tab" id="gt18" onclick="selectGoldVaultTab(18)">18K</div>
                 <div class="g-tab" id="gt21" onclick="selectGoldVaultTab(21)">21K</div>
@@ -557,7 +585,8 @@
             history: {}, 
             hpMonth: "",
             exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
-            goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 }
+            goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
+            goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 } // NEW: Tracks total spent in USD
         };
 
         let navDate = new Date();
@@ -586,7 +615,8 @@
                     vaultCurrent: 0, vaultSavings: 0, salary: 0, 
                     quests: [], dayArchives: {}, history: {}, hpMonth: "",
                     exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
-                    goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 }
+                    goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
+                    goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 }
                 };
 
                 document.getElementById('authOverlay').style.display = 'none';
@@ -607,8 +637,10 @@
                         const existingHistory = system.history || {};
 
                         system = { ...system, ...data };
-                        // Ensure goldInventory exists
+                        
+                        // Ensure inventory/costs exist
                         if(!system.goldInventory) system.goldInventory = { 18: 0, 21: 0, 22: 0, 24: 0 };
+                        if(!system.goldCosts) system.goldCosts = { 18: 0, 21: 0, 22: 0, 24: 0 };
                         
                         system.dayArchives = existingArchives;
                         system.history = { ...existingHistory, ...(data.history || {}) };
@@ -665,7 +697,7 @@
                     const timeStr = now.toLocaleTimeString();
                     const dateStr = document.getElementById('lastUpdateText');
                     if(dateStr) dateStr.textContent = "LAST UPDATE: " + timeStr;
-                    render(); // Re-render to update gold vault values dynamically
+                    render(); 
                 }
             } catch (e) { 
                 console.log("Gold API Error - Using Stored Value"); 
@@ -690,7 +722,8 @@
                     exchangeRate: system.exchangeRate,
                     preferredKarat: system.preferredKarat,
                     storedGoldPrice: system.storedGoldPrice,
-                    goldInventory: system.goldInventory, // Save gold inventory
+                    goldInventory: system.goldInventory,
+                    goldCosts: system.goldCosts, // SAVE COSTS
                     quests: system.quests,
                     hpMonth: system.hpMonth,
                     lastUpdated: serverTimestamp() 
@@ -858,7 +891,6 @@
                         system.dayArchives[d].push({ ...archiveData, docId: archiveRef.id });
 
                         render();
-                        // Refresh the list view if open
                         if(document.getElementById('monthlyView').style.display === 'block') {
                             openMonthlyList('pending');
                         }
@@ -967,7 +999,6 @@
                 document.getElementById('priceOunce').textContent = '$' + ouncePrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             }
             else if (k === 22) {
-                // FIXED LIRA WEIGHT (7.216g)
                 let liraPrice = (global24kGramPrice * 0.9167) * 7.216; 
                 document.getElementById('priceLira').textContent = '$' + liraPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
                 document.getElementById('priceHalfLira').textContent = '$' + (liraPrice/2).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -976,14 +1007,14 @@
 
         window.closeGoldModal = () => document.getElementById('goldModal').style.display = 'none';
 
-        // --- NEW GOLD VAULT LOGIC ---
+        // --- NEW GOLD VAULT LOGIC (MODIFIED) ---
 
         window.selectGoldVaultTab = (k) => {
             activeVaultKarat = k;
-            render(); // Re-render logic handles the UI update
+            render();
         };
 
-        let currentGoldTransType = null; // 'buy' or 'sell'
+        let currentGoldTransType = null;
 
         window.openGoldTransaction = (type) => {
             currentGoldTransType = type;
@@ -991,20 +1022,25 @@
             const sub = document.getElementById('goldTransSub');
             const btn = document.getElementById('btnConfirmGoldTrans');
             const input = document.getElementById('goldTransInput');
+            const manualCostDiv = document.getElementById('divManualCost');
+            const manualCostInput = document.getElementById('goldManualCostInput');
             
             input.value = '';
+            manualCostInput.value = '';
             document.getElementById('goldTransValuePreview').textContent = '$0.00';
 
             if(type === 'buy') {
                 title.textContent = `STORE GOLD (${activeVaultKarat}K)`;
-                sub.textContent = "Convert Money from Current Vault to Physical Gold.";
+                sub.textContent = "Buying with Manual Cost Entry";
                 btn.textContent = "CONFIRM PURCHASE";
                 btn.style.background = "var(--gold)";
+                manualCostDiv.style.display = 'block';
             } else {
                 title.textContent = `LIQUIDATE GOLD (${activeVaultKarat}K)`;
                 sub.textContent = "Sell Physical Gold and return Money to Current Vault.";
                 btn.textContent = "CONFIRM SALE";
                 btn.style.background = "var(--success)";
+                manualCostDiv.style.display = 'none';
             }
             
             document.getElementById('goldTransactionModal').style.display = 'flex';
@@ -1013,7 +1049,13 @@
             input.oninput = () => {
                 let w = parseFloat(input.value) || 0;
                 let price = (global24kGramPrice * karatRatios[activeVaultKarat]);
-                document.getElementById('goldTransValuePreview').textContent = '$' + (w * price).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+                let totalVal = w * price;
+                document.getElementById('goldTransValuePreview').textContent = '$' + totalVal.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+                
+                // If buying, auto-fill manual input with global price as suggestion
+                if(type === 'buy') {
+                    manualCostInput.value = totalVal.toFixed(2);
+                }
             };
         };
 
@@ -1024,32 +1066,55 @@
             if(!w || w <= 0) { alert("Invalid Weight"); return; }
             
             let rate = system.exchangeRate || 89500;
-            let gramPriceUSD = global24kGramPrice * karatRatios[activeVaultKarat];
-            let totalCostUSD = w * gramPriceUSD;
-            let totalCostLira = totalCostUSD * rate;
 
             if(currentGoldTransType === 'buy') {
-                if((system.vaultCurrent || 0) >= totalCostLira) {
-                    if(confirm(`Confirm Purchase?\n\n${w}g of ${activeVaultKarat}K Gold\nCost: $${totalCostUSD.toFixed(2)}`)) {
-                        system.vaultCurrent = Money.sub(system.vaultCurrent, totalCostLira);
+                // BUY LOGIC
+                let manualUSD = parseFloat(document.getElementById('goldManualCostInput').value);
+                if(!manualUSD || manualUSD <= 0) { alert("Please enter the Total Cost Paid ($)."); return; }
+
+                let costInLira = manualUSD * rate;
+
+                if((system.vaultCurrent || 0) >= costInLira) {
+                    if(confirm(`Confirm Purchase?\n\n${w}g of ${activeVaultKarat}K Gold\nPAID COST: $${manualUSD.toFixed(2)}`)) {
+                        system.vaultCurrent = Money.sub(system.vaultCurrent, costInLira);
+                        
+                        // Add Weight
                         system.goldInventory[activeVaultKarat] = Money.add(system.goldInventory[activeVaultKarat] || 0, w);
+                        
+                        // Add Cost
+                        if(!system.goldCosts) system.goldCosts = { 18: 0, 21: 0, 22: 0, 24: 0 };
+                        system.goldCosts[activeVaultKarat] = Money.add(system.goldCosts[activeVaultKarat] || 0, manualUSD);
+
                         await save();
                         closeGoldTransModal();
                         render();
                     }
                 } else {
-                    alert(`Insufficient Funds in Vault!\nNeeded: $${totalCostUSD.toFixed(2)}`);
+                    alert(`Insufficient Funds in Vault!\nNeeded: $${manualUSD.toFixed(2)} (${costInLira.toLocaleString()} LBP)`);
                 }
+
             } else {
-                // SELL
+                // SELL LOGIC (Refined: Reduces Cost Proportionally)
                 if((system.goldInventory[activeVaultKarat] || 0) >= w) {
-                     if(confirm(`Confirm Sale?\n\n${w}g of ${activeVaultKarat}K Gold\nReturn: $${totalCostUSD.toFixed(2)}`)) {
+                    let gramPriceUSD = global24kGramPrice * karatRatios[activeVaultKarat];
+                    let totalReturnUSD = w * gramPriceUSD;
+                    let totalReturnLira = totalReturnUSD * rate;
+
+                    if(confirm(`Confirm Sale?\n\n${w}g of ${activeVaultKarat}K Gold\nReturn: $${totalReturnUSD.toFixed(2)}`)) {
+                        // Calculate Proportion to reduce cost
+                        let currentWeight = system.goldInventory[activeVaultKarat];
+                        let sellRatio = w / currentWeight;
+                        let costToRemove = (system.goldCosts[activeVaultKarat] || 0) * sellRatio;
+
                         system.goldInventory[activeVaultKarat] = Money.sub(system.goldInventory[activeVaultKarat], w);
-                        system.vaultCurrent = Money.add(system.vaultCurrent, totalCostLira);
+                        system.goldCosts[activeVaultKarat] = Money.sub(system.goldCosts[activeVaultKarat], costToRemove);
+                        if(system.goldCosts[activeVaultKarat] < 0) system.goldCosts[activeVaultKarat] = 0;
+
+                        system.vaultCurrent = Money.add(system.vaultCurrent, totalReturnLira);
                         await save();
                         closeGoldTransModal();
                         render();
-                     }
+                    }
                 } else {
                     alert(`Insufficient Gold (${activeVaultKarat}K) in Vault!`);
                 }
@@ -1063,11 +1128,9 @@
             let g = document.getElementById('qTarget').value;
             let d = document.getElementById('qDate').value;
             
-            // Auto-fill date with currently viewed month if empty
             if(!d) {
                 let year = navDate.getFullYear();
                 let month = navDate.getMonth() + 1;
-                // Default to last day of the viewed month to ensure it falls in that month
                 let lastDay = new Date(year, month, 0).getDate();
                 d = `${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
             }
@@ -1078,7 +1141,6 @@
                 await addObjective(t, amount, true, targetDate);
                 document.getElementById('qTitle').value = ''; 
                 document.getElementById('qTarget').value = '';
-                // Refresh Monthly List
                 openMonthlyList('pending');
             } else {
                 alert("Please enter a valid title and amount.");
@@ -1100,7 +1162,7 @@
                 if(idx === -1) return;
                 system.quests.splice(idx,1);
                 await save();
-                openMonthlyList('pending'); // Refresh list
+                openMonthlyList('pending'); 
             }
         };
 
@@ -1118,14 +1180,12 @@
                 if(system.dayArchives[date].length === 0) delete system.dayArchives[date];
                 
                 render();
-                // If viewing Monthly List, refresh it
                 if(document.getElementById('monthlyView').style.display === 'block') {
                     openMonthlyList('paid');
                 }
             }
         };
 
-        // NEW FUNCTION: Handle Monthly Lists
         window.openMonthlyList = (type) => {
             const container = document.getElementById('monthlyListContainer');
             const title = document.getElementById('monthlyViewTitle');
@@ -1143,11 +1203,9 @@
             if(type === 'pending') {
                 title.textContent = `UNPAID DEBTS: ${monthName} ${year}`;
                 addSec.style.display = 'block';
-                // Set default date input to this month
                 let lastDay = new Date(year, navDate.getMonth() + 1, 0).getDate();
                 document.getElementById('qDate').value = `${currentMonthPrefix}-${lastDay}`;
 
-                // Filter Pending Debts by Month String match
                 let list = system.quests.filter(q => q.isDebt && q.targetDate && q.targetDate.startsWith(currentMonthPrefix));
                 
                 if(list.length === 0) container.innerHTML = `<div style="text-align:center; color:#666; margin-top:30px;">NO PENDING DEBTS FOR ${monthName}</div>`;
@@ -1175,7 +1233,6 @@
                 addSec.style.display = 'none';
                 
                 let monthlyPaid = [];
-                // Aggregate all days of this month
                 if(system.dayArchives) {
                     Object.keys(system.dayArchives).forEach(dateKey => {
                         if(dateKey.startsWith(currentMonthPrefix)) {
@@ -1186,7 +1243,7 @@
 
                 if(monthlyPaid.length === 0) container.innerHTML = `<div style="text-align:center; color:#666; margin-top:30px;">NO RECORDS FOUND FOR ${monthName}</div>`;
 
-                monthlyPaid.sort((a,b) => new Date(b.dateKey) - new Date(a.dateKey)); // Newest first
+                monthlyPaid.sort((a,b) => new Date(b.dateKey) - new Date(a.dateKey));
                 monthlyPaid.forEach(q => {
                     let delButton = `<button class="discard-btn" onclick="deleteArchivedDebt('${q.dateKey}', ${q.id})">Purge Record</button>`;
                     container.innerHTML += `<div class="quest-card archive-debt">
@@ -1210,16 +1267,34 @@
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
             
-            // Calculate Physical Gold Value
-            let totalGoldValueUSD = 0;
+            // --- NEW: TOTAL PORTFOLIO CALCULATION (ALL KARATS) ---
+            let totalPortfolioValueUSD = 0;
+            let totalPortfolioCostUSD = 0;
+
             if(system.goldInventory) {
                 for(let [k, grams] of Object.entries(system.goldInventory)) {
-                    totalGoldValueUSD += grams * (global24kGramPrice * karatRatios[k]);
+                    totalPortfolioValueUSD += grams * (global24kGramPrice * karatRatios[k]);
                 }
             }
-            let totalGoldValueLira = totalGoldValueUSD * rate;
+            if(system.goldCosts) {
+                for(let [k, cost] of Object.entries(system.goldCosts)) {
+                    totalPortfolioCostUSD += cost;
+                }
+            }
 
-            const vTotal = vCurrent + vSavings + totalGoldValueLira; // Added Gold Value to Net Worth
+            // Update Portfolio UI
+            document.getElementById('portTotalVal').textContent = '$' + totalPortfolioValueUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            document.getElementById('portTotalSpent').textContent = '$' + totalPortfolioCostUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            
+            let profit = totalPortfolioValueUSD - totalPortfolioCostUSD;
+            const profitEl = document.getElementById('portProfit');
+            let symbol = profit >= 0 ? "+" : "";
+            profitEl.textContent = symbol + '$' + profit.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            profitEl.className = 'portfolio-profit ' + (profit >= 0 ? 'profit-plus' : 'profit-minus');
+            // --- END NEW PORTFOLIO CALCULATION ---
+
+            let totalGoldValueLira = totalPortfolioValueUSD * rate;
+            const vTotal = vCurrent + vSavings + totalGoldValueLira;
 
             // HP LOGIC
             const hpBase = 15; 
@@ -1269,8 +1344,7 @@
             else if(goldLevel % 3 === 1) goldFill.classList.add('lvl-1'); 
             else goldFill.classList.add('lvl-2');
 
-            // --- GOLD VAULT CARD RENDER ---
-            // Update tabs
+            // --- GOLD VAULT TAB RENDER ---
             document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
             document.getElementById('gt' + activeVaultKarat).classList.add('active');
 
@@ -1280,14 +1354,10 @@
             document.getElementById('goldVaultGrams').textContent = vaultGrams.toFixed(2) + "g";
             document.getElementById('goldVaultVal').textContent = "$" + vaultValUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             
-            // Vault Bar (Simple Fill logic: 10g = full bar just for visual feedback, or relative to 100g)
-            // Let's make it fill relative to 20g for now to show progress
             let vaultCap = 20; 
             let vaultPerc = Math.min((vaultGrams / vaultCap) * 100, 100);
             document.getElementById('goldVaultFill').style.width = vaultPerc + "%";
             document.getElementById('goldVaultText').textContent = (vaultGrams > 0) ? "HOLDING SECURE" : "EMPTY SLOT";
-
-            // --- END GOLD VAULT RENDER ---
 
             const playerRank = getRankInfo(vTotal);
             const pBadge = document.getElementById('playerRankBadge');
@@ -1302,19 +1372,17 @@
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (vTotal > 0.1 && vTotal < 1000) ? 'block' : 'none';
 
-            // --- CALCULATE MONTHLY STATS ---
+            // STATS
             const year = navDate.getFullYear();
             const month = String(navDate.getMonth() + 1).padStart(2,'0');
             const currentMonthPrefix = `${year}-${month}`;
 
-            // Unpaid Filter
             let unpaidList = system.quests.filter(q => q.isDebt && q.targetDate && q.targetDate.startsWith(currentMonthPrefix));
             let unpaidGold = unpaidList.reduce((acc, q) => acc + q.target, 0);
             
             document.getElementById('countUnpaidDebts').textContent = unpaidList.length;
             document.getElementById('valUnpaidDebts').textContent = `$${(unpaidGold/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
-            // Paid Filter
             let paidCount = 0;
             let paidGold = 0;
             if(system.dayArchives) {
@@ -1375,14 +1443,13 @@
 
         window.closeViews = () => {
             document.querySelectorAll('.full-view').forEach(v => v.style.display='none');
-            // Refresh main dashboard stats when closing views
             render();
         };
         window.changeMonth = (s) => { 
             navDate.setDate(1); 
             navDate.setMonth(navDate.getMonth() + s); 
             drawCalendar(); 
-            render(); // Re-calculate monthly stats for the new month
+            render();
         };
     </script>
 </body>
