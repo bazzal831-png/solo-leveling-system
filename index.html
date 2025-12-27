@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | MANAGER</title>
+    <title>SUNG JIN-WOO SYSTEM | MONTHLY MANAGER</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -73,7 +73,7 @@
             border-bottom: 1px solid rgba(0, 210, 255, 0.1);
         }
 
-        .master-main-val { text-align: center; padding: 10px 10px 20px 10px; }
+        .master-main-val { text-align: center; padding: 20px 10px; }
         .master-grid { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid rgba(255, 255, 255, 0.1); }
         .m-col { padding: 15px; text-align: center; position: relative; }
         .m-col:first-child { border-right: 1px solid rgba(255, 255, 255, 0.1); }
@@ -81,6 +81,9 @@
         .lbl-sm { font-size: 0.6rem; color: #888; letter-spacing: 1px; margin-bottom: 4px; display: block; }
         .val-lg { font-size: 1.1rem; font-family: monospace; font-weight: bold; color: white; }
         .val-usd-sub { font-size: 0.75rem; color: #666; font-family: monospace; margin-top: 2px; }
+
+        .net-gold { font-size: 2.8rem; font-weight: bold; color: var(--gold); font-family: monospace; text-shadow: 0 0 20px rgba(255, 215, 0, 0.1); margin: 5px 0; display: block;}
+        .net-usd { font-size: 1.1rem; color: var(--success); font-weight: bold; background: rgba(80, 250, 123, 0.1); padding: 2px 10px; border-radius: 10px; }
 
         /* MODAL STYLES */
         .modal-backdrop {
@@ -212,11 +215,10 @@
         .day-cell.has-completed { border-color: var(--debt-color); color: var(--debt-color); background: rgba(188, 19, 254, 0.1); }
         .day-cell.today { border: 2px solid #fff !important; color: #fff !important; font-weight: 900; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); transform: scale(1.05); z-index: 2; }
 
-        /* MODIFIED STATS FOOTER - 3 COLUMNS */
-        .stats-footer { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
+        .stats-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
         .stat-box { background: rgba(0,0,0,0.5); padding: 8px 4px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; min-height: 70px; cursor: pointer; transition: 0.2s; }
         .stat-box:active { transform: scale(0.98); background: rgba(255,255,255,0.05); }
-        .stat-title { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stat-title { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
         .stat-val { font-size: 1.1rem; font-weight: bold; }
         .stat-sub { font-size: 0.75rem; color:var(--success); font-family: monospace; margin-top: 2px; font-weight:bold; }
 
@@ -410,10 +412,13 @@
                 </div>
             </div>
 
-            <!-- NET WORTH TEXT REMOVED AS REQUESTED -->
             <div class="master-main-val">
+                <span class="lbl-sm" style="color:var(--mana);">NET WORTH (CASH + GOLD ASSETS)</span>
+                <span class="net-gold" id="totalAssets">0</span>
+                <span class="net-usd" id="totalUSD">$0.00</span>
+                
                 <!-- OLD CALCULATED RESERVE (VISUAL ONLY) -->
-                <div style="margin: 0 5px 5px 5px;">
+                <div style="margin: 20px 15px 5px 15px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
                         <span style="font-size:0.6rem; color:#666;">ESTIMATED RESERVE (IF CONVERTED)</span>
                         <span style="font-size:0.6rem; color:var(--gold); font-weight:bold; cursor:pointer;" onclick="showGoldPrices()" id="barKaratIndicator">24K ⚙️</span>
@@ -500,30 +505,20 @@
             <div class="days-grid" id="daysGrid"></div>
         </div>
 
-        <!-- STATS FOOTER (UPDATED: 3 BUTTONS) -->
+        <!-- STATS FOOTER / BUTTONS (MODIFIED) -->
         <div class="stats-footer">
-            <!-- PENDING (THIS MONTH) -->
-            <div class="stat-box" onclick="openMonthlyList('pending')" style="color:var(--danger); border-color:var(--danger);">
-                <div class="stat-title">UNPAID (MONTH)</div>
-                <div class="stat-val" id="countUnpaidDebts">0</div>
-                <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
-                <div style="font-size:0.5rem; color:#888; margin-top:5px;">MANAGE</div>
-            </div>
-
-            <!-- PAID (THIS MONTH) -->
             <div class="stat-box" onclick="openMonthlyList('paid')" style="color:var(--debt-color); border-color:var(--debt-color);">
-                <div class="stat-title">PAID (MONTH)</div>
+                <div class="stat-title">PAID (THIS MONTH)</div>
                 <div class="stat-val" id="countPaidDebts">0</div>
                 <div class="stat-sub" id="valPaidDebts">$0.00</div>
-                <div style="font-size:0.5rem; color:#888; margin-top:5px;">ARCHIVE</div>
+                <div style="font-size:0.5rem; color:#888; margin-top:5px;">TAP TO VIEW</div>
             </div>
 
-            <!-- LIFETIME PAID (NEW) -->
-            <div class="stat-box" onclick="openMonthlyList('lifetime')" style="color:var(--gold); border-color:var(--gold);">
-                <div class="stat-title">LIFETIME PAID</div>
-                <div class="stat-val" id="countLifetimePaid">0</div>
-                <div class="stat-sub" id="valLifetimePaid">$0.00</div>
-                <div style="font-size:0.5rem; color:#888; margin-top:5px;">ALL TIME</div>
+            <div class="stat-box" onclick="openMonthlyList('pending')" style="color:var(--danger); border-color:var(--danger);">
+                <div class="stat-title">UNPAID (THIS MONTH)</div>
+                <div class="stat-val" id="countUnpaidDebts">0</div>
+                <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
+                <div style="font-size:0.5rem; color:#888; margin-top:5px;">TAP TO MANAGE</div>
             </div>
         </div>
 
@@ -622,6 +617,7 @@
                     if(currentUser) {
                         try {
                             setSaving(true);
+                            // Reset local system object to initial state
                             system = { 
                                 vaultCurrent: 0, vaultSavings: 0, salary: 0, 
                                 quests: [], dayArchives: {}, history: {}, hpMonth: getSystemDate().substring(0, 7),
@@ -630,7 +626,10 @@
                                 goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
                                 lastUpdated: serverTimestamp()
                             };
+                            
+                            // Overwrite the user document with empty state
                             await setDoc(doc(db, "users", currentUser.uid), system);
+                            
                             alert("System Reset Complete.");
                             location.reload(); 
                         } catch(e) {
@@ -1047,6 +1046,8 @@
 
         window.closeGoldModal = () => document.getElementById('goldModal').style.display = 'none';
 
+        // --- NEW GOLD VAULT LOGIC (MODIFIED) ---
+
         window.selectGoldVaultTab = (k) => {
             activeVaultKarat = k;
             render();
@@ -1104,6 +1105,7 @@
             let rate = system.exchangeRate || 89500;
 
             if(currentGoldTransType === 'buy') {
+                // BUY LOGIC WITH SMART DEDUCTION (Savings -> then Current)
                 let manualUSD = parseFloat(document.getElementById('goldManualCostInput').value);
                 if(!manualUSD || manualUSD <= 0) { alert("Please enter the Total Cost Paid ($)."); return; }
 
@@ -1115,6 +1117,7 @@
                         
                         let remainingCost = totalCostLira;
 
+                        // 1. Deduct from Savings First
                         if(system.vaultSavings > 0) {
                             if(system.vaultSavings >= remainingCost) {
                                 system.vaultSavings = Money.sub(system.vaultSavings, remainingCost);
@@ -1125,12 +1128,15 @@
                             }
                         }
 
+                        // 2. Deduct remaining from Current
                         if(remainingCost > 0) {
                              system.vaultCurrent = Money.sub(system.vaultCurrent, remainingCost);
                         }
                         
+                        // Add Weight
                         system.goldInventory[activeVaultKarat] = Money.add(system.goldInventory[activeVaultKarat] || 0, w);
                         
+                        // Add Cost
                         if(!system.goldCosts) system.goldCosts = { 18: 0, 21: 0, 22: 0, 24: 0 };
                         system.goldCosts[activeVaultKarat] = Money.add(system.goldCosts[activeVaultKarat] || 0, manualUSD);
 
@@ -1143,12 +1149,14 @@
                 }
 
             } else {
+                // SELL LOGIC (Refined: Reduces Cost Proportionally)
                 if((system.goldInventory[activeVaultKarat] || 0) >= w) {
                     let gramPriceUSD = global24kGramPrice * karatRatios[activeVaultKarat];
                     let totalReturnUSD = w * gramPriceUSD;
                     let totalReturnLira = totalReturnUSD * rate;
 
                     if(confirm(`Confirm Sale?\n\n${w}g of ${activeVaultKarat}K Gold\nReturn: $${totalReturnUSD.toFixed(2)}`)) {
+                        // Calculate Proportion to reduce cost
                         let currentWeight = system.goldInventory[activeVaultKarat];
                         let sellRatio = w / currentWeight;
                         let costToRemove = (system.goldCosts[activeVaultKarat] || 0) * sellRatio;
@@ -1167,6 +1175,8 @@
                 }
             }
         };
+
+        // --- END GOLD VAULT LOGIC ---
 
         window.registerQuest = async (isDebt) => {
             let t = document.getElementById('qTitle').value;
@@ -1226,10 +1236,7 @@
                 
                 render();
                 if(document.getElementById('monthlyView').style.display === 'block') {
-                    // Refresh the view based on what is currently showing
-                    let titleText = document.getElementById('monthlyViewTitle').textContent;
-                    if(titleText.includes('LIFETIME')) openMonthlyList('lifetime');
-                    else openMonthlyList('paid');
+                    openMonthlyList('paid');
                 }
             }
         };
@@ -1242,11 +1249,11 @@
             const month = String(navDate.getMonth() + 1).padStart(2,'0');
             const currentMonthPrefix = `${year}-${month}`;
             const monthName = navDate.toLocaleString('default', {month:'long'}).toUpperCase();
-            
-            let rate = (system.exchangeRate > 0) ? system.exchangeRate : 89500;
 
             document.getElementById('monthlyView').style.display = 'block';
             container.innerHTML = '';
+
+            let rate = (system.exchangeRate > 0) ? system.exchangeRate : 89500;
 
             if(type === 'pending') {
                 title.textContent = `UNPAID DEBTS: ${monthName} ${year}`;
@@ -1276,7 +1283,7 @@
                     </div>`;
                 });
 
-            } else if (type === 'paid') {
+            } else {
                 title.textContent = `PAID ARCHIVE: ${monthName} ${year}`;
                 addSec.style.display = 'none';
                 
@@ -1304,34 +1311,6 @@
                         <div style="margin-top:10px;">${delButton}</div>
                     </div>`;
                 });
-            } else if (type === 'lifetime') {
-                title.textContent = `LIFETIME COMPLETED DEBTS`;
-                addSec.style.display = 'none';
-
-                let allPaid = [];
-                if(system.dayArchives) {
-                     Object.keys(system.dayArchives).forEach(dateKey => {
-                        system.dayArchives[dateKey].forEach(q => allPaid.push({...q, dateKey: dateKey}));
-                    });
-                }
-
-                if(allPaid.length === 0) container.innerHTML = `<div style="text-align:center; color:#666; margin-top:30px;">NO RECORDS FOUND IN HISTORY</div>`;
-
-                // Sort by Date Descending
-                allPaid.sort((a,b) => new Date(b.dateKey) - new Date(a.dateKey));
-
-                allPaid.forEach(q => {
-                    let delButton = `<button class="discard-btn" onclick="deleteArchivedDebt('${q.dateKey}', ${q.id})">Purge Record</button>`;
-                    container.innerHTML += `<div class="quest-card archive-debt">
-                        <div style="font-size:0.65rem; color:var(--gold); font-weight:bold; display:flex; justify-content:space-between;">
-                            <span>[PAID] ${q.dateKey}</span>
-                            <span>✓</span>
-                        </div>
-                        <div style="font-weight:bold; margin-top:5px;">${q.title}</div>
-                        <div style="font-family:monospace;">Amount: ${formatVal(q.target)} ($${(q.target/rate).toFixed(2)})</div>
-                        <div style="margin-top:10px;">${delButton}</div>
-                    </div>`;
-                });
             }
         };
 
@@ -1343,6 +1322,7 @@
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
             
+            // --- NEW: TOTAL PORTFOLIO CALCULATION (ALL KARATS) ---
             let totalPortfolioValueUSD = 0;
             let totalPortfolioCostUSD = 0;
 
@@ -1357,6 +1337,7 @@
                 }
             }
 
+            // Update Portfolio UI
             document.getElementById('portTotalVal').textContent = '$' + totalPortfolioValueUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             document.getElementById('portTotalSpent').textContent = '$' + totalPortfolioCostUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             
@@ -1365,6 +1346,7 @@
             let symbol = profit >= 0 ? "+" : "";
             profitEl.textContent = symbol + '$' + profit.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             profitEl.className = 'portfolio-profit ' + (profit >= 0 ? 'profit-plus' : 'profit-minus');
+            // --- END NEW PORTFOLIO CALCULATION ---
 
             let totalGoldValueLira = totalPortfolioValueUSD * rate;
             const vTotal = vCurrent + vSavings + totalGoldValueLira;
@@ -1386,9 +1368,9 @@
             else if(hpLevel % 3 === 2) hpFill.classList.add('lvl-2');
             else hpFill.classList.add('lvl-3');
 
-            // MASTER CARD UI UPDATE
-            // (Note: Total Assets/Net Worth Text Removed from UI, so we don't update those IDs anymore)
-            
+            // MASTER CARD
+            document.getElementById('totalAssets').textContent = formatVal(vTotal);
+            document.getElementById('totalUSD').textContent = `$${(vTotal/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
             document.getElementById('vaultCurrentUSD').textContent = `$${(vCurrent/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
@@ -1445,18 +1427,17 @@
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (vTotal > 0.1 && vTotal < 1000) ? 'block' : 'none';
 
-            // STATS CALCULATION
+            // STATS
             const year = navDate.getFullYear();
             const month = String(navDate.getMonth() + 1).padStart(2,'0');
             const currentMonthPrefix = `${year}-${month}`;
 
-            // 1. Pending This Month
             let unpaidList = system.quests.filter(q => q.isDebt && q.targetDate && q.targetDate.startsWith(currentMonthPrefix));
             let unpaidGold = unpaidList.reduce((acc, q) => acc + q.target, 0);
+            
             document.getElementById('countUnpaidDebts').textContent = unpaidList.length;
             document.getElementById('valUnpaidDebts').textContent = `$${(unpaidGold/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
-            // 2. Paid This Month
             let paidCount = 0;
             let paidGold = 0;
             if(system.dayArchives) {
@@ -1471,21 +1452,6 @@
             }
             document.getElementById('countPaidDebts').textContent = paidCount;
             document.getElementById('valPaidDebts').textContent = `$${(paidGold/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
-
-            // 3. Lifetime Paid (All Time)
-            let lifetimeCount = 0;
-            let lifetimeGold = 0;
-            if(system.dayArchives) {
-                Object.values(system.dayArchives).forEach(dayList => {
-                    dayList.forEach(q => {
-                        lifetimeCount++;
-                        lifetimeGold += q.target;
-                    });
-                });
-            }
-            document.getElementById('countLifetimePaid').textContent = lifetimeCount;
-            document.getElementById('valLifetimePaid').textContent = `$${(lifetimeGold/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
-
 
             drawCalendar();
         }
