@@ -174,6 +174,11 @@
         .discard-btn { color: var(--danger); background: none; border: 1px solid rgba(255,49,49,0.2); padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 10px; display: inline-block; position: relative; z-index: 2; }
         .btn-zero { background: var(--danger); color: white; border: none; padding: 6px 12px; font-size: 0.7rem; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 8px; display: none; box-shadow: 0 0 8px var(--danger); }
         .btn-rate { background: transparent; border: 1px solid #444; color: #888; font-size: 0.6rem; padding: 2px 6px; cursor: pointer; margin-left: 5px; border-radius: 4px; }
+        
+        .btn-reset-app {
+            background: var(--danger); color: white; border: none; padding: 2px 5px; 
+            font-size: 0.6rem; cursor: pointer; margin-left: 8px; border-radius: 3px;
+        }
 
         .salary-container { border: 1px solid var(--success); background: rgba(80, 250, 123, 0.05); padding: 12px; margin-bottom: 15px; text-align: center; border-radius: 4px; }
         .salary-value { font-size: 1.8rem; color: var(--success); font-weight: bold; font-family: monospace; display: block; }
@@ -400,7 +405,10 @@
                 </div>
                 <div style="text-align:right;">
                     <div id="playerRankBadge" class="rank-tag" style="margin-bottom:3px;">RANK E</div>
-                    <span class="level-text" style="font-size:0.75rem;">SYSTEM LVL: <span id="playerLevel" style="color:white;">1</span></span>
+                    <div style="display:flex; align-items:center; justify-content:flex-end;">
+                        <span class="level-text" style="font-size:0.75rem;">SYSTEM LVL: <span id="playerLevel" style="color:white;">1</span></span>
+                        <button class="btn-reset-app" onclick="hardReset()">♻ RESET</button>
+                    </div>
                 </div>
             </div>
 
@@ -586,7 +594,7 @@
             hpMonth: "",
             exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
             goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
-            goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 } // NEW: Tracks total spent in USD
+            goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 } 
         };
 
         let navDate = new Date();
@@ -595,12 +603,44 @@
         let selectedWithdrawSource = null;
         let global24kGramPrice = 88.0; 
         let isSaving = false;
-        let activeVaultKarat = 24; // For Gold Vault Tab
+        let activeVaultKarat = 24; 
         
         const karatRatios = { 18: 0.75, 21: 0.875, 22: 0.9167, 24: 1.0 };
 
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
         window.logout = () => { if(confirm("Disconnect?")) signOut(auth).then(()=>location.reload()); };
+
+        // --- HARD RESET FUNCTIONALITY ---
+        window.hardReset = async () => {
+            if(confirm("⚠ WARNING: FACTORY RESET ⚠\n\nThis will PERMANENTLY delete ALL your data (Gold, Money, Quests, History).\n\nAre you sure you want to proceed?")) {
+                if(confirm("FINAL WARNING: This cannot be undone.\n\nClick OK to WIPE EVERYTHING and restart.")) {
+                    if(currentUser) {
+                        try {
+                            setSaving(true);
+                            // Reset local system object to initial state
+                            system = { 
+                                vaultCurrent: 0, vaultSavings: 0, salary: 0, 
+                                quests: [], dayArchives: {}, history: {}, hpMonth: getSystemDate().substring(0, 7),
+                                exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
+                                goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
+                                goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
+                                lastUpdated: serverTimestamp()
+                            };
+                            
+                            // Overwrite the user document with empty state
+                            await setDoc(doc(db, "users", currentUser.uid), system);
+                            
+                            alert("System Reset Complete.");
+                            location.reload(); 
+                        } catch(e) {
+                            alert("Error during reset: " + e.message);
+                        } finally {
+                            setSaving(false);
+                        }
+                    }
+                }
+            }
+        };
 
         function setSaving(state) {
             isSaving = state;
@@ -638,7 +678,6 @@
 
                         system = { ...system, ...data };
                         
-                        // Ensure inventory/costs exist
                         if(!system.goldInventory) system.goldInventory = { 18: 0, 21: 0, 22: 0, 24: 0 };
                         if(!system.goldCosts) system.goldCosts = { 18: 0, 21: 0, 22: 0, 24: 0 };
                         
@@ -723,7 +762,7 @@
                     preferredKarat: system.preferredKarat,
                     storedGoldPrice: system.storedGoldPrice,
                     goldInventory: system.goldInventory,
-                    goldCosts: system.goldCosts, // SAVE COSTS
+                    goldCosts: system.goldCosts,
                     quests: system.quests,
                     hpMonth: system.hpMonth,
                     lastUpdated: serverTimestamp() 
@@ -1045,14 +1084,12 @@
             
             document.getElementById('goldTransactionModal').style.display = 'flex';
             
-            // Auto update preview on input
             input.oninput = () => {
                 let w = parseFloat(input.value) || 0;
                 let price = (global24kGramPrice * karatRatios[activeVaultKarat]);
                 let totalVal = w * price;
                 document.getElementById('goldTransValuePreview').textContent = '$' + totalVal.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
                 
-                // If buying, auto-fill manual input with global price as suggestion
                 if(type === 'buy') {
                     manualCostInput.value = totalVal.toFixed(2);
                 }
@@ -1068,15 +1105,33 @@
             let rate = system.exchangeRate || 89500;
 
             if(currentGoldTransType === 'buy') {
-                // BUY LOGIC
+                // BUY LOGIC WITH SMART DEDUCTION (Savings -> then Current)
                 let manualUSD = parseFloat(document.getElementById('goldManualCostInput').value);
                 if(!manualUSD || manualUSD <= 0) { alert("Please enter the Total Cost Paid ($)."); return; }
 
-                let costInLira = manualUSD * rate;
+                let totalCostLira = manualUSD * rate;
+                let totalAvailable = Money.add(system.vaultSavings || 0, system.vaultCurrent || 0);
 
-                if((system.vaultCurrent || 0) >= costInLira) {
-                    if(confirm(`Confirm Purchase?\n\n${w}g of ${activeVaultKarat}K Gold\nPAID COST: $${manualUSD.toFixed(2)}`)) {
-                        system.vaultCurrent = Money.sub(system.vaultCurrent, costInLira);
+                if(totalAvailable >= totalCostLira) {
+                    if(confirm(`Confirm Purchase?\n\n${w}g of ${activeVaultKarat}K Gold\nPAID COST: $${manualUSD.toFixed(2)}\n(Deducted from Vault)`)) {
+                        
+                        let remainingCost = totalCostLira;
+
+                        // 1. Deduct from Savings First
+                        if(system.vaultSavings > 0) {
+                            if(system.vaultSavings >= remainingCost) {
+                                system.vaultSavings = Money.sub(system.vaultSavings, remainingCost);
+                                remainingCost = 0;
+                            } else {
+                                remainingCost = Money.sub(remainingCost, system.vaultSavings);
+                                system.vaultSavings = 0;
+                            }
+                        }
+
+                        // 2. Deduct remaining from Current
+                        if(remainingCost > 0) {
+                             system.vaultCurrent = Money.sub(system.vaultCurrent, remainingCost);
+                        }
                         
                         // Add Weight
                         system.goldInventory[activeVaultKarat] = Money.add(system.goldInventory[activeVaultKarat] || 0, w);
@@ -1090,7 +1145,7 @@
                         render();
                     }
                 } else {
-                    alert(`Insufficient Funds in Vault!\nNeeded: $${manualUSD.toFixed(2)} (${costInLira.toLocaleString()} LBP)`);
+                    alert(`Insufficient Funds in Vault!\nNeeded: $${manualUSD.toFixed(2)} (${totalCostLira.toLocaleString()} LBP)\nAvailable Total: ${(totalAvailable/rate).toFixed(2)} USD`);
                 }
 
             } else {
