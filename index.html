@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | ASSET MANAGER</title>
+    <title>SUNG JIN-WOO SYSTEM | DUAL VAULTS</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -424,7 +424,7 @@
 
                 <div style="margin: 20px 15px 5px 15px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
-                        <span style="font-size:0.6rem; color:#666;">ESTIMATED RESERVE (IF CONVERTED)</span>
+                        <span style="font-size:0.6rem; color:#666;">LIQUID RESERVE (POTENTIAL GOLD)</span>
                         <span style="font-size:0.6rem; color:var(--gold); font-weight:bold; cursor:pointer;" onclick="showGoldPrices()" id="barKaratIndicator">24K ⚙️</span>
                     </div>
                     <div class="gold-bar-container" style="opacity:0.7;">
@@ -1245,18 +1245,14 @@
                 title.textContent = `UNPAID DEBTS: ${monthName} ${year}`;
                 addSec.style.display = 'block';
                 
-                // --- FIXED DATE LOGIC START ---
                 let defaultDay;
                 const now = new Date();
-                // Check if the viewed month is the current Real-World month
                 if (year === now.getFullYear() && (navDate.getMonth()) === now.getMonth()) {
-                    defaultDay = String(now.getDate()).padStart(2, '0'); // Use Today
+                    defaultDay = String(now.getDate()).padStart(2, '0');
                 } else {
-                    // Use Last Day for other months
                     defaultDay = String(new Date(year, navDate.getMonth() + 1, 0).getDate()).padStart(2, '0');
                 }
                 document.getElementById('qDate').value = `${currentMonthPrefix}-${defaultDay}`;
-                // --- FIXED DATE LOGIC END ---
 
                 let list = system.quests.filter(q => q.isDebt && q.targetDate && q.targetDate.startsWith(currentMonthPrefix));
                 
@@ -1382,18 +1378,18 @@
             document.getElementById('barKaratIndicator').textContent = activeKarat + 'K ⚙️';
 
             // --- FIXED RESERVE BAR LOGIC ---
-            // Recalculate grams based on current NET WORTH (Cash + Physical)
-            // If cash drops, this should drop.
+            // Recalculate grams based on LIQUID CASH ONLY (totalCashAvailable)
+            // This isolates the blue card bar from the gold vault.
             let gramsOwned = 0;
             if (activeGramPrice > 0) {
-                gramsOwned = (totalNetWorth / rate) / activeGramPrice;
+                // Using totalCashAvailable instead of totalNetWorth
+                gramsOwned = (totalCashAvailable / rate) / activeGramPrice;
             }
 
             let goldLevel = Math.floor(gramsOwned); 
             let goldProgress = gramsOwned % 1;
             let goldPerc = goldProgress * 100;
             
-            // Clean up visual if nearly empty
             if (isNaN(gramsOwned) || gramsOwned < 0.01) { 
                 gramsOwned = 0; 
                 goldPerc = 0; 
@@ -1403,11 +1399,9 @@
             const goldFill = document.getElementById('goldFill');
             const goldText = document.getElementById('goldText');
             
-            // Apply width immediately
             goldFill.style.width = goldPerc + "%";
             goldText.textContent = `Reserve: ${gramsOwned.toFixed(2)}g (${activeKarat}K)`;
             
-            // Apply classes
             goldFill.className = 'gold-fill';
             if(goldLevel % 3 === 0) goldFill.classList.add('lvl-0'); 
             else if(goldLevel % 3 === 1) goldFill.classList.add('lvl-1'); 
@@ -1423,7 +1417,7 @@
             document.getElementById('goldVaultGrams').textContent = vaultGrams.toFixed(2) + "g";
             document.getElementById('goldVaultVal').textContent = "$" + vaultValUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             
-            let vaultCap = 20; 
+            let vaultCap = 20; // Cap for the physical vault bar
             let vaultPerc = Math.min((vaultGrams / vaultCap) * 100, 100);
             document.getElementById('goldVaultFill').style.width = vaultPerc + "%";
             document.getElementById('goldVaultText').textContent = (vaultGrams > 0) ? "HOLDING SECURE" : "EMPTY SLOT";
