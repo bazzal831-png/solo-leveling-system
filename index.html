@@ -414,17 +414,14 @@
             </div>
 
             <div class="master-main-val">
-                <!-- MODIFICATION: LABEL CHANGED TO TOTAL CASH ONLY -->
                 <span class="lbl-sm" style="color:var(--mana);">TOTAL CASH AVAILABLE (LIQUID)</span>
                 <span class="net-gold" id="totalAssets">0</span>
                 <span class="net-usd" id="totalUSD">$0.00</span>
                 
-                <!-- NEW SMALL DISPLAY FOR REAL NET WORTH (CASH + GOLD) -->
                 <div class="net-assets-row">
                     TOTAL NET WORTH: <span id="realNetWorth" style="color:white; font-weight:bold;">0</span>
                 </div>
 
-                <!-- OLD CALCULATED RESERVE (VISUAL ONLY) -->
                 <div style="margin: 20px 15px 5px 15px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
                         <span style="font-size:0.6rem; color:#666;">ESTIMATED RESERVE (IF CONVERTED)</span>
@@ -465,7 +462,6 @@
                 <span style="font-size:0.6rem; color:#666;">PORTFOLIO TRACKER</span>
             </div>
             
-            <!-- PORTFOLIO SUMMARY (NEW) -->
             <div class="portfolio-summary">
                 <div class="portfolio-label">TOTAL PORTFOLIO VALUE (ALL KARATS)</div>
                 <div class="portfolio-total" id="portTotalVal">$0.00</div>
@@ -617,14 +613,12 @@
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
         window.logout = () => { if(confirm("Disconnect?")) signOut(auth).then(()=>location.reload()); };
 
-        // --- HARD RESET FUNCTIONALITY ---
         window.hardReset = async () => {
             if(confirm("⚠ WARNING: FACTORY RESET ⚠\n\nThis will PERMANENTLY delete ALL your data (Gold, Money, Quests, History).\n\nAre you sure you want to proceed?")) {
                 if(confirm("FINAL WARNING: This cannot be undone.\n\nClick OK to WIPE EVERYTHING and restart.")) {
                     if(currentUser) {
                         try {
                             setSaving(true);
-                            // Reset local system object to initial state
                             system = { 
                                 vaultCurrent: 0, vaultSavings: 0, salary: 0, 
                                 quests: [], dayArchives: {}, history: {}, hpMonth: getSystemDate().substring(0, 7),
@@ -633,10 +627,7 @@
                                 goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
                                 lastUpdated: serverTimestamp()
                             };
-                            
-                            // Overwrite the user document with empty state
                             await setDoc(doc(db, "users", currentUser.uid), system);
-                            
                             alert("System Reset Complete.");
                             location.reload(); 
                         } catch(e) {
@@ -989,6 +980,8 @@
                 if((system.vaultCurrent || 0) >= req) system.vaultCurrent = Money.sub(system.vaultCurrent, req);
                 else { alert("Not enough in Current Vault!"); return; }
             }
+            // FORCE RENDER TO UPDATE UI IMMEDIATELY
+            render();
             await save(); 
             closeWithdrawModal();
         };
@@ -1053,8 +1046,6 @@
 
         window.closeGoldModal = () => document.getElementById('goldModal').style.display = 'none';
 
-        // --- NEW GOLD VAULT LOGIC (MODIFIED) ---
-
         window.selectGoldVaultTab = (k) => {
             activeVaultKarat = k;
             render();
@@ -1112,7 +1103,6 @@
             let rate = system.exchangeRate || 89500;
 
             if(currentGoldTransType === 'buy') {
-                // BUY LOGIC WITH SMART DEDUCTION (Savings -> then Current)
                 let manualUSD = parseFloat(document.getElementById('goldManualCostInput').value);
                 if(!manualUSD || manualUSD <= 0) { alert("Please enter the Total Cost Paid ($)."); return; }
 
@@ -1123,8 +1113,6 @@
                     if(confirm(`Confirm Purchase?\n\n${w}g of ${activeVaultKarat}K Gold\nPAID COST: $${manualUSD.toFixed(2)}\n(Deducted from Vault)`)) {
                         
                         let remainingCost = totalCostLira;
-
-                        // 1. Deduct from Savings First
                         if(system.vaultSavings > 0) {
                             if(system.vaultSavings >= remainingCost) {
                                 system.vaultSavings = Money.sub(system.vaultSavings, remainingCost);
@@ -1134,16 +1122,11 @@
                                 system.vaultSavings = 0;
                             }
                         }
-
-                        // 2. Deduct remaining from Current
                         if(remainingCost > 0) {
                              system.vaultCurrent = Money.sub(system.vaultCurrent, remainingCost);
                         }
                         
-                        // Add Weight
                         system.goldInventory[activeVaultKarat] = Money.add(system.goldInventory[activeVaultKarat] || 0, w);
-                        
-                        // Add Cost
                         if(!system.goldCosts) system.goldCosts = { 18: 0, 21: 0, 22: 0, 24: 0 };
                         system.goldCosts[activeVaultKarat] = Money.add(system.goldCosts[activeVaultKarat] || 0, manualUSD);
 
@@ -1156,14 +1139,12 @@
                 }
 
             } else {
-                // SELL LOGIC (Refined: Reduces Cost Proportionally)
                 if((system.goldInventory[activeVaultKarat] || 0) >= w) {
                     let gramPriceUSD = global24kGramPrice * karatRatios[activeVaultKarat];
                     let totalReturnUSD = w * gramPriceUSD;
                     let totalReturnLira = totalReturnUSD * rate;
 
                     if(confirm(`Confirm Sale?\n\n${w}g of ${activeVaultKarat}K Gold\nReturn: $${totalReturnUSD.toFixed(2)}`)) {
-                        // Calculate Proportion to reduce cost
                         let currentWeight = system.goldInventory[activeVaultKarat];
                         let sellRatio = w / currentWeight;
                         let costToRemove = (system.goldCosts[activeVaultKarat] || 0) * sellRatio;
@@ -1182,8 +1163,6 @@
                 }
             }
         };
-
-        // --- END GOLD VAULT LOGIC ---
 
         window.registerQuest = async (isDebt) => {
             let t = document.getElementById('qTitle').value;
@@ -1265,8 +1244,19 @@
             if(type === 'pending') {
                 title.textContent = `UNPAID DEBTS: ${monthName} ${year}`;
                 addSec.style.display = 'block';
-                let lastDay = new Date(year, navDate.getMonth() + 1, 0).getDate();
-                document.getElementById('qDate').value = `${currentMonthPrefix}-${lastDay}`;
+                
+                // --- FIXED DATE LOGIC START ---
+                let defaultDay;
+                const now = new Date();
+                // Check if the viewed month is the current Real-World month
+                if (year === now.getFullYear() && (navDate.getMonth()) === now.getMonth()) {
+                    defaultDay = String(now.getDate()).padStart(2, '0'); // Use Today
+                } else {
+                    // Use Last Day for other months
+                    defaultDay = String(new Date(year, navDate.getMonth() + 1, 0).getDate()).padStart(2, '0');
+                }
+                document.getElementById('qDate').value = `${currentMonthPrefix}-${defaultDay}`;
+                // --- FIXED DATE LOGIC END ---
 
                 let list = system.quests.filter(q => q.isDebt && q.targetDate && q.targetDate.startsWith(currentMonthPrefix));
                 
@@ -1329,7 +1319,6 @@
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
             
-            // --- NEW: TOTAL PORTFOLIO CALCULATION (ALL KARATS) ---
             let totalPortfolioValueUSD = 0;
             let totalPortfolioCostUSD = 0;
 
@@ -1344,7 +1333,6 @@
                 }
             }
 
-            // Update Portfolio UI
             document.getElementById('portTotalVal').textContent = '$' + totalPortfolioValueUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             document.getElementById('portTotalSpent').textContent = '$' + totalPortfolioCostUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             
@@ -1353,15 +1341,12 @@
             let symbol = profit >= 0 ? "+" : "";
             profitEl.textContent = symbol + '$' + profit.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             profitEl.className = 'portfolio-profit ' + (profit >= 0 ? 'profit-plus' : 'profit-minus');
-            // --- END NEW PORTFOLIO CALCULATION ---
 
             let totalGoldValueLira = totalPortfolioValueUSD * rate;
             
-            // --- MODIFIED: TOTAL ASSETS DISPLAY NOW SHOWS CASH ONLY ---
             const totalCashAvailable = vCurrent + vSavings;
             const totalNetWorth = totalCashAvailable + totalGoldValueLira;
 
-            // HP LOGIC
             const hpBase = 15; 
             let currentMonthUSD = vCurrent / rate; 
             let hpLevel = Math.floor(currentMonthUSD / hpBase) + 1;
@@ -1378,14 +1363,11 @@
             else if(hpLevel % 3 === 2) hpFill.classList.add('lvl-2');
             else hpFill.classList.add('lvl-3');
 
-            // MASTER CARD UPDATES (CASH FOCUSED)
             document.getElementById('totalAssets').textContent = formatVal(totalCashAvailable);
             document.getElementById('totalUSD').textContent = `$${(totalCashAvailable/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             
-            // SMALL NET WORTH DISPLAY
             document.getElementById('realNetWorth').textContent = formatVal(totalNetWorth);
             
-            // THESE TWO LINES ARE CRITICAL: They show ONLY the remaining CASH (Lira)
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
             document.getElementById('vaultCurrentUSD').textContent = `$${(vCurrent/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
             
@@ -1399,23 +1381,39 @@
 
             document.getElementById('barKaratIndicator').textContent = activeKarat + 'K ⚙️';
 
-            let gramsOwned = (totalNetWorth / rate) / activeGramPrice;
+            // --- FIXED RESERVE BAR LOGIC ---
+            // Recalculate grams based on current NET WORTH (Cash + Physical)
+            // If cash drops, this should drop.
+            let gramsOwned = 0;
+            if (activeGramPrice > 0) {
+                gramsOwned = (totalNetWorth / rate) / activeGramPrice;
+            }
+
             let goldLevel = Math.floor(gramsOwned); 
             let goldProgress = gramsOwned % 1;
             let goldPerc = goldProgress * 100;
-            if (gramsOwned > 0 && goldProgress < 0.001) { goldPerc = 0; }
-            if (isNaN(gramsOwned)) { gramsOwned = 0; goldPerc = 0; }
+            
+            // Clean up visual if nearly empty
+            if (isNaN(gramsOwned) || gramsOwned < 0.01) { 
+                gramsOwned = 0; 
+                goldPerc = 0; 
+                goldLevel = 0;
+            }
 
             const goldFill = document.getElementById('goldFill');
             const goldText = document.getElementById('goldText');
+            
+            // Apply width immediately
             goldFill.style.width = goldPerc + "%";
             goldText.textContent = `Reserve: ${gramsOwned.toFixed(2)}g (${activeKarat}K)`;
+            
+            // Apply classes
             goldFill.className = 'gold-fill';
             if(goldLevel % 3 === 0) goldFill.classList.add('lvl-0'); 
             else if(goldLevel % 3 === 1) goldFill.classList.add('lvl-1'); 
             else goldFill.classList.add('lvl-2');
+            // --- END FIXED RESERVE LOGIC ---
 
-            // --- GOLD VAULT TAB RENDER ---
             document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
             document.getElementById('gt' + activeVaultKarat).classList.add('active');
 
