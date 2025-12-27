@@ -1142,9 +1142,10 @@
                 if((system.goldInventory[activeVaultKarat] || 0) >= w) {
                     let gramPriceUSD = global24kGramPrice * karatRatios[activeVaultKarat];
                     let totalReturnUSD = w * gramPriceUSD;
-                    let totalReturnLira = totalReturnUSD * rate;
+                    // let totalReturnLira = totalReturnUSD * rate; // REMOVED: No longer needed for adding back money
 
-                    if(confirm(`Confirm Sale?\n\n${w}g of ${activeVaultKarat}K Gold\nReturn: $${totalReturnUSD.toFixed(2)}`)) {
+                    // Updated Confirmation Message
+                    if(confirm(`Confirm LIQUIDATION (External)?\n\nSelling: ${w}g of ${activeVaultKarat}K Gold\nValue: $${totalReturnUSD.toFixed(2)}\n\n(Note: Money will NOT be added to System Vault)`)) {
                         let currentWeight = system.goldInventory[activeVaultKarat];
                         let sellRatio = w / currentWeight;
                         let costToRemove = (system.goldCosts[activeVaultKarat] || 0) * sellRatio;
@@ -1153,7 +1154,9 @@
                         system.goldCosts[activeVaultKarat] = Money.sub(system.goldCosts[activeVaultKarat], costToRemove);
                         if(system.goldCosts[activeVaultKarat] < 0) system.goldCosts[activeVaultKarat] = 0;
 
-                        system.vaultCurrent = Money.add(system.vaultCurrent, totalReturnLira);
+                        // DISABLED: Do not add money back to vault
+                        // system.vaultCurrent = Money.add(system.vaultCurrent, totalReturnLira);
+
                         await save();
                         closeGoldTransModal();
                         render();
