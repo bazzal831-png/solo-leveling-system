@@ -29,6 +29,30 @@
             box-shadow: 0 0 15px rgba(0, 210, 255, 0.05);
         }
 
+        /* GOLD VAULT CARD STYLES (NEW) */
+        .gold-vault-card {
+            background: linear-gradient(180deg, rgba(30, 25, 5, 0.95) 0%, rgba(5, 7, 11, 0.95) 100%);
+            border: 1px solid var(--gold); border-radius: 8px; padding: 0;
+            margin-bottom: 20px; position: relative; overflow: hidden;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.05);
+        }
+        .gold-vault-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 15px; background: rgba(255, 215, 0, 0.05);
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            font-size: 0.7rem; font-weight: bold; color: var(--gold); letter-spacing: 1px;
+        }
+        .gold-tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .g-tab { 
+            background: rgba(0,0,0,0.3); color: #666; padding: 10px 0; 
+            text-align: center; font-size: 0.7rem; font-weight: bold; cursor: pointer; 
+            border-right: 1px solid rgba(255,255,255,0.05); transition: 0.2s;
+        }
+        .g-tab.active { background: rgba(255, 215, 0, 0.15); color: var(--gold); text-shadow: 0 0 5px var(--gold); }
+        .gold-main-display { text-align: center; padding: 20px 10px; }
+        .gold-grams-display { font-size: 2.2rem; font-family: monospace; color: white; font-weight: bold; }
+        .gold-val-display { font-size: 0.9rem; color: #888; font-family: monospace; margin-top: 5px; }
+
         .master-top-row {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px 15px; background: rgba(0, 210, 255, 0.05);
@@ -241,6 +265,24 @@
         </div>
     </div>
 
+    <!-- GOLD TRANSACTION MODAL (NEW) -->
+    <div id="goldTransactionModal" class="modal-backdrop">
+        <div class="modal-window" style="border-color:var(--gold); box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);">
+            <div class="modal-title" id="goldTransTitle" style="color:var(--gold); border-color:var(--gold);">GOLD TRANSACTION</div>
+            <p id="goldTransSub" style="font-size:0.6rem; color:#888; margin-bottom:15px;">...</p>
+            
+            <input type="number" id="goldTransInput" class="modal-input" placeholder="Enter Weight (Grams)">
+            
+            <div style="font-size:0.6rem; color:#aaa; margin-bottom:5px;">CURRENT VALUE</div>
+            <div id="goldTransValuePreview" style="font-size:1.2rem; font-family:monospace; color:white; font-weight:bold; margin-bottom:15px;">$0.00</div>
+
+            <div class="modal-actions">
+                <button class="modal-btn btn-cancel" onclick="closeGoldTransModal()">CANCEL</button>
+                <button class="modal-btn" id="btnConfirmGoldTrans" style="background:var(--gold); color:black;">CONFIRM</button>
+            </div>
+        </div>
+    </div>
+
     <!-- WITHDRAWAL MODAL -->
     <div id="withdrawModal" class="modal-backdrop">
         <div class="modal-window">
@@ -343,16 +385,17 @@
             </div>
 
             <div class="master-main-val">
-                <span class="lbl-sm" style="color:var(--mana);">NET WORTH (TOTAL ASSETS)</span>
+                <span class="lbl-sm" style="color:var(--mana);">NET WORTH (CASH + GOLD ASSETS)</span>
                 <span class="net-gold" id="totalAssets">0</span>
                 <span class="net-usd" id="totalUSD">$0.00</span>
                 
+                <!-- OLD CALCULATED RESERVE (VISUAL ONLY) -->
                 <div style="margin: 20px 15px 5px 15px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
-                        <span style="font-size:0.6rem; color:#666;">RESERVE</span>
+                        <span style="font-size:0.6rem; color:#666;">ESTIMATED RESERVE (IF CONVERTED)</span>
                         <span style="font-size:0.6rem; color:var(--gold); font-weight:bold; cursor:pointer;" onclick="showGoldPrices()" id="barKaratIndicator">24K ⚙️</span>
                     </div>
-                    <div class="gold-bar-container">
+                    <div class="gold-bar-container" style="opacity:0.7;">
                         <div class="gold-fill" id="goldFill"></div>
                         <div class="gold-bar-text" id="goldText">Calculated Reserve...</div>
                     </div>
@@ -378,6 +421,42 @@
         <div class="main-actions" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
             <button class="btn-system" onclick="startFlowDeposit()">+ Add Assets</button>
             <button class="btn-system btn-withdraw" style="border-color:var(--danger); color:var(--danger);" onclick="openWithdrawModal()">Withdrawal</button>
+        </div>
+
+        <!-- NEW GOLD VAULT CARD -->
+        <div class="gold-vault-card">
+            <div class="gold-vault-header">
+                <span>PHYSICAL GOLD VAULT</span>
+                <span style="font-size:0.6rem; color:#666;">LIVE TRACKER</span>
+            </div>
+            
+            <div class="gold-tabs">
+                <div class="g-tab" id="gt18" onclick="selectGoldVaultTab(18)">18K</div>
+                <div class="g-tab" id="gt21" onclick="selectGoldVaultTab(21)">21K</div>
+                <div class="g-tab" id="gt22" onclick="selectGoldVaultTab(22)">22K</div>
+                <div class="g-tab active" id="gt24" onclick="selectGoldVaultTab(24)">24K</div>
+            </div>
+
+            <div class="gold-main-display">
+                <div id="goldVaultGrams" class="gold-grams-display">0.00g</div>
+                <div id="goldVaultVal" class="gold-val-display">$0.00</div>
+                
+                <div style="margin: 15px 5px 0 5px;">
+                    <div class="gold-bar-container">
+                        <div class="gold-fill" id="goldVaultFill" style="background: linear-gradient(90deg, #ffd700, #fff);"></div>
+                        <div class="gold-bar-text" id="goldVaultText" style="color:black; text-shadow:none;">0% FILL</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; border-top:1px solid rgba(255,215,0,0.2);">
+                <button class="btn-system" style="border:none; border-right:1px solid rgba(255,215,0,0.2); color:white; background:rgba(0,0,0,0.2);" onclick="openGoldTransaction('buy')">
+                    STORE (BUY)
+                </button>
+                <button class="btn-system" style="border:none; color:var(--gold); background:rgba(0,0,0,0.2);" onclick="openGoldTransaction('sell')">
+                    LIQUIDATE (SELL)
+                </button>
+            </div>
         </div>
 
         <!-- CALENDAR -->
@@ -477,7 +556,8 @@
             dayArchives: {}, 
             history: {}, 
             hpMonth: "",
-            exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0
+            exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
+            goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 }
         };
 
         let navDate = new Date();
@@ -486,6 +566,7 @@
         let selectedWithdrawSource = null;
         let global24kGramPrice = 88.0; 
         let isSaving = false;
+        let activeVaultKarat = 24; // For Gold Vault Tab
         
         const karatRatios = { 18: 0.75, 21: 0.875, 22: 0.9167, 24: 1.0 };
 
@@ -504,7 +585,8 @@
                 system = { 
                     vaultCurrent: 0, vaultSavings: 0, salary: 0, 
                     quests: [], dayArchives: {}, history: {}, hpMonth: "",
-                    exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0
+                    exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
+                    goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 }
                 };
 
                 document.getElementById('authOverlay').style.display = 'none';
@@ -525,6 +607,9 @@
                         const existingHistory = system.history || {};
 
                         system = { ...system, ...data };
+                        // Ensure goldInventory exists
+                        if(!system.goldInventory) system.goldInventory = { 18: 0, 21: 0, 22: 0, 24: 0 };
+                        
                         system.dayArchives = existingArchives;
                         system.history = { ...existingHistory, ...(data.history || {}) };
 
@@ -580,6 +665,7 @@
                     const timeStr = now.toLocaleTimeString();
                     const dateStr = document.getElementById('lastUpdateText');
                     if(dateStr) dateStr.textContent = "LAST UPDATE: " + timeStr;
+                    render(); // Re-render to update gold vault values dynamically
                 }
             } catch (e) { 
                 console.log("Gold API Error - Using Stored Value"); 
@@ -604,6 +690,7 @@
                     exchangeRate: system.exchangeRate,
                     preferredKarat: system.preferredKarat,
                     storedGoldPrice: system.storedGoldPrice,
+                    goldInventory: system.goldInventory, // Save gold inventory
                     quests: system.quests,
                     hpMonth: system.hpMonth,
                     lastUpdated: serverTimestamp() 
@@ -889,6 +976,88 @@
 
         window.closeGoldModal = () => document.getElementById('goldModal').style.display = 'none';
 
+        // --- NEW GOLD VAULT LOGIC ---
+
+        window.selectGoldVaultTab = (k) => {
+            activeVaultKarat = k;
+            render(); // Re-render logic handles the UI update
+        };
+
+        let currentGoldTransType = null; // 'buy' or 'sell'
+
+        window.openGoldTransaction = (type) => {
+            currentGoldTransType = type;
+            const title = document.getElementById('goldTransTitle');
+            const sub = document.getElementById('goldTransSub');
+            const btn = document.getElementById('btnConfirmGoldTrans');
+            const input = document.getElementById('goldTransInput');
+            
+            input.value = '';
+            document.getElementById('goldTransValuePreview').textContent = '$0.00';
+
+            if(type === 'buy') {
+                title.textContent = `STORE GOLD (${activeVaultKarat}K)`;
+                sub.textContent = "Convert Money from Current Vault to Physical Gold.";
+                btn.textContent = "CONFIRM PURCHASE";
+                btn.style.background = "var(--gold)";
+            } else {
+                title.textContent = `LIQUIDATE GOLD (${activeVaultKarat}K)`;
+                sub.textContent = "Sell Physical Gold and return Money to Current Vault.";
+                btn.textContent = "CONFIRM SALE";
+                btn.style.background = "var(--success)";
+            }
+            
+            document.getElementById('goldTransactionModal').style.display = 'flex';
+            
+            // Auto update preview on input
+            input.oninput = () => {
+                let w = parseFloat(input.value) || 0;
+                let price = (global24kGramPrice * karatRatios[activeVaultKarat]);
+                document.getElementById('goldTransValuePreview').textContent = '$' + (w * price).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            };
+        };
+
+        window.closeGoldTransModal = () => document.getElementById('goldTransactionModal').style.display = 'none';
+
+        document.getElementById('btnConfirmGoldTrans').onclick = async () => {
+            let w = parseFloat(document.getElementById('goldTransInput').value);
+            if(!w || w <= 0) { alert("Invalid Weight"); return; }
+            
+            let rate = system.exchangeRate || 89500;
+            let gramPriceUSD = global24kGramPrice * karatRatios[activeVaultKarat];
+            let totalCostUSD = w * gramPriceUSD;
+            let totalCostLira = totalCostUSD * rate;
+
+            if(currentGoldTransType === 'buy') {
+                if((system.vaultCurrent || 0) >= totalCostLira) {
+                    if(confirm(`Confirm Purchase?\n\n${w}g of ${activeVaultKarat}K Gold\nCost: $${totalCostUSD.toFixed(2)}`)) {
+                        system.vaultCurrent = Money.sub(system.vaultCurrent, totalCostLira);
+                        system.goldInventory[activeVaultKarat] = Money.add(system.goldInventory[activeVaultKarat] || 0, w);
+                        await save();
+                        closeGoldTransModal();
+                        render();
+                    }
+                } else {
+                    alert(`Insufficient Funds in Vault!\nNeeded: $${totalCostUSD.toFixed(2)}`);
+                }
+            } else {
+                // SELL
+                if((system.goldInventory[activeVaultKarat] || 0) >= w) {
+                     if(confirm(`Confirm Sale?\n\n${w}g of ${activeVaultKarat}K Gold\nReturn: $${totalCostUSD.toFixed(2)}`)) {
+                        system.goldInventory[activeVaultKarat] = Money.sub(system.goldInventory[activeVaultKarat], w);
+                        system.vaultCurrent = Money.add(system.vaultCurrent, totalCostLira);
+                        await save();
+                        closeGoldTransModal();
+                        render();
+                     }
+                } else {
+                    alert(`Insufficient Gold (${activeVaultKarat}K) in Vault!`);
+                }
+            }
+        };
+
+        // --- END GOLD VAULT LOGIC ---
+
         window.registerQuest = async (isDebt) => {
             let t = document.getElementById('qTitle').value;
             let g = document.getElementById('qTarget').value;
@@ -1040,7 +1209,17 @@
 
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
-            const vTotal = vCurrent + vSavings;
+            
+            // Calculate Physical Gold Value
+            let totalGoldValueUSD = 0;
+            if(system.goldInventory) {
+                for(let [k, grams] of Object.entries(system.goldInventory)) {
+                    totalGoldValueUSD += grams * (global24kGramPrice * karatRatios[k]);
+                }
+            }
+            let totalGoldValueLira = totalGoldValueUSD * rate;
+
+            const vTotal = vCurrent + vSavings + totalGoldValueLira; // Added Gold Value to Net Worth
 
             // HP LOGIC
             const hpBase = 15; 
@@ -1067,7 +1246,7 @@
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
             document.getElementById('vaultSavingsUSD').textContent = `$${(vSavings/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
-            // GOLD BAR
+            // GOLD BAR (Visual Estimate)
             let activeKarat = system.preferredKarat || 24;
             let activeRatio = karatRatios[activeKarat];
             let activeGramPrice = global24kGramPrice * activeRatio;
@@ -1089,6 +1268,26 @@
             if(goldLevel % 3 === 0) goldFill.classList.add('lvl-0'); 
             else if(goldLevel % 3 === 1) goldFill.classList.add('lvl-1'); 
             else goldFill.classList.add('lvl-2');
+
+            // --- GOLD VAULT CARD RENDER ---
+            // Update tabs
+            document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('gt' + activeVaultKarat).classList.add('active');
+
+            let vaultGrams = (system.goldInventory && system.goldInventory[activeVaultKarat]) ? system.goldInventory[activeVaultKarat] : 0;
+            let vaultValUSD = vaultGrams * (global24kGramPrice * karatRatios[activeVaultKarat]);
+            
+            document.getElementById('goldVaultGrams').textContent = vaultGrams.toFixed(2) + "g";
+            document.getElementById('goldVaultVal').textContent = "$" + vaultValUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            
+            // Vault Bar (Simple Fill logic: 10g = full bar just for visual feedback, or relative to 100g)
+            // Let's make it fill relative to 20g for now to show progress
+            let vaultCap = 20; 
+            let vaultPerc = Math.min((vaultGrams / vaultCap) * 100, 100);
+            document.getElementById('goldVaultFill').style.width = vaultPerc + "%";
+            document.getElementById('goldVaultText').textContent = (vaultGrams > 0) ? "HOLDING SECURE" : "EMPTY SLOT";
+
+            // --- END GOLD VAULT RENDER ---
 
             const playerRank = getRankInfo(vTotal);
             const pBadge = document.getElementById('playerRankBadge');
