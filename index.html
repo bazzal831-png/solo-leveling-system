@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | MONTHLY MANAGER</title>
+    <title>SUNG JIN-WOO SYSTEM | ASSET MANAGER</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -432,12 +432,12 @@
 
             <div class="master-grid">
                 <div class="m-col">
-                    <span class="lbl-sm" style="color:var(--hp-bg);">THIS MONTH</span>
+                    <span class="lbl-sm" style="color:var(--hp-bg);">THIS MONTH (CASH)</span>
                     <div class="val-lg" id="vaultCurrentDisplay">0</div>
                     <div class="val-usd-sub" id="vaultCurrentUSD">$0.00</div>
                 </div>
                 <div class="m-col">
-                    <span class="lbl-sm" style="color:var(--success);">LIFETIME SAVINGS</span>
+                    <span class="lbl-sm" style="color:var(--success);">SAVINGS (CASH)</span>
                     <div class="val-lg" id="vaultSavingsDisplay">0</div>
                     <div class="val-usd-sub" id="vaultSavingsUSD">$0.00</div>
                 </div>
@@ -1369,10 +1369,14 @@
             else hpFill.classList.add('lvl-3');
 
             // MASTER CARD
+            // vTotal includes Gold, so it stays high (Net Worth).
             document.getElementById('totalAssets').textContent = formatVal(vTotal);
             document.getElementById('totalUSD').textContent = `$${(vTotal/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            
+            // THESE TWO LINES ARE CRITICAL: They show ONLY the remaining CASH (Lira)
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
             document.getElementById('vaultCurrentUSD').textContent = `$${(vCurrent/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
             document.getElementById('vaultSavingsUSD').textContent = `$${(vSavings/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
