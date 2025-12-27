@@ -82,8 +82,9 @@
         .val-lg { font-size: 1.1rem; font-family: monospace; font-weight: bold; color: white; }
         .val-usd-sub { font-size: 0.75rem; color: #666; font-family: monospace; margin-top: 2px; }
 
-        .net-gold { font-size: 2.8rem; font-weight: bold; color: var(--gold); font-family: monospace; text-shadow: 0 0 20px rgba(255, 215, 0, 0.1); margin: 5px 0; display: block;}
+        .net-gold { font-size: 2.8rem; font-weight: bold; color: var(--mana); font-family: monospace; text-shadow: 0 0 20px rgba(0, 210, 255, 0.15); margin: 5px 0; display: block;}
         .net-usd { font-size: 1.1rem; color: var(--success); font-weight: bold; background: rgba(80, 250, 123, 0.1); padding: 2px 10px; border-radius: 10px; }
+        .net-assets-row { font-size: 0.7rem; color: #aaa; margin-top: 10px; font-family: monospace; }
 
         /* MODAL STYLES */
         .modal-backdrop {
@@ -413,10 +414,16 @@
             </div>
 
             <div class="master-main-val">
-                <span class="lbl-sm" style="color:var(--mana);">NET WORTH (CASH + GOLD ASSETS)</span>
+                <!-- MODIFICATION: LABEL CHANGED TO TOTAL CASH ONLY -->
+                <span class="lbl-sm" style="color:var(--mana);">TOTAL CASH AVAILABLE (LIQUID)</span>
                 <span class="net-gold" id="totalAssets">0</span>
                 <span class="net-usd" id="totalUSD">$0.00</span>
                 
+                <!-- NEW SMALL DISPLAY FOR REAL NET WORTH (CASH + GOLD) -->
+                <div class="net-assets-row">
+                    TOTAL NET WORTH: <span id="realNetWorth" style="color:white; font-weight:bold;">0</span>
+                </div>
+
                 <!-- OLD CALCULATED RESERVE (VISUAL ONLY) -->
                 <div style="margin: 20px 15px 5px 15px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
@@ -1349,7 +1356,10 @@
             // --- END NEW PORTFOLIO CALCULATION ---
 
             let totalGoldValueLira = totalPortfolioValueUSD * rate;
-            const vTotal = vCurrent + vSavings + totalGoldValueLira;
+            
+            // --- MODIFIED: TOTAL ASSETS DISPLAY NOW SHOWS CASH ONLY ---
+            const totalCashAvailable = vCurrent + vSavings;
+            const totalNetWorth = totalCashAvailable + totalGoldValueLira;
 
             // HP LOGIC
             const hpBase = 15; 
@@ -1368,10 +1378,12 @@
             else if(hpLevel % 3 === 2) hpFill.classList.add('lvl-2');
             else hpFill.classList.add('lvl-3');
 
-            // MASTER CARD
-            // vTotal includes Gold, so it stays high (Net Worth).
-            document.getElementById('totalAssets').textContent = formatVal(vTotal);
-            document.getElementById('totalUSD').textContent = `$${(vTotal/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            // MASTER CARD UPDATES (CASH FOCUSED)
+            document.getElementById('totalAssets').textContent = formatVal(totalCashAvailable);
+            document.getElementById('totalUSD').textContent = `$${(totalCashAvailable/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
+            
+            // SMALL NET WORTH DISPLAY
+            document.getElementById('realNetWorth').textContent = formatVal(totalNetWorth);
             
             // THESE TWO LINES ARE CRITICAL: They show ONLY the remaining CASH (Lira)
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
@@ -1387,7 +1399,7 @@
 
             document.getElementById('barKaratIndicator').textContent = activeKarat + 'K ⚙️';
 
-            let gramsOwned = (vTotal / rate) / activeGramPrice;
+            let gramsOwned = (totalNetWorth / rate) / activeGramPrice;
             let goldLevel = Math.floor(gramsOwned); 
             let goldProgress = gramsOwned % 1;
             let goldPerc = goldProgress * 100;
@@ -1418,7 +1430,7 @@
             document.getElementById('goldVaultFill').style.width = vaultPerc + "%";
             document.getElementById('goldVaultText').textContent = (vaultGrams > 0) ? "HOLDING SECURE" : "EMPTY SLOT";
 
-            const playerRank = getRankInfo(vTotal);
+            const playerRank = getRankInfo(totalNetWorth);
             const pBadge = document.getElementById('playerRankBadge');
             pBadge.textContent = "RANK " + playerRank.r;
             pBadge.style.color = playerRank.c;
@@ -1429,7 +1441,7 @@
             
             const salInGold = (system.salary || 0) * rate;
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
-            document.getElementById('zeroVault').style.display = (vTotal > 0.1 && vTotal < 1000) ? 'block' : 'none';
+            document.getElementById('zeroVault').style.display = (totalCashAvailable > 0.1 && totalCashAvailable < 1000) ? 'block' : 'none';
 
             // STATS
             const year = navDate.getFullYear();
