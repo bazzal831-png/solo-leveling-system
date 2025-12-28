@@ -21,6 +21,24 @@
             -webkit-tap-highlight-color: transparent; padding-bottom: 90px;
         }
 
+        /* HEADER & WEATHER */
+        .system-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; padding: 5px; border-bottom: 1px solid #333;
+        }
+        .weather-widget {
+            font-family: monospace; font-size: 0.7rem; color: var(--mana);
+            display: flex; flex-direction: column;
+        }
+        .weather-loc { font-weight: bold; letter-spacing: 1px; }
+        .weather-det { color: #888; font-size: 0.6rem; margin-top: 2px; }
+        
+        .settings-icon {
+            font-size: 1.2rem; cursor: pointer; transition: 0.3s;
+            color: #666; padding: 5px;
+        }
+        .settings-icon:hover { color: var(--text); transform: rotate(90deg); }
+
         /* MASTER CARD STYLES */
         .master-card {
             background: linear-gradient(180deg, rgba(17, 20, 29, 0.95) 0%, rgba(5, 7, 11, 0.95) 100%);
@@ -123,6 +141,12 @@
         .btn-confirm { background: var(--mana); color: black; }
         .btn-cancel { background: #333; color: white; }
 
+        /* SETTINGS SPECIFIC */
+        .settings-section { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .settings-label { font-size: 0.6rem; color: #888; text-align: left; margin-bottom: 5px; display:block;}
+        .file-btn { background: #222; border: 1px dashed #666; color: #ccc; padding: 10px; width: 100%; cursor: pointer; font-size: 0.7rem; margin-bottom: 10px; }
+        .file-btn:hover { border-color: var(--mana); color: white; }
+
         /* AUTH OVERLAY */
         #authOverlay {
             position: fixed; inset: 0; background: var(--bg); z-index: 50000;
@@ -176,11 +200,6 @@
         .btn-zero { background: var(--danger); color: white; border: none; padding: 6px 12px; font-size: 0.7rem; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 8px; display: none; box-shadow: 0 0 8px var(--danger); }
         .btn-rate { background: transparent; border: 1px solid #444; color: #888; font-size: 0.6rem; padding: 2px 6px; cursor: pointer; margin-left: 5px; border-radius: 4px; }
         
-        .btn-reset-app {
-            background: var(--danger); color: white; border: none; padding: 2px 5px; 
-            font-size: 0.6rem; cursor: pointer; margin-left: 8px; border-radius: 3px;
-        }
-
         .salary-container { border: 1px solid var(--success); background: rgba(80, 250, 123, 0.05); padding: 12px; margin-bottom: 15px; text-align: center; border-radius: 4px; }
         .salary-value { font-size: 1.8rem; color: var(--success); font-weight: bold; font-family: monospace; display: block; }
 
@@ -216,7 +235,6 @@
         .day-cell.has-completed { border-color: var(--debt-color); color: var(--debt-color); background: rgba(188, 19, 254, 0.1); }
         .day-cell.today { border: 2px solid #fff !important; color: #fff !important; font-weight: 900; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); transform: scale(1.05); z-index: 2; }
 
-        /* MODIFIED STATS FOOTER FOR 3 BUTTONS */
         .stats-footer { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 30px; border-top: 1px solid #333; padding-top: 15px; }
         .stat-box { background: rgba(0,0,0,0.5); padding: 8px 4px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; min-height: 70px; cursor: pointer; transition: 0.2s; }
         .stat-box:active { transform: scale(0.98); background: rgba(255,255,255,0.05); }
@@ -259,12 +277,32 @@
             background: rgba(188, 19, 254, 0.05); padding: 15px; 
             border: 1px solid var(--debt-color); margin-bottom: 20px;
         }
+
+        /* TOAST NOTIFICATION */
+        #toastContainer {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 100000; width: 80%; max-width: 300px;
+            pointer-events: none;
+        }
+        .toast {
+            background: rgba(16, 20, 30, 0.95); border: 1px solid var(--mana);
+            color: white; padding: 10px 15px; margin-top: 10px;
+            font-size: 0.8rem; text-align: center; border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease-out; opacity: 1; transition: opacity 0.5s;
+        }
+        .toast.success { border-color: var(--success); color: var(--success); }
+        .toast.error { border-color: var(--danger); color: var(--danger); }
+        
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
     </style>
 </head>
 <body>
 
     <div id="saveIndicator"></div>
     <div id="savingText">DATA SAVING...</div>
+    <div id="toastContainer"></div>
 
     <div id="authOverlay">
         <div class="login-card">
@@ -273,16 +311,29 @@
         </div>
     </div>
 
-    <!-- RATE SETTING MODAL -->
-    <div id="rateModal" class="modal-backdrop">
+    <!-- SETTINGS MODAL (UNIFIED) -->
+    <div id="settingsModal" class="modal-backdrop">
         <div class="modal-window">
-            <div class="modal-title">EXCHANGE RATE SETTING</div>
-            <p style="font-size:0.7rem; color:#888; margin-bottom:15px;">Set the current Black Market Dollar Rate (Lira).</p>
-            <input type="number" id="inputExchangeRate" class="modal-input" placeholder="e.g. 89500">
-            <div class="modal-actions">
-                <button class="modal-btn btn-cancel" onclick="document.getElementById('rateModal').style.display='none'">CANCEL</button>
-                <button class="modal-btn btn-confirm" onclick="confirmRateChange()">SAVE RATE</button>
+            <div class="modal-title">SYSTEM SETTINGS</div>
+            
+            <div class="settings-section">
+                <span class="settings-label">EXCHANGE RATE (LIRA)</span>
+                <input type="number" id="settingRateInput" class="modal-input" placeholder="e.g. 89500">
             </div>
+
+            <div class="settings-section">
+                <span class="settings-label">DATA MANAGEMENT (JSON)</span>
+                <button class="btn-system" onclick="exportData()" style="margin-bottom:10px;">⬇ EXPORT BACKUP</button>
+                <button class="file-btn" onclick="document.getElementById('importFile').click()">⬆ IMPORT BACKUP</button>
+                <input type="file" id="importFile" style="display:none;" onchange="importData(this)">
+            </div>
+
+            <div class="settings-section" style="border:none;">
+                <button class="btn-system" style="border-color:var(--danger); color:var(--danger); margin-bottom:10px;" onclick="hardReset()">♻ FACTORY RESET</button>
+                <button class="btn-system" style="border-color:#666; color:#aaa;" onclick="logout()">LOGOUT</button>
+            </div>
+
+            <button class="modal-btn btn-cancel" style="width:100%" onclick="closeSettings()">CLOSE</button>
         </div>
     </div>
 
@@ -377,6 +428,15 @@
     <!-- MAIN VIEW -->
     <div id="mainView" style="display: none;">
         
+        <!-- NEW HEADER: WEATHER + SETTINGS -->
+        <div class="system-header">
+            <div class="weather-widget">
+                <span class="weather-loc">ENV: BEIRUT</span>
+                <span class="weather-det" id="weatherDetail">SCANNING...</span>
+            </div>
+            <div class="settings-icon" onclick="openSettings()">⚙️</div>
+        </div>
+
         <div class="hp-section">
             <div class="hp-header">
                 <div class="hp-label">MONTHLY ACTIVITY</div>
@@ -390,7 +450,7 @@
         <div class="salary-container">
             <div style="font-size:0.6rem; color:var(--success); letter-spacing:2px;">SALARY WALLET</div>
             <span class="salary-value" id="salaryDisplay">$0.00</span>
-            <div style="font-size:0.7rem; color:#888;">Rate: <span id="displayRate">89500</span> <button class="btn-rate" onclick="openRateModal()">CHANGE</button></div>
+            <div style="font-size:0.7rem; color:#888;">Rate: <span id="displayRate">89500</span></div>
             <button id="zeroSalary" class="btn-zero" onclick="confirmZero('salary')">Zero Remainder (<1k)</button>
             <div style="display:flex; gap:5px; margin-top:10px;">
                 <button class="btn-system" style="border-color:var(--success); color:var(--success); flex:1;" onclick="addSalary()">+ Income</button>
@@ -403,13 +463,11 @@
             <div class="master-top-row">
                 <div style="display:flex; flex-direction:column; gap:2px;">
                     <span id="userEmailDisplay" style="font-size:0.65rem; color:#aaa;">---</span>
-                    <span style="font-size:0.6rem; color:var(--danger); cursor:pointer; font-weight:bold;" onclick="logout()">[ DISCONNECT ]</span>
                 </div>
                 <div style="text-align:right;">
                     <div id="playerRankBadge" class="rank-tag" style="margin-bottom:3px;">RANK E</div>
                     <div style="display:flex; align-items:center; justify-content:flex-end;">
                         <span class="level-text" style="font-size:0.75rem;">SYSTEM LVL: <span id="playerLevel" style="color:white;">1</span></span>
-                        <button class="btn-reset-app" onclick="hardReset()">♻ RESET</button>
                     </div>
                 </div>
             </div>
@@ -509,24 +567,21 @@
             <div class="days-grid" id="daysGrid"></div>
         </div>
 
-        <!-- STATS FOOTER / BUTTONS (MODIFIED TO 3 BUTTONS) -->
+        <!-- STATS FOOTER -->
         <div class="stats-footer">
-            <!-- 1. PAID THIS MONTH -->
             <div class="stat-box" onclick="openMonthlyList('paid')" style="color:var(--debt-color); border-color:var(--debt-color);">
                 <div class="stat-title">PAID (MONTH)</div>
                 <div class="stat-val" id="countPaidDebts">0</div>
                 <div class="stat-sub" id="valPaidDebts">$0.00</div>
             </div>
 
-            <!-- 2. UNPAID THIS MONTH -->
             <div class="stat-box" onclick="openMonthlyList('pending')" style="color:var(--danger); border-color:var(--danger);">
                 <div class="stat-title">UNPAID (MONTH)</div>
                 <div class="stat-val" id="countUnpaidDebts">0</div>
                 <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
             </div>
 
-            <!-- 3. ALL TIME PAID (NEW) -->
-            <div class="stat-box" style="color:var(--gold); border-color:var(--gold);" onclick="alert('Showing Total Lifetime Accomplishments.')">
+            <div class="stat-box" style="color:var(--gold); border-color:var(--gold);" onclick="showToast('Showing Lifetime Achievements', 'info')">
                 <div class="stat-title">ALL TIME PAID</div>
                 <div class="stat-val" id="countAllPaid">0</div>
                 <div class="stat-sub" id="valAllPaid">$0.00</div>
@@ -547,7 +602,6 @@
             <h2 id="monthlyViewTitle" style="color:var(--mana); margin-top:15px;"></h2>
         </div>
 
-        <!-- ADD FORM (Only shows in Pending Mode) -->
         <div id="addDebtSection" class="add-box" style="display:none;">
             <div style="font-size:0.6rem; color:var(--debt-color); margin-bottom:5px;">ADD NEW DEBT FOR THIS MONTH</div>
             <input type="date" id="qDate" placeholder="Target Date">
@@ -585,6 +639,7 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
+        /* UTILS */
         const Money = {
             add: (a, b) => Math.round((a + b) * 100) / 100,
             sub: (a, b) => Math.round((a - b) * 100) / 100,
@@ -596,6 +651,18 @@
             const formatter = new Intl.DateTimeFormat('en-CA', options);
             return formatter.format(new Date());
         }
+
+        window.showToast = (msg, type='info') => {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        };
 
         let system = { 
             vaultCurrent: 0, vaultSavings: 0, salary: 0, 
@@ -618,12 +685,14 @@
         
         const karatRatios = { 18: 0.75, 21: 0.875, 22: 0.9167, 24: 1.0 };
 
+        /* AUTH & CORE */
         document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
-        window.logout = () => { if(confirm("Disconnect?")) signOut(auth).then(()=>location.reload()); };
+        
+        window.logout = () => { if(confirm("Disconnect from System?")) signOut(auth).then(()=>location.reload()); };
 
         window.hardReset = async () => {
-            if(confirm("⚠ WARNING: FACTORY RESET ⚠\n\nThis will PERMANENTLY delete ALL your data (Gold, Money, Quests, History).\n\nAre you sure you want to proceed?")) {
-                if(confirm("FINAL WARNING: This cannot be undone.\n\nClick OK to WIPE EVERYTHING and restart.")) {
+            if(confirm("⚠ FACTORY RESET ⚠\n\nPermanently delete ALL data?\n(Gold, Money, Quests, History)")) {
+                if(confirm("FINAL WARNING: This cannot be undone.")) {
                     if(currentUser) {
                         try {
                             setSaving(true);
@@ -636,10 +705,10 @@
                                 lastUpdated: serverTimestamp()
                             };
                             await setDoc(doc(db, "users", currentUser.uid), system);
-                            alert("System Reset Complete.");
+                            showToast("System Reset Complete", "success");
                             location.reload(); 
                         } catch(e) {
-                            alert("Error during reset: " + e.message);
+                            showToast("Error during reset", "error");
                         } finally {
                             setSaving(false);
                         }
@@ -654,20 +723,32 @@
             document.getElementById('savingText').style.display = state ? 'block' : 'none';
         }
 
+        /* WEATHER */
+        async function fetchWeather() {
+            try {
+                // Fixed Coordinates for Beirut for stability
+                const lat = 33.89;
+                const lon = 35.50;
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m`);
+                const data = await res.json();
+                
+                const temp = data.current.temperature_2m;
+                const wind = data.current.wind_speed_10m;
+                
+                document.getElementById('weatherDetail').textContent = `${temp}°C | WIND ${wind}km/h | ONLINE`;
+            } catch(e) {
+                document.getElementById('weatherDetail').textContent = "OFFLINE | SYNC FAILED";
+            }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                system = { 
-                    vaultCurrent: 0, vaultSavings: 0, salary: 0, 
-                    quests: [], dayArchives: {}, history: {}, hpMonth: "",
-                    exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
-                    goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
-                    goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 }
-                };
-
                 document.getElementById('authOverlay').style.display = 'none';
                 document.getElementById('mainView').style.display = 'block';
                 document.getElementById('userEmailDisplay').textContent = user.email;
+                
+                fetchWeather(); // Init Weather
                 
                 await loadSubCollections(user.uid);
 
@@ -856,6 +937,7 @@
             return { r: 'E', c: 'var(--rank-e)' };
         }
 
+        /* ACTIONS */
         window.addSalary = async () => {
             let a = prompt("Add Salary Income (e.g. $500 or 45000000):");
             let val = parseWish(a);
@@ -863,6 +945,7 @@
                 let usdVal = Money.val(val / system.exchangeRate);
                 system.salary = Money.add(system.salary || 0, usdVal); 
                 await save(); 
+                showToast("Income Added Successfully", "success");
             }
         };
 
@@ -874,15 +957,19 @@
             if(goldAmount >= 1 && (system.salary || 0) >= costInUSD) {
                 system.salary = Money.sub(system.salary, costInUSD); 
                 await directDeposit(goldAmount); 
+                showToast("Transfer Complete", "success");
             } else {
-                alert("Insufficient Salary funds.");
+                showToast("Insufficient Salary funds", "error");
             }
         };
 
         window.startFlowDeposit = async () => { 
             let a = prompt("Deposit Assets Directly (e.g. $50 or 100k):"); 
             let val = parseWish(a);
-            if(val > 0) await directDeposit(val); 
+            if(val > 0) {
+                 await directDeposit(val); 
+                 showToast("Assets Updated", "success");
+            }
         };
 
         async function directDeposit(amount) {
@@ -900,6 +987,7 @@
                     if(system.vaultSavings < 1000) system.vaultSavings = 0;
                 }
                 await save();
+                showToast("Remainder Cleared", "info");
             }
         };
 
@@ -936,21 +1024,23 @@
                         system.dayArchives[d].push({ ...archiveData, docId: archiveRef.id });
 
                         render();
+                        showToast("Debt Paid & Archived", "success");
                         if(document.getElementById('monthlyView').style.display === 'block') {
                             openMonthlyList('pending');
                         }
                     } catch (err) {
                         console.error(err);
-                        alert("Error during payment transaction: " + err.message);
+                        showToast("Error paying debt", "error");
                     } finally {
                         setSaving(false);
                     }
                 }
             } else {
-                alert(`INSUFFICIENT SALARY!\n\nRequired: $${costUSD.toFixed(2)}\nAvailable: $${(system.salary || 0).toFixed(2)}\n\nPlease add funds via [+ INCOME] button first.`);
+                showToast("Insufficient Salary!", "error");
             }
         };
 
+        /* WITHDRAWAL LOGIC */
         window.openWithdrawModal = () => {
             document.getElementById('withdrawModal').style.display = 'flex';
             document.getElementById('withdrawInput').value = '';
@@ -978,38 +1068,87 @@
         window.submitWithdraw = async () => {
             let val = document.getElementById('withdrawInput').value;
             let req = parseWish(val);
-            if(req <= 0) { alert("Invalid Amount"); return; }
-            if(!selectedWithdrawSource) { alert("Please select a Source"); return; }
+            if(req <= 0) { showToast("Invalid Amount", "error"); return; }
+            if(!selectedWithdrawSource) { showToast("Select a Source", "error"); return; }
             
             if(selectedWithdrawSource === 'savings') {
                 if((system.vaultSavings || 0) >= req) system.vaultSavings = Money.sub(system.vaultSavings, req);
-                else { alert("Not enough in Savings!"); return; }
+                else { showToast("Not enough in Savings", "error"); return; }
             } else {
                 if((system.vaultCurrent || 0) >= req) system.vaultCurrent = Money.sub(system.vaultCurrent, req);
-                else { alert("Not enough in Current Vault!"); return; }
+                else { showToast("Not enough in Current", "error"); return; }
             }
-            // FORCE RENDER TO UPDATE UI IMMEDIATELY
             render();
             await save(); 
             closeWithdrawModal();
+            showToast("Withdrawal Confirmed", "success");
         };
 
-        window.openRateModal = () => {
-            document.getElementById('rateModal').style.display = 'flex';
-            document.getElementById('inputExchangeRate').value = system.exchangeRate;
+        /* SETTINGS & EXPORT/IMPORT */
+        window.openSettings = () => {
+            document.getElementById('settingsModal').style.display = 'flex';
+            document.getElementById('settingRateInput').value = system.exchangeRate;
         }
 
-        window.confirmRateChange = async () => {
-            let n = parseFloat(document.getElementById('inputExchangeRate').value);
-            if(n >= 1) {
+        window.closeSettings = async () => {
+            let n = parseFloat(document.getElementById('settingRateInput').value);
+            if(n >= 1 && n !== system.exchangeRate) {
                 system.exchangeRate = n;
-                await save(); 
-                document.getElementById('rateModal').style.display = 'none';
-            } else {
-                alert("Rate cannot be zero or negative.");
+                await save();
+                showToast("Rate Updated", "success");
             }
+            document.getElementById('settingsModal').style.display = 'none';
         }
 
+        window.exportData = () => {
+            // Full system export including day archives if needed (here simplified to current state object)
+            // For a full backup we need to ensure local archives match cloud. 
+            // Since archives are loaded into system.dayArchives, this works.
+            const backup = {
+                system: system,
+                timestamp: new Date().toISOString(),
+                version: "2.0"
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "system_backup_" + getSystemDate() + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            showToast("Backup Exported", "success");
+        };
+
+        window.importData = (input) => {
+            const file = input.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(data.system && confirm("Overwrite current system with this backup?")) {
+                        setSaving(true);
+                        system = { ...system, ...data.system };
+                        // Force save to cloud
+                        await save(true); 
+                        // If dayArchives were in the backup, we might want to batch write them to subcollection
+                        // But for simplicity in this version, we assume they are loaded in memory.
+                        // Ideally, we just reload the page to refresh everything from cloud if we just pushed.
+                        alert("Backup Restored. System will restart.");
+                        location.reload();
+                    }
+                } catch(err) {
+                    showToast("Invalid Backup File", "error");
+                    console.error(err);
+                } finally {
+                    setSaving(false);
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        /* GOLD LOGIC */
         window.showGoldPrices = async () => {
             document.getElementById('goldModal').style.display = 'flex';
             document.getElementById('goldLoading').style.display = 'block';
@@ -1106,19 +1245,19 @@
 
         document.getElementById('btnConfirmGoldTrans').onclick = async () => {
             let w = parseFloat(document.getElementById('goldTransInput').value);
-            if(!w || w <= 0) { alert("Invalid Weight"); return; }
+            if(!w || w <= 0) { showToast("Invalid Weight", "error"); return; }
             
             let rate = system.exchangeRate || 89500;
 
             if(currentGoldTransType === 'buy') {
                 let manualUSD = parseFloat(document.getElementById('goldManualCostInput').value);
-                if(!manualUSD || manualUSD <= 0) { alert("Please enter the Total Cost Paid ($)."); return; }
+                if(!manualUSD || manualUSD <= 0) { showToast("Enter Total Cost ($)", "error"); return; }
 
                 let totalCostLira = manualUSD * rate;
                 let totalAvailable = Money.add(system.vaultSavings || 0, system.vaultCurrent || 0);
 
                 if(totalAvailable >= totalCostLira) {
-                    if(confirm(`Confirm Purchase?\n\n${w}g of ${activeVaultKarat}K Gold\nPAID COST: $${manualUSD.toFixed(2)}\n(Deducted from Vault)`)) {
+                    if(confirm(`Confirm Purchase?\n\n${w}g of ${activeVaultKarat}K Gold\nPAID COST: $${manualUSD.toFixed(2)}`)) {
                         
                         let remainingCost = totalCostLira;
                         if(system.vaultSavings > 0) {
@@ -1141,18 +1280,18 @@
                         await save();
                         closeGoldTransModal();
                         render();
+                        showToast("Gold Stored Successfully", "success");
                     }
                 } else {
-                    alert(`Insufficient Funds in Vault!\nNeeded: $${manualUSD.toFixed(2)} (${totalCostLira.toLocaleString()} LBP)\nAvailable Total: ${(totalAvailable/rate).toFixed(2)} USD`);
+                    showToast("Insufficient Funds in Vault", "error");
                 }
 
             } else {
                 if((system.goldInventory[activeVaultKarat] || 0) >= w) {
                     let gramPriceUSD = global24kGramPrice * karatRatios[activeVaultKarat];
                     let totalReturnUSD = w * gramPriceUSD;
-                    // let totalReturnLira = totalReturnUSD * rate; 
 
-                    if(confirm(`Confirm LIQUIDATION (External)?\n\nSelling: ${w}g of ${activeVaultKarat}K Gold\nValue: $${totalReturnUSD.toFixed(2)}\n\n(Note: Money will NOT be added to System Vault)`)) {
+                    if(confirm(`Confirm LIQUIDATION?\n\nSelling: ${w}g\nValue: $${totalReturnUSD.toFixed(2)}`)) {
                         let currentWeight = system.goldInventory[activeVaultKarat];
                         let sellRatio = w / currentWeight;
                         let costToRemove = (system.goldCosts[activeVaultKarat] || 0) * sellRatio;
@@ -1164,13 +1303,15 @@
                         await save();
                         closeGoldTransModal();
                         render();
+                        showToast("Gold Liquidated", "success");
                     }
                 } else {
-                    alert(`Insufficient Gold (${activeVaultKarat}K) in Vault!`);
+                    showToast("Insufficient Gold to Sell", "error");
                 }
             }
         };
 
+        /* QUESTS */
         window.registerQuest = async (isDebt) => {
             let t = document.getElementById('qTitle').value;
             let g = document.getElementById('qTarget').value;
@@ -1190,8 +1331,9 @@
                 document.getElementById('qTitle').value = ''; 
                 document.getElementById('qTarget').value = '';
                 openMonthlyList('pending');
+                showToast("Debt Added", "success");
             } else {
-                alert("Please enter a valid title and amount.");
+                showToast("Invalid Input", "error");
             }
         };
 
@@ -1211,6 +1353,7 @@
                 system.quests.splice(idx,1);
                 await save();
                 openMonthlyList('pending'); 
+                showToast("Debt Discarded", "info");
             }
         };
 
@@ -1228,6 +1371,7 @@
                 if(system.dayArchives[date].length === 0) delete system.dayArchives[date];
                 
                 render();
+                showToast("Record Purged", "info");
                 if(document.getElementById('monthlyView').style.display === 'block') {
                     openMonthlyList('paid');
                 }
@@ -1350,11 +1494,9 @@
             const totalCashAvailable = vCurrent + vSavings;
             const totalNetWorth = totalCashAvailable + totalGoldValueLira;
             
-            // --- NEW NET WORTH DISPLAY (Million + USD) ---
             const netWorthUSD = totalNetWorth / rate;
             document.getElementById('realNetWorth').innerHTML = 
                 `${formatVal(totalNetWorth)} <span style="font-size:0.6rem; color:#ccc;">($${netWorthUSD.toLocaleString(undefined, {minimumFractionDigits:2})})</span>`;
-            // ---------------------------------------------
 
             const hpBase = 15; 
             let currentMonthUSD = vCurrent / rate; 
@@ -1381,7 +1523,7 @@
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
             document.getElementById('vaultSavingsUSD').textContent = `$${(vSavings/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
-            // GOLD BAR (Visual Estimate)
+            // GOLD BAR
             let activeKarat = system.preferredKarat || 24;
             let activeRatio = karatRatios[activeKarat];
             let activeGramPrice = global24kGramPrice * activeRatio;
@@ -1423,7 +1565,7 @@
             document.getElementById('goldVaultGrams').textContent = vaultGrams.toFixed(2) + "g";
             document.getElementById('goldVaultVal').textContent = "$" + vaultValUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
             
-            let vaultCap = 20; // Cap for the physical vault bar
+            let vaultCap = 20; 
             let vaultPerc = Math.min((vaultGrams / vaultCap) * 100, 100);
             document.getElementById('goldVaultFill').style.width = vaultPerc + "%";
             document.getElementById('goldVaultText').textContent = (vaultGrams > 0) ? "HOLDING SECURE" : "EMPTY SLOT";
@@ -1441,7 +1583,7 @@
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (totalCashAvailable > 0.1 && totalCashAvailable < 1000) ? 'block' : 'none';
 
-            // STATS - THIS MONTH
+            // STATS
             const year = navDate.getFullYear();
             const month = String(navDate.getMonth() + 1).padStart(2,'0');
             const currentMonthPrefix = `${year}-${month}`;
@@ -1467,11 +1609,9 @@
             document.getElementById('countPaidDebts').textContent = paidCount;
             document.getElementById('valPaidDebts').textContent = `$${(paidGold/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
-            // --- NEW: ALL TIME STATS CALCULATION ---
             let allTimeCount = 0;
             let allTimeVal = 0;
             if(system.dayArchives) {
-                // Loop through all dates, not just current month
                 Object.values(system.dayArchives).forEach(dayList => {
                     dayList.forEach(q => {
                         allTimeCount++;
@@ -1481,7 +1621,6 @@
             }
             document.getElementById('countAllPaid').textContent = allTimeCount;
             document.getElementById('valAllPaid').textContent = `$${(allTimeVal/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
-            // ---------------------------------------
 
             drawCalendar();
         }
