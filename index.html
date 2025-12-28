@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | DUAL VAULTS</title>
+    <title>SUNG JIN-WOO SYSTEM | V3.0</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -85,6 +85,12 @@
         .gold-grams-display { font-size: 1.5rem; font-family: monospace; color: white; font-weight: bold; }
         .gold-val-display { font-size: 0.8rem; color: #888; font-family: monospace; margin-top: 5px; }
 
+        /* DCA Stats Row */
+        .dca-stats { display: flex; justify-content: center; gap: 15px; margin-top: 10px; font-family: monospace; font-size: 0.7rem; }
+        .dca-item { display: flex; flex-direction: column; align-items: center; }
+        .dca-lbl { color: #666; font-size: 0.6rem; margin-bottom: 2px; }
+        .dca-val { color: #ccc; font-weight: bold; }
+
         .master-top-row {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px 15px; background: rgba(0, 210, 255, 0.05);
@@ -113,6 +119,7 @@
             background: var(--panel); border: 1px solid var(--mana);
             width: 90%; max-width: 350px; padding: 20px; text-align: center;
             box-shadow: 0 0 20px rgba(0, 210, 255, 0.15);
+            max-height: 85vh; overflow-y: auto;
         }
         .modal-title { color: var(--mana); font-weight: bold; margin-bottom: 15px; letter-spacing: 2px; border-bottom: 1px solid rgba(0, 210, 255, 0.3); padding-bottom: 10px; }
         
@@ -146,6 +153,10 @@
         .settings-label { font-size: 0.6rem; color: #888; text-align: left; margin-bottom: 5px; display:block;}
         .file-btn { background: #222; border: 1px dashed #666; color: #ccc; padding: 10px; width: 100%; cursor: pointer; font-size: 0.7rem; margin-bottom: 10px; }
         .file-btn:hover { border-color: var(--mana); color: white; }
+        
+        /* RECURRING LIST IN SETTINGS */
+        .recurring-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #333; font-size: 0.75rem; color: #ccc; }
+        .btn-del-rec { background: none; border: none; color: var(--danger); font-weight: bold; cursor: pointer; }
 
         /* AUTH OVERLAY */
         #authOverlay {
@@ -278,6 +289,11 @@
             border: 1px solid var(--debt-color); margin-bottom: 20px;
         }
 
+        /* CHECKBOX STYLE */
+        .checkbox-wrapper { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .custom-checkbox { width: 16px; height: 16px; accent-color: var(--debt-color); cursor: pointer; margin: 0; }
+        .checkbox-label { font-size: 0.7rem; color: #ccc; cursor: pointer; }
+
         /* TOAST NOTIFICATION */
         #toastContainer {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
@@ -306,7 +322,7 @@
 
     <div id="authOverlay">
         <div class="login-card">
-            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS</div>
+            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V3.0</div>
             <button class="btn-system" id="loginBtn" style="background: white; color: black; border: none;">INITIALIZE (GOOGLE)</button>
         </div>
     </div>
@@ -322,8 +338,13 @@
             </div>
 
             <div class="settings-section">
+                <span class="settings-label">RECURRING TASKS</span>
+                <button class="btn-system" onclick="openRecurringList()" style="margin-bottom:10px; border-color:var(--debt-color); color:var(--debt-color);">MANAGE FIXED EXPENSES</button>
+            </div>
+
+            <div class="settings-section">
                 <span class="settings-label">DATA MANAGEMENT (JSON)</span>
-                <button class="btn-system" onclick="shareData()" style="margin-bottom:10px; border-color:var(--success); color:var(--success);">📤 SHARE BACKUP (GMAIL/FILES)</button>
+                <button class="btn-system" onclick="shareData()" style="margin-bottom:10px; border-color:var(--success); color:var(--success);">📤 SHARE BACKUP (GMAIL/WHATSAPP)</button>
                 <button class="btn-system" onclick="exportData()" style="margin-bottom:10px;">⬇ DOWNLOAD FILE (LOCAL)</button>
                 <button class="file-btn" onclick="document.getElementById('importFile').click()">⬆ IMPORT BACKUP</button>
                 <input type="file" id="importFile" style="display:none;" onchange="importData(this)">
@@ -335,6 +356,17 @@
             </div>
 
             <button class="modal-btn btn-cancel" style="width:100%" onclick="closeSettings()">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- RECURRING MANAGEMENT MODAL -->
+    <div id="recurringModal" class="modal-backdrop">
+        <div class="modal-window">
+            <div class="modal-title" style="color:var(--debt-color); border-color:var(--debt-color);">FIXED EXPENSES</div>
+            <div id="recurringList" style="text-align:left; max-height:250px; overflow-y:auto; margin-bottom:15px;">
+                <!-- Items here -->
+            </div>
+            <button class="modal-btn btn-cancel" style="width:100%" onclick="document.getElementById('recurringModal').style.display='none'">BACK</button>
         </div>
     </div>
 
@@ -380,6 +412,10 @@
                     <span class="src-val" id="dispSavings">0</span>
                     <span class="src-sub-usd" id="dispSavingsUSD">$0.00</span>
                 </div>
+            </div>
+
+            <div id="savingsWarning" style="display:none; color:var(--danger); font-size:0.7rem; font-weight:bold; margin-bottom:10px; border:1px solid var(--danger); padding:5px; animation:savePulse 1s infinite;">
+                ⚠ WARNING: PENALTY RISK ⚠<br>SAVINGS ARE FOR EMERGENCY ONLY!
             </div>
 
             <div class="modal-actions">
@@ -515,11 +551,11 @@
             <button class="btn-system btn-withdraw" style="border-color:var(--danger); color:var(--danger);" onclick="openWithdrawModal()">Withdrawal</button>
         </div>
 
-        <!-- NEW GOLD VAULT CARD -->
+        <!-- NEW GOLD VAULT CARD (WITH DCA) -->
         <div class="gold-vault-card">
             <div class="gold-vault-header">
                 <span>PHYSICAL GOLD VAULT</span>
-                <span style="font-size:0.6rem; color:#666;">PORTFOLIO TRACKER</span>
+                <span style="font-size:0.6rem; color:#666;">PORTFOLIO & DCA</span>
             </div>
             
             <div class="portfolio-summary">
@@ -540,6 +576,18 @@
                 <div id="goldVaultGrams" class="gold-grams-display">0.00g</div>
                 <div id="goldVaultVal" class="gold-val-display">$0.00</div>
                 
+                <!-- NEW DCA SECTION -->
+                <div class="dca-stats">
+                    <div class="dca-item">
+                        <span class="dca-lbl">AVG COST/g</span>
+                        <span class="dca-val" id="dcaAvgCost">$0.00</span>
+                    </div>
+                    <div class="dca-item">
+                        <span class="dca-lbl">MARKET PRICE</span>
+                        <span class="dca-val" style="color:var(--gold);" id="dcaMarketPrice">$0.00</span>
+                    </div>
+                </div>
+
                 <div style="margin: 15px 5px 0 5px;">
                     <div class="gold-bar-container">
                         <div class="gold-fill" id="goldVaultFill" style="background: linear-gradient(90deg, #ffd700, #fff);"></div>
@@ -608,6 +656,13 @@
             <input type="date" id="qDate" placeholder="Target Date">
             <input type="text" id="qTitle" placeholder="Debt Name / Title">
             <input type="text" id="qTarget" placeholder="Amount (e.g. $50, 100k, 1m)">
+            
+            <!-- RECURRING CHECKBOX -->
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="qRecurring" class="custom-checkbox">
+                <label for="qRecurring" class="checkbox-label">Repeat Monthly (Fixed Expense)</label>
+            </div>
+
             <button class="btn-system" style="background:var(--debt-color); color:#fff; border:none;" onclick="registerQuest(true)">ADD DEBT RECORD</button>
         </div>
 
@@ -624,7 +679,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, addDoc, getDocs, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, addDoc, getDocs, deleteDoc, writeBatch, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD-j_kXAR8PqOPd1GBEst-sRWZNCpuFM7w",
@@ -639,6 +694,11 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
+
+        // ENABLE OFFLINE PERSISTENCE (V3.0 Feature)
+        enableIndexedDbPersistence(db).catch((err) => {
+            console.log("Persistence error:", err.code);
+        });
 
         /* UTILS */
         const Money = {
@@ -673,7 +733,8 @@
             hpMonth: "",
             exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
             goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
-            goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 } 
+            goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
+            recurringTemplates: [] // V3.0 Feature
         };
 
         let navDate = new Date();
@@ -703,6 +764,7 @@
                                 exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
                                 goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
                                 goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
+                                recurringTemplates: [],
                                 lastUpdated: serverTimestamp()
                             };
                             await setDoc(doc(db, "users", currentUser.uid), system);
@@ -724,50 +786,30 @@
             document.getElementById('savingText').style.display = state ? 'block' : 'none';
         }
 
-        /* WEATHER (UPDATED FOR BAALBEK & SNOW/RAIN LOGIC) */
+        /* WEATHER (UPDATED FOR BAALBEK) */
         async function fetchWeather() {
             try {
-                // Baalbek Coordinates
-                const lat = 34.00;
-                const lon = 36.21;
-                // Get current weather + daily forecast code to see if it will rain/snow today
+                const lat = 34.00; const lon = 36.21;
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code&timezone=auto`);
                 const data = await res.json();
-                
                 const temp = data.current.temperature_2m;
                 const wind = data.current.wind_speed_10m;
-                
-                // Get today's forecast code from daily array (index 0 is today)
                 const todayCode = data.daily.weather_code[0];
-                
-                let conditionText = "CLEAR";
-                let conditionColor = "var(--mana)";
+                let conditionText = "CLEAR"; let conditionColor = "var(--mana)";
 
-                // Logic for Snow: Codes 71, 73, 75, 77, 85, 86
                 if([71, 73, 75, 77, 85, 86].includes(todayCode)) {
-                    conditionText = "SNOW WARNING ❄️";
-                    conditionColor = "#ffffff";
-                }
-                // Logic for Rain: Codes 51-67, 80-82
-                else if([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(todayCode)) {
-                    conditionText = "RAIN EXPECTED 🌧️";
-                    conditionColor = "#4facfe"; // Light Blue
-                }
-                // Thunderstorm: 95, 96, 99
-                else if([95, 96, 99].includes(todayCode)) {
-                    conditionText = "STORM WARNING ⛈️";
-                    conditionColor = "var(--danger)";
+                    conditionText = "SNOW WARNING ❄️"; conditionColor = "#ffffff";
+                } else if([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(todayCode)) {
+                    conditionText = "RAIN EXPECTED 🌧️"; conditionColor = "#4facfe";
+                } else if([95, 96, 99].includes(todayCode)) {
+                    conditionText = "STORM WARNING ⛈️"; conditionColor = "var(--danger)";
                 }
 
                 const widget = document.getElementById('weatherDetail');
                 widget.textContent = `${temp}°C | ${wind}km/h | ${conditionText}`;
                 widget.style.color = conditionColor;
-                
-                // Ensure Location says Baalbek
                 document.querySelector('.weather-loc').textContent = "ENV: BAALBEK";
-
             } catch(e) {
-                console.log(e);
                 document.getElementById('weatherDetail').textContent = "OFFLINE | SYNC FAILED";
             }
         }
@@ -779,7 +821,7 @@
                 document.getElementById('mainView').style.display = 'block';
                 document.getElementById('userEmailDisplay').textContent = user.email;
                 
-                fetchWeather(); // Init Weather
+                fetchWeather(); 
                 
                 await loadSubCollections(user.uid);
 
@@ -798,6 +840,7 @@
                         
                         if(!system.goldInventory) system.goldInventory = { 18: 0, 21: 0, 22: 0, 24: 0 };
                         if(!system.goldCosts) system.goldCosts = { 18: 0, 21: 0, 22: 0, 24: 0 };
+                        if(!system.recurringTemplates) system.recurringTemplates = [];
                         
                         system.dayArchives = existingArchives;
                         system.history = { ...existingHistory, ...(data.history || {}) };
@@ -883,6 +926,7 @@
                     goldCosts: system.goldCosts,
                     quests: system.quests,
                     hpMonth: system.hpMonth,
+                    recurringTemplates: system.recurringTemplates || [],
                     lastUpdated: serverTimestamp() 
                 };
                 
@@ -926,8 +970,29 @@
                 system.history[storedMonth] = { val: monthVal, rate: system.exchangeRate };
                 await addDoc(collection(db, "users", currentUser.uid, "history_log"), monthData);
 
+                // Rollover Logic
                 system.vaultSavings = Money.add(system.vaultSavings || 0, system.vaultCurrent || 0);
                 system.vaultCurrent = 0;
+                
+                // RECURRING TASK GENERATION (V3.0 Feature)
+                if(system.recurringTemplates && system.recurringTemplates.length > 0) {
+                    const nextM = getNextMonth(storedMonth);
+                    system.recurringTemplates.forEach(template => {
+                        const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
+                        // Construct date for the new month (e.g. currentMonth-01)
+                        const targetDay = template.targetDay || "01";
+                        const newDate = `${nextM}-${targetDay}`;
+                        
+                        system.quests.push({
+                            id: uniqueId,
+                            title: template.title,
+                            target: template.target,
+                            current: 0,
+                            isDebt: true,
+                            targetDate: newDate
+                        });
+                    });
+                }
                 
                 storedMonth = getNextMonth(storedMonth);
             }
@@ -935,6 +1000,7 @@
             if(needsSave) {
                 system.hpMonth = currentMonthStr;
                 await save();
+                showToast("New Month Initialized: Recurring Tasks Added", "success");
             }
         }
 
@@ -1071,7 +1137,7 @@
             }
         };
 
-        /* WITHDRAWAL LOGIC */
+        /* WITHDRAWAL LOGIC (UPDATED WITH SAVINGS PENALTY) */
         window.openWithdrawModal = () => {
             document.getElementById('withdrawModal').style.display = 'flex';
             document.getElementById('withdrawInput').value = '';
@@ -1084,6 +1150,7 @@
             selectedWithdrawSource = null;
             document.getElementById('btnSrcCurrent').classList.remove('active');
             document.getElementById('btnSrcSavings').classList.remove('active');
+            document.getElementById('savingsWarning').style.display = 'none';
         };
 
         window.closeWithdrawModal = () => document.getElementById('withdrawModal').style.display = 'none';
@@ -1092,8 +1159,13 @@
             selectedWithdrawSource = src;
             document.getElementById('btnSrcCurrent').classList.remove('active');
             document.getElementById('btnSrcSavings').classList.remove('active');
+            document.getElementById('savingsWarning').style.display = 'none';
+            
             if(src === 'current') document.getElementById('btnSrcCurrent').classList.add('active');
-            if(src === 'savings') document.getElementById('btnSrcSavings').classList.add('active');
+            if(src === 'savings') {
+                document.getElementById('btnSrcSavings').classList.add('active');
+                document.getElementById('savingsWarning').style.display = 'block'; // V3.0 Feature
+            }
         };
 
         window.submitWithdraw = async () => {
@@ -1103,6 +1175,9 @@
             if(!selectedWithdrawSource) { showToast("Select a Source", "error"); return; }
             
             if(selectedWithdrawSource === 'savings') {
+                // PENALTY WARNING CONFIRM
+                if(!confirm("⚠ PENALTY WARNING ⚠\n\nYou are about to withdraw from SAVINGS.\nThis is discouraged by the System.\n\nProceed anyway?")) return;
+
                 if((system.vaultSavings || 0) >= req) system.vaultSavings = Money.sub(system.vaultSavings, req);
                 else { showToast("Not enough in Savings", "error"); return; }
             } else {
@@ -1131,18 +1206,20 @@
             document.getElementById('settingsModal').style.display = 'none';
         }
 
-        // --- NEW SHARE FUNCTION (GMAIL/FILES) ---
+        // --- ANDROID FIX SHARE FUNCTION ---
         window.shareData = async () => {
             const backup = {
                 system: system,
                 timestamp: new Date().toISOString(),
-                version: "2.0"
+                version: "3.0"
             };
             const jsonStr = JSON.stringify(backup);
-            const blob = new Blob([jsonStr], { type: "application/json" });
-            const file = new File([blob], "sung_jin_woo_backup.json", { type: "application/json" });
+            
+            // CHANGED TO text/plain FOR ANDROID COMPATIBILITY
+            const blob = new Blob([jsonStr], { type: "text/plain" });
+            const file = new File([blob], "sung_jin_woo_backup.json", { type: "text/plain" });
 
-            if (navigator.share) {
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({
                         title: 'System Backup',
@@ -1152,10 +1229,14 @@
                     showToast("Shared Successfully", "success");
                 } catch (err) {
                     console.error("Share failed:", err);
-                    // User might have cancelled, which is fine
                 }
             } else {
-                showToast("Sharing not supported. Use Download.", "error");
+                // Fallback attempt without check (some browsers lie)
+                try {
+                    await navigator.share({ files: [file] });
+                } catch(e) {
+                    showToast("Share not supported, use Download", "error");
+                }
             }
         };
 
@@ -1163,7 +1244,7 @@
             const backup = {
                 system: system,
                 timestamp: new Date().toISOString(),
-                version: "2.0"
+                version: "3.0"
             };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
             const downloadAnchorNode = document.createElement('a');
@@ -1186,7 +1267,6 @@
                     if(data.system && confirm("Overwrite current system with this backup?")) {
                         setSaving(true);
                         system = { ...system, ...data.system };
-                        // Force save to cloud
                         await save(true); 
                         alert("Backup Restored. System will restart.");
                         location.reload();
@@ -1201,7 +1281,7 @@
             reader.readAsText(file);
         };
 
-        /* GOLD LOGIC */
+        /* GOLD LOGIC (UPDATED DCA) */
         window.showGoldPrices = async () => {
             document.getElementById('goldModal').style.display = 'flex';
             document.getElementById('goldLoading').style.display = 'block';
@@ -1326,6 +1406,7 @@
                              system.vaultCurrent = Money.sub(system.vaultCurrent, remainingCost);
                         }
                         
+                        // DCA LOGIC: Buying increases cost and weight
                         system.goldInventory[activeVaultKarat] = Money.add(system.goldInventory[activeVaultKarat] || 0, w);
                         if(!system.goldCosts) system.goldCosts = { 18: 0, 21: 0, 22: 0, 24: 0 };
                         system.goldCosts[activeVaultKarat] = Money.add(system.goldCosts[activeVaultKarat] || 0, manualUSD);
@@ -1345,6 +1426,7 @@
                     let totalReturnUSD = w * gramPriceUSD;
 
                     if(confirm(`Confirm LIQUIDATION?\n\nSelling: ${w}g\nValue: $${totalReturnUSD.toFixed(2)}`)) {
+                        // DCA LOGIC: Selling removes cost proportionally (AVG cost remains same)
                         let currentWeight = system.goldInventory[activeVaultKarat];
                         let sellRatio = w / currentWeight;
                         let costToRemove = (system.goldCosts[activeVaultKarat] || 0) * sellRatio;
@@ -1352,6 +1434,9 @@
                         system.goldInventory[activeVaultKarat] = Money.sub(system.goldInventory[activeVaultKarat], w);
                         system.goldCosts[activeVaultKarat] = Money.sub(system.goldCosts[activeVaultKarat], costToRemove);
                         if(system.goldCosts[activeVaultKarat] < 0) system.goldCosts[activeVaultKarat] = 0;
+
+                        // Return money to Vault Current
+                        system.vaultCurrent = Money.add(system.vaultCurrent || 0, totalReturnUSD * rate);
 
                         await save();
                         closeGoldTransModal();
@@ -1364,11 +1449,12 @@
             }
         };
 
-        /* QUESTS */
+        /* QUESTS & RECURRING */
         window.registerQuest = async (isDebt) => {
             let t = document.getElementById('qTitle').value;
             let g = document.getElementById('qTarget').value;
             let d = document.getElementById('qDate').value;
+            let isRecurring = document.getElementById('qRecurring').checked; // V3.0
             
             if(!d) {
                 let year = navDate.getFullYear();
@@ -1379,10 +1465,26 @@
 
             let amount = parseWish(g);
             if(t && amount > 0) {
-                const targetDate = d;
-                await addObjective(t, amount, true, targetDate);
+                await addObjective(t, amount, true, d);
+                
+                // SAVE RECURRING TEMPLATE
+                if(isRecurring) {
+                    if(!system.recurringTemplates) system.recurringTemplates = [];
+                    // Extract day
+                    const day = d.split('-')[2];
+                    system.recurringTemplates.push({
+                        title: t,
+                        target: amount,
+                        targetDay: day,
+                        createdAt: Date.now()
+                    });
+                    await save();
+                    showToast("Recurring Task Saved", "info");
+                }
+
                 document.getElementById('qTitle').value = ''; 
                 document.getElementById('qTarget').value = '';
+                document.getElementById('qRecurring').checked = false;
                 openMonthlyList('pending');
                 showToast("Debt Added", "success");
             } else {
@@ -1428,6 +1530,34 @@
                 if(document.getElementById('monthlyView').style.display === 'block') {
                     openMonthlyList('paid');
                 }
+            }
+        };
+
+        // RECURRING MANAGEMENT UI
+        window.openRecurringList = () => {
+            document.getElementById('recurringModal').style.display = 'flex';
+            const list = document.getElementById('recurringList');
+            list.innerHTML = '';
+            if(!system.recurringTemplates || system.recurringTemplates.length === 0) {
+                list.innerHTML = '<div style="color:#666; font-size:0.7rem; text-align:center; padding:20px;">No fixed expenses defined.</div>';
+                return;
+            }
+            system.recurringTemplates.forEach((tpl, idx) => {
+                list.innerHTML += `
+                    <div class="recurring-item">
+                        <span>${tpl.title} (${formatVal(tpl.target)}) - Day ${tpl.targetDay || '01'}</span>
+                        <button class="btn-del-rec" onclick="deleteRecurring(${idx})">DEL</button>
+                    </div>
+                `;
+            });
+        };
+
+        window.deleteRecurring = async (idx) => {
+            if(confirm("Stop this monthly recurring expense?")) {
+                system.recurringTemplates.splice(idx, 1);
+                await save();
+                openRecurringList(); // Refresh
+                showToast("Recurring Expense Removed", "success");
             }
         };
 
@@ -1612,8 +1742,25 @@
             document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
             document.getElementById('gt' + activeVaultKarat).classList.add('active');
 
+            // NEW DCA DISPLAY LOGIC
             let vaultGrams = (system.goldInventory && system.goldInventory[activeVaultKarat]) ? system.goldInventory[activeVaultKarat] : 0;
             let vaultValUSD = vaultGrams * (global24kGramPrice * karatRatios[activeVaultKarat]);
+            let vaultCostUSD = (system.goldCosts && system.goldCosts[activeVaultKarat]) ? system.goldCosts[activeVaultKarat] : 0;
+            
+            let avgCost = 0;
+            if(vaultGrams > 0.01) avgCost = vaultCostUSD / vaultGrams;
+            let marketPrice = global24kGramPrice * karatRatios[activeVaultKarat];
+
+            document.getElementById('dcaAvgCost').textContent = '$' + avgCost.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            document.getElementById('dcaMarketPrice').textContent = '$' + marketPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            
+            // Color code DCA
+            if(avgCost > 0) {
+                if(marketPrice >= avgCost) document.getElementById('dcaAvgCost').style.color = "var(--success)";
+                else document.getElementById('dcaAvgCost').style.color = "var(--danger)";
+            } else {
+                document.getElementById('dcaAvgCost').style.color = "#ccc";
+            }
             
             document.getElementById('goldVaultGrams').textContent = vaultGrams.toFixed(2) + "g";
             document.getElementById('goldVaultVal').textContent = "$" + vaultValUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
