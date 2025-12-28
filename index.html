@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V4.0</title>
+    <title>SUNG JIN-WOO SYSTEM | V4.1</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -12,8 +12,6 @@
             --rank-ss: #ffcc00; --rank-s: #ff3131; --rank-a: #bc13fe;
             --rank-b: #00d2ff; --rank-c: #4caf50; --rank-e: #9e9e9e;
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
-            /* EXPENSE CATEGORY COLORS */
-            --cat-vit: #ff4757; --cat-agi: #2ed573; --cat-int: #5352ed; --cat-eqp: #ffa502;
         }
 
         body { 
@@ -184,6 +182,29 @@
             pointer-events: none; display: none; border-radius: 4px; z-index: 10;
         }
 
+        /* BUDGET SHADOW GRAPH STYLES */
+        .budget-bar-group { margin-bottom: 12px; }
+        .budget-labels { display: flex; justify-content: space-between; font-size: 0.65rem; color: #ccc; margin-bottom: 3px; }
+        .b-bar-track { height: 12px; background: rgba(255,255,255,0.05); position: relative; border-radius: 2px; }
+        
+        /* The "Shadow" (Previous Month) */
+        .b-bar-shadow {
+            position: absolute; top: 0; left: 0; height: 100%;
+            background: repeating-linear-gradient(45deg, #333, #333 5px, #444 5px, #444 10px);
+            opacity: 0.5; z-index: 1; border-right: 2px solid #666;
+        }
+        
+        /* The "Current" (This Month) */
+        .b-bar-current {
+            position: absolute; top: 0; left: 0; height: 100%;
+            background: linear-gradient(90deg, #5352ed, #3742fa);
+            z-index: 2; opacity: 0.85; box-shadow: 0 0 5px #5352ed;
+        }
+        
+        .budget-diff-text { font-size: 0.6rem; margin-top: 2px; text-align: right; font-family: monospace; }
+        .diff-good { color: var(--success); }
+        .diff-bad { color: var(--danger); }
+
         /* CUSTOM RANK INPUTS */
         .rank-config-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .rank-badge-sm { width: 30px; font-weight: bold; font-size: 0.8rem; text-align: center; }
@@ -351,16 +372,26 @@
 
     <div id="authOverlay">
         <div class="login-card">
-            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V4.0</div>
+            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V4.1</div>
             <button class="btn-system" id="loginBtn" style="background: white; color: black; border: none;">INITIALIZE (GOOGLE)</button>
         </div>
     </div>
 
-    <!-- SETTINGS MODAL (V4.0) -->
+    <!-- SETTINGS MODAL (V4.1 UPDATE) -->
     <div id="settingsModal" class="modal-backdrop">
         <div class="modal-window">
             <div class="modal-title" data-i18n="settings">SYSTEM SETTINGS</div>
             
+            <!-- SECTION 0: BUDGET ANALYTICS (NEW) -->
+            <div class="settings-section">
+                <span class="settings-label" style="color:#5352ed; font-size:0.7rem;">BUDGET ANALYTICS (SHADOW GRAPH)</span>
+                <p style="font-size:0.6rem; color:#888; margin-bottom:10px;">Comparison: Current Month vs Last Month</p>
+                <div id="budgetAnalyticsContainer" style="text-align:left; min-height:100px;">
+                    <!-- Graphs will be injected here -->
+                    <div style="color:#666; font-size:0.7rem; text-align:center;">No expense data yet.</div>
+                </div>
+            </div>
+
             <!-- SECTION 1: GENERAL -->
             <div class="settings-section">
                 <span class="settings-label" data-i18n="exchangeRate">EXCHANGE RATE (LIRA)</span>
@@ -423,23 +454,32 @@
         </div>
     </div>
 
-    <!-- MANA EXPENSE MODAL (NEW) -->
+    <!-- MANA EXPENSE MODAL (UPDATED V4.1) -->
     <div id="manaModal" class="modal-backdrop">
         <div class="modal-window">
-            <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">LOG TRAINING EXPENSE</div>
-            <p style="font-size:0.6rem; color:#aaa; margin-bottom:10px;">Deducts from Budget Bar ONLY (Not Vault)</p>
+            <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">LOG EXPENSE</div>
+            <p style="font-size:0.6rem; color:#aaa; margin-bottom:10px;">Deducted from Phantom Salary (Budget)</p>
             
-            <input type="number" id="manaAmountInput" class="modal-input" placeholder="Amount">
+            <span class="settings-label">ITEM NAME</span>
+            <input type="text" id="manaItemInput" class="modal-input" placeholder="e.g. Nescafe, Shawarma...">
+
+            <span class="settings-label">CATEGORY (FOR SHADOW GRAPH)</span>
+            <input type="text" id="manaCatInput" class="modal-input" list="catSuggestions" placeholder="e.g. Food, Transport, Home...">
+            <datalist id="catSuggestions">
+                <option value="Food">
+                <option value="Transport">
+                <option value="Home">
+                <option value="Entertainment">
+                <option value="Health">
+                <option value="Bills">
+            </datalist>
+
+            <span class="settings-label">COST</span>
+            <input type="number" id="manaAmountInput" class="modal-input" placeholder="Amount (e.g. 100000 or 2.5$)">
+            <p style="font-size:0.6rem; color:#666; margin-top:-10px; margin-bottom:15px;">* Values &lt; 5000 treated as USD</p>
             
-            <span class="settings-label">SELECT CATEGORY</span>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:15px;">
-                <button class="btn-system" onclick="submitMana('VIT')" style="border-color:var(--cat-vit); color:var(--cat-vit);">🔴 VIT (LIVING)</button>
-                <button class="btn-system" onclick="submitMana('AGI')" style="border-color:var(--cat-agi); color:var(--cat-agi);">🟢 AGI (MOVE)</button>
-                <button class="btn-system" onclick="submitMana('INT')" style="border-color:var(--cat-int); color:var(--cat-int);">🔵 INT (FIXED)</button>
-                <button class="btn-system" onclick="submitMana('EQP')" style="border-color:var(--cat-eqp); color:var(--cat-eqp);">🟡 EQP (GEAR)</button>
-            </div>
-            
-            <button class="modal-btn btn-cancel" onclick="document.getElementById('manaModal').style.display='none'">CANCEL</button>
+            <button class="modal-btn btn-confirm" onclick="submitManaExpense()" style="width:100%; margin-bottom:5px;">CONFIRM EXPENSE</button>
+            <button class="modal-btn btn-cancel" onclick="document.getElementById('manaModal').style.display='none'" style="width:100%">CANCEL</button>
         </div>
     </div>
 
@@ -646,7 +686,7 @@
             <button class="btn-system btn-withdraw" style="border-color:var(--danger); color:var(--danger);" onclick="openWithdrawModal()" data-i18n="withdraw">Withdrawal</button>
         </div>
 
-        <!-- NEW GOLD VAULT CARD -->
+        <!-- GOLD VAULT CARD -->
         <div class="gold-vault-card">
             <div class="gold-vault-header">
                 <span>PHYSICAL GOLD VAULT</span>
@@ -811,7 +851,7 @@
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
         };
 
-        // --- TRANSLATIONS V4.0 ---
+        // --- TRANSLATIONS V4.1 ---
         const TRANSLATIONS = {
             en: {
                 settings: "SYSTEM SETTINGS", exchangeRate: "EXCHANGE RATE (LIRA)", manaBudget: "MONTHLY BUDGET (MANA CAP)",
@@ -849,8 +889,8 @@
             goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
             goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
             recurringTemplates: [],
-            // V4.0 NEW FIELDS
             budgetCap: 0, budgetCurrent: 0,
+            expenses: [], // NEW V4.1
             customRanks: { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 },
             location: { name: "Baalbek", lat: 34.00, lon: 36.21 },
             language: "en"
@@ -875,7 +915,6 @@
                 if(currentUser) {
                     try {
                         setSaving(true);
-                        // Reset but keep defaults
                         system = { 
                             vaultCurrent: 0, vaultSavings: 0, salary: 0, 
                             quests: [], dayArchives: {}, history: {}, hpMonth: getSystemDate().substring(0, 7),
@@ -884,6 +923,7 @@
                             goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
                             recurringTemplates: [],
                             budgetCap: 0, budgetCurrent: 0,
+                            expenses: [],
                             customRanks: { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 },
                             location: { name: "Baalbek", lat: 34.00, lon: 36.21 },
                             language: "en",
@@ -903,7 +943,7 @@
             document.getElementById('savingText').style.display = state ? 'block' : 'none';
         }
 
-        /* WEATHER V4.0 (Location Config) */
+        /* WEATHER V4.1 */
         async function fetchWeather() {
             try {
                 const loc = system.location || { name: "Baalbek", lat: 34.00, lon: 36.21 };
@@ -946,16 +986,15 @@
                             data.vaultSavings = data.vault; data.vaultCurrent = 0; delete data.vault;
                         }
                         
-                        // Merge Sub-collections
                         const existingArchives = system.dayArchives || {};
                         const existingHistory = system.history || {};
 
                         system = { ...system, ...data };
                         
-                        // Default Checks for V4.0
                         if(!system.customRanks) system.customRanks = { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 };
                         if(!system.location) system.location = { name: "Baalbek", lat: 34.00, lon: 36.21 };
                         if(!system.language) system.language = "en";
+                        if(!system.expenses) system.expenses = [];
 
                         system.dayArchives = existingArchives;
                         system.history = { ...existingHistory, ...(data.history || {}) };
@@ -1024,10 +1063,9 @@
                 system.vaultCurrent = Money.val(system.vaultCurrent || 0);
                 system.vaultSavings = Money.val(system.vaultSavings || 0);
                 system.salary = Money.val(system.salary || 0);
-                system.budgetCurrent = Money.val(system.budgetCurrent || 0); // V4.0
+                system.budgetCurrent = Money.val(system.budgetCurrent || 0);
                 system.storedGoldPrice = global24kGramPrice;
 
-                // Strip history and archives from main doc save (they are subcollections)
                 const payload = { 
                     vaultCurrent: system.vaultCurrent, vaultSavings: system.vaultSavings,
                     salary: system.salary, exchangeRate: system.exchangeRate,
@@ -1035,9 +1073,9 @@
                     goldInventory: system.goldInventory, goldCosts: system.goldCosts,
                     quests: system.quests, hpMonth: system.hpMonth,
                     recurringTemplates: system.recurringTemplates || [],
-                    // V4.0 Fields
                     budgetCap: system.budgetCap || 0,
                     budgetCurrent: system.budgetCurrent,
+                    expenses: system.expenses || [], // Save Expenses List
                     customRanks: system.customRanks,
                     location: system.location,
                     language: system.language,
@@ -1061,6 +1099,12 @@
             if(m > 12) { m = 1; y++; }
             return `${y}-${String(m).padStart(2,'0')}`;
         }
+        function getPrevMonth(yyyy_mm) {
+            let [y, m] = yyyy_mm.split('-').map(Number);
+            m--;
+            if(m < 1) { m = 12; y--; }
+            return `${y}-${String(m).padStart(2,'0')}`;
+        }
 
         async function checkMonthRollover() {
             if(isSaving) return; 
@@ -1074,20 +1118,16 @@
                 needsSave = true;
                 const monthVal = Money.add(system.vaultCurrent || 0, system.vaultSavings || 0);
                 
-                // Add Historical Point
                 system.history[storedMonth] = { val: monthVal, rate: system.exchangeRate };
                 await addDoc(collection(db, "users", currentUser.uid, "history_log"), {
                     val: monthVal, rate: system.exchangeRate, month: storedMonth, createdAt: serverTimestamp()
                 });
 
-                // Rollover Money
                 system.vaultSavings = Money.add(system.vaultSavings || 0, system.vaultCurrent || 0);
                 system.vaultCurrent = 0;
                 
-                // Reset Budget for new month (V4.0)
                 system.budgetCurrent = system.budgetCap;
 
-                // Recurring Tasks
                 if(system.recurringTemplates && system.recurringTemplates.length > 0) {
                     const nextM = getNextMonth(storedMonth);
                     system.recurringTemplates.forEach(template => {
@@ -1099,7 +1139,6 @@
                         });
                     });
                 }
-                
                 storedMonth = getNextMonth(storedMonth);
             }
 
@@ -1131,7 +1170,6 @@
             return Math.floor(v);
         }
 
-        // V4.0 Dynamic Ranks
         function getRankInfo(val) {
             const r = system.customRanks || { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 };
             if (val >= r.SS) return { r: 'SS', c: 'var(--rank-ss)' }; 
@@ -1223,22 +1261,48 @@
             } else { showToast("Insufficient Salary!", "error"); }
         };
 
-        /* MANA / BUDGET LOGIC V4.0 */
-        window.openManaModal = () => document.getElementById('manaModal').style.display = 'flex';
+        /* MANA / BUDGET LOGIC V4.1 */
+        window.openManaModal = () => {
+            document.getElementById('manaModal').style.display = 'flex';
+            document.getElementById('manaItemInput').value = '';
+            document.getElementById('manaCatInput').value = '';
+            document.getElementById('manaAmountInput').value = '';
+        }
         
-        window.submitMana = async (cat) => {
-            let val = parseFloat(document.getElementById('manaAmountInput').value);
-            if(!val || val <= 0) { showToast("Invalid Amount", "error"); return; }
-            
-            // Just subtract from Mana bar, do not touch real vault
-            if(!system.budgetCurrent) system.budgetCurrent = system.budgetCap || 0;
-            system.budgetCurrent = Money.sub(system.budgetCurrent, val);
+        window.submitManaExpense = async () => {
+            let item = document.getElementById('manaItemInput').value.trim();
+            let cat = document.getElementById('manaCatInput').value.trim();
+            let rawVal = parseFloat(document.getElementById('manaAmountInput').value);
+
+            if(!item || !cat || !rawVal || rawVal <= 0) {
+                showToast("Please fill all fields", "error"); return;
+            }
+
+            // Detect Currency (Assume USD if < 5000, else Lira)
+            let finalVal = rawVal;
+            if(rawVal < 5000) finalVal = rawVal * (system.exchangeRate || 89500);
+
+            // Deduct from Phantom Budget
+            if(!system.budgetCurrent && system.budgetCurrent !== 0) system.budgetCurrent = system.budgetCap || 0;
+            system.budgetCurrent = Money.sub(system.budgetCurrent, finalVal);
+
+            // Add to Expenses List for Graph
+            if(!system.expenses) system.expenses = [];
+            const newExpense = {
+                id: Date.now(),
+                item: item,
+                category: cat, // Store exact category string
+                cost: finalVal,
+                date: getSystemDate() // YYYY-MM-DD
+            };
+            system.expenses.push(newExpense);
             
             await save();
-            document.getElementById('manaAmountInput').value = '';
             document.getElementById('manaModal').style.display = 'none';
             render();
-            showToast(`Spent ${val} on ${cat}`, "success");
+            // Refresh Analysis if settings open
+            if(document.getElementById('settingsModal').style.display === 'flex') drawBudgetAnalytics();
+            showToast(`Spent on ${item} (${cat})`, "success");
         };
 
         /* WITHDRAWAL */
@@ -1285,13 +1349,12 @@
             render(); await save(); closeWithdrawModal(); showToast("Withdrawal Confirmed", "success");
         };
 
-        /* SETTINGS V4.0 */
+        /* SETTINGS V4.1 */
         window.openSettings = () => {
             document.getElementById('settingsModal').style.display = 'flex';
             document.getElementById('settingRateInput').value = system.exchangeRate;
             document.getElementById('settingManaInput').value = system.budgetCap || 0;
             
-            // Populate Config Inputs
             document.getElementById('rankE').value = system.customRanks.E;
             document.getElementById('rankC').value = system.customRanks.C;
             document.getElementById('rankB').value = system.customRanks.B;
@@ -1304,6 +1367,7 @@
             document.getElementById('langBtn').textContent = (system.language === 'en') ? "SWITCH TO ARABIC" : "SWITCH TO ENGLISH";
 
             drawGrowthGraph();
+            drawBudgetAnalytics(); // NEW V4.1
         }
 
         window.toggleConfigMode = () => {
@@ -1322,7 +1386,6 @@
                 const key = el.getAttribute('data-i18n');
                 el.textContent = t(key);
             });
-            // Handle placeholders or dynamic text logic here if needed
             document.body.style.direction = (system.language === 'ar') ? 'rtl' : 'ltr';
         }
 
@@ -1333,7 +1396,6 @@
             if(nRate >= 1) system.exchangeRate = nRate;
             if(!isNaN(nMana)) system.budgetCap = nMana;
 
-            // Save Config
             system.customRanks.E = parseFloat(document.getElementById('rankE').value) || 0;
             system.customRanks.C = parseFloat(document.getElementById('rankC').value) || 0;
             system.customRanks.B = parseFloat(document.getElementById('rankB').value) || 0;
@@ -1353,11 +1415,11 @@
         }
 
         window.exportData = () => {
-            const backup = { system: system, timestamp: new Date().toISOString(), version: "4.0" };
+            const backup = { system: system, timestamp: new Date().toISOString(), version: "4.1" };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "system_v4_" + getSystemDate() + ".json");
+            downloadAnchorNode.setAttribute("download", "system_v4.1_" + getSystemDate() + ".json");
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
@@ -1383,24 +1445,21 @@
             reader.readAsText(file);
         };
 
-        /* GRAPH V4.0 */
+        /* GRAPH V4.0 (Growth) */
         function drawGrowthGraph() {
             const svg = document.getElementById('chartSvg');
-            svg.innerHTML = ''; // clear
+            svg.innerHTML = ''; 
             const hKeys = Object.keys(system.history).sort();
             if(hKeys.length < 2) {
                 svg.innerHTML = '<text x="50%" y="50%" fill="#666" text-anchor="middle" font-size="10">Not Enough Data</text>';
                 return;
             }
 
-            // Extract values
             const dataPoints = hKeys.map(k => {
                 const entry = system.history[k];
-                // Convert to USD equivalent for standard comparison
                 return { month: k, val: (entry.val / entry.rate) }; 
             });
 
-            // Find Min/Max for scaling
             let minVal = Math.min(...dataPoints.map(d => d.val));
             let maxVal = Math.max(...dataPoints.map(d => d.val));
             if(minVal === maxVal) { minVal = 0; maxVal = maxVal * 1.5; }
@@ -1408,7 +1467,6 @@
             const width = svg.clientWidth;
             const height = svg.clientHeight;
             const padding = 20;
-
             let pointsStr = "";
             
             dataPoints.forEach((d, i) => {
@@ -1416,12 +1474,10 @@
                 const y = height - padding - ((d.val - minVal) / (maxVal - minVal)) * (height - (padding * 2));
                 pointsStr += `${x},${y} `;
                 
-                // Draw Circle
                 const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 circle.setAttribute("cx", x); circle.setAttribute("cy", y); circle.setAttribute("r", 3);
                 circle.classList.add("graph-point");
                 
-                // Tooltip event
                 circle.onmouseover = (e) => {
                     const tt = document.getElementById('graphTooltip');
                     tt.style.display = 'block';
@@ -1429,7 +1485,6 @@
                     tt.textContent = `${d.month}: $${d.val.toFixed(0)}`;
                 };
                 circle.onmouseout = () => { document.getElementById('graphTooltip').style.display = 'none'; };
-                
                 svg.appendChild(circle);
             });
 
@@ -1438,7 +1493,104 @@
             svg.prepend(polyline);
         }
 
-        /* GOLD & UI LOGIC (Existing) */
+        /* BUDGET SHADOW GRAPH (V4.1) */
+        function drawBudgetAnalytics() {
+            const container = document.getElementById('budgetAnalyticsContainer');
+            container.innerHTML = '';
+
+            const expenses = system.expenses || [];
+            if(expenses.length === 0) {
+                container.innerHTML = '<div style="color:#666; font-size:0.7rem; text-align:center;">No expense data available.</div>';
+                return;
+            }
+
+            // 1. Get current month and previous month strings
+            const currentMonth = getSystemDate().substring(0, 7); // YYYY-MM
+            const prevMonth = getPrevMonth(currentMonth);
+
+            // 2. Aggregate Data
+            const currentTotals = {};
+            const prevTotals = {};
+            const allCategories = new Set();
+
+            expenses.forEach(ex => {
+                const exMonth = ex.date.substring(0, 7);
+                const cat = ex.category;
+                if(exMonth === currentMonth) {
+                    currentTotals[cat] = (currentTotals[cat] || 0) + ex.cost;
+                    allCategories.add(cat);
+                }
+                if(exMonth === prevMonth) {
+                    prevTotals[cat] = (prevTotals[cat] || 0) + ex.cost;
+                    allCategories.add(cat);
+                }
+            });
+
+            if(allCategories.size === 0) {
+                 container.innerHTML = '<div style="color:#666; font-size:0.7rem; text-align:center;">No data for this month or last month.</div>';
+                 return;
+            }
+
+            // Sort categories for consistency
+            const cats = Array.from(allCategories).sort();
+
+            // Find Max for scaling
+            let maxVal = 0;
+            cats.forEach(c => {
+                if((currentTotals[c] || 0) > maxVal) maxVal = currentTotals[c];
+                if((prevTotals[c] || 0) > maxVal) maxVal = prevTotals[c];
+            });
+            if(maxVal === 0) maxVal = 1;
+
+            // 3. Render Bars
+            cats.forEach(cat => {
+                const cur = currentTotals[cat] || 0;
+                const prev = prevTotals[cat] || 0;
+                
+                // Format display numbers
+                const curDisplay = formatVal(cur);
+                const prevDisplay = formatVal(prev);
+                
+                // Calculate percentages width
+                const curWidth = (cur / maxVal) * 100;
+                const prevWidth = (prev / maxVal) * 100;
+
+                // Difference Text
+                let diffText = "";
+                let diffClass = "";
+                if(prev > 0) {
+                    const diff = cur - prev;
+                    if(diff <= 0) {
+                        diffText = `SAVED: ${formatVal(Math.abs(diff))}`;
+                        diffClass = "diff-good";
+                    } else {
+                        diffText = `EXTRA: ${formatVal(diff)}`;
+                        diffClass = "diff-bad";
+                    }
+                } else {
+                    diffText = "NEW CATEGORY";
+                }
+
+                const html = `
+                <div class="budget-bar-group">
+                    <div class="budget-labels">
+                        <span style="color:white; font-weight:bold;">${cat}</span>
+                        <span>${curDisplay} <span style="color:#666;">(Prev: ${prevDisplay})</span></span>
+                    </div>
+                    <div class="b-bar-track">
+                        <!-- Shadow Bar (Previous Month) -->
+                        <div class="b-bar-shadow" style="width:${prevWidth}%"></div>
+                        <!-- Current Bar (This Month) -->
+                        <div class="b-bar-current" style="width:${curWidth}%"></div>
+                    </div>
+                    <div class="budget-diff-text ${diffClass}">${diffText}</div>
+                </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        /* GOLD & UI LOGIC */
         window.showGoldPrices = async () => {
             document.getElementById('goldModal').style.display = 'flex';
             document.getElementById('goldLoading').style.display = 'block';
@@ -1654,7 +1806,6 @@
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
             
-            // Gold Portfolio
             let totalPortfolioValueUSD = 0; let totalPortfolioCostUSD = 0;
             if(system.goldInventory) for(let [k, g] of Object.entries(system.goldInventory)) totalPortfolioValueUSD += g * (global24kGramPrice * karatRatios[k]);
             if(system.goldCosts) for(let [k, c] of Object.entries(system.goldCosts)) totalPortfolioCostUSD += c;
@@ -1678,7 +1829,6 @@
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
             document.getElementById('vaultSavingsUSD').textContent = `$${(vSavings/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
-            // HP Bar (Activity)
             const hpBase = 15; let currentMonthUSD = vCurrent / rate; 
             let hpLevel = Math.floor(currentMonthUSD / hpBase) + 1;
             let hpPerc = ((currentMonthUSD % hpBase) / hpBase) * 100;
@@ -1687,15 +1837,13 @@
             document.getElementById('hpText').textContent = `LVL ${hpLevel} | $${(currentMonthUSD % hpBase).toFixed(2)}`;
             hpFill.className = 'hp-fill ' + (hpLevel%3===1 ? 'lvl-1' : hpLevel%3===2 ? 'lvl-2' : 'lvl-3');
 
-            // MANA BAR (V4.0)
             const manaCap = system.budgetCap || 1;
             let manaCur = (system.budgetCurrent !== undefined) ? system.budgetCurrent : manaCap;
-            if(manaCur < 0) manaCur = 0; // Prevent negative visual
+            if(manaCur < 0) manaCur = 0; 
             let manaPerc = (manaCur / manaCap) * 100;
             document.getElementById('manaFill').style.width = manaPerc + "%";
             document.getElementById('manaText').textContent = `${formatVal(manaCur)} / ${formatVal(manaCap)} (MANA)`;
 
-            // Gold Bar
             let activeKarat = system.preferredKarat || 24;
             let activeGramPrice = global24kGramPrice * karatRatios[activeKarat];
             document.getElementById('barKaratIndicator').textContent = activeKarat + 'K ⚙️';
@@ -1705,7 +1853,6 @@
             goldFill.style.width = ((gramsOwned % 1) * 100) + "%";
             document.getElementById('goldText').textContent = `Reserve: ${gramsOwned.toFixed(2)}g (${activeKarat}K)`;
 
-            // DCA
             document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
             document.getElementById('gt' + activeVaultKarat).classList.add('active');
             let vGrams = system.goldInventory[activeVaultKarat] || 0;
@@ -1720,7 +1867,6 @@
             document.getElementById('goldVaultFill').style.width = Math.min((vGrams / 20) * 100, 100) + "%";
             document.getElementById('goldVaultText').textContent = (vGrams > 0) ? "SECURE" : "EMPTY";
 
-            // Rank (Dynamic)
             const playerRank = getRankInfo(totalNetWorth);
             const pBadge = document.getElementById('playerRankBadge');
             pBadge.textContent = "RANK " + playerRank.r;
@@ -1730,12 +1876,10 @@
             document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             document.getElementById('displayRate').textContent = rate.toLocaleString();
             
-            // Buttons
             const salInGold = (system.salary || 0) * rate;
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (totalCashAvailable > 0.1 && totalCashAvailable < 1000) ? 'block' : 'none';
 
-            // Stats
             const year = navDate.getFullYear(); const month = String(navDate.getMonth() + 1).padStart(2,'0');
             const currentMonthPrefix = `${year}-${month}`;
             let unpaidList = system.quests.filter(q => q.isDebt && q.targetDate && q.targetDate.startsWith(currentMonthPrefix));
