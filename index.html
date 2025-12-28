@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V3.0</title>
+    <title>SUNG JIN-WOO SYSTEM | V4.0</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -12,11 +12,13 @@
             --rank-ss: #ffcc00; --rank-s: #ff3131; --rank-a: #bc13fe;
             --rank-b: #00d2ff; --rank-c: #4caf50; --rank-e: #9e9e9e;
             --gold: #ffd700; --danger: #ff3131; --text: #e6edf3; --success: #50fa7b;
+            /* EXPENSE CATEGORY COLORS */
+            --cat-vit: #ff4757; --cat-agi: #2ed573; --cat-int: #5352ed; --cat-eqp: #ffa502;
         }
 
         body { 
             background-color: var(--bg); color: var(--text); 
-            font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 10px; 
             background-image: radial-gradient(circle at center, #101525 0%, #05070b 100%);
             -webkit-tap-highlight-color: transparent; padding-bottom: 90px;
         }
@@ -30,7 +32,7 @@
             font-family: monospace; font-size: 0.7rem; color: var(--mana);
             display: flex; flex-direction: column;
         }
-        .weather-loc { font-weight: bold; letter-spacing: 1px; }
+        .weather-loc { font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         .weather-det { color: #888; font-size: 0.6rem; margin-top: 2px; transition: color 0.3s; }
         
         .settings-icon {
@@ -39,29 +41,38 @@
         }
         .settings-icon:hover { color: var(--text); transform: rotate(90deg); }
 
-        /* MASTER CARD STYLES */
-        .master-card {
+        /* CARDS */
+        .master-card, .gold-vault-card {
             background: linear-gradient(180deg, rgba(17, 20, 29, 0.95) 0%, rgba(5, 7, 11, 0.95) 100%);
             border: 1px solid var(--mana); border-radius: 8px; padding: 0;
             margin-bottom: 20px; position: relative; overflow: hidden;
             box-shadow: 0 0 15px rgba(0, 210, 255, 0.05);
         }
+        .gold-vault-card { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.05); }
 
-        /* GOLD VAULT CARD STYLES */
-        .gold-vault-card {
-            background: linear-gradient(180deg, rgba(30, 25, 5, 0.95) 0%, rgba(5, 7, 11, 0.95) 100%);
-            border: 1px solid var(--gold); border-radius: 8px; padding: 0;
-            margin-bottom: 20px; position: relative; overflow: hidden;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.05);
+        /* MANA (BUDGET) SECTION */
+        .mana-section {
+            background: rgba(0,0,0,0.4); border: 1px solid #5352ed;
+            padding: 10px; margin-bottom: 15px; border-radius: 4px;
+            box-shadow: 0 0 10px rgba(83, 82, 237, 0.1);
         }
-        .gold-vault-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 15px; background: rgba(255, 215, 0, 0.05);
-            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-            font-size: 0.7rem; font-weight: bold; color: var(--gold); letter-spacing: 1px;
+        .mana-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .mana-label { font-size: 0.7rem; color: #5352ed; font-weight: bold; letter-spacing: 1px; }
+        .mana-bar-container {
+            height: 18px; background: #0a0a20; border: 1px solid #1a1a40;
+            position: relative; border-radius: 2px; overflow: hidden; cursor: pointer;
+        }
+        .mana-fill {
+            height: 100%; width: 100%; transition: width 0.5s ease-in-out;
+            background: linear-gradient(90deg, #3742fa, #5352ed);
+            box-shadow: 0 0 10px #5352ed;
+        }
+        .mana-text {
+            position: absolute; width: 100%; text-align: center; top: 0; line-height: 18px;
+            font-size: 0.65rem; color: white; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 2;
         }
         
-        /* PORTFOLIO SUMMARY SECTION */
+        /* PORTFOLIO & GENERAL */
         .portfolio-summary {
             padding: 15px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
             background: rgba(0,0,0,0.2);
@@ -85,7 +96,6 @@
         .gold-grams-display { font-size: 1.5rem; font-family: monospace; color: white; font-weight: bold; }
         .gold-val-display { font-size: 0.8rem; color: #888; font-family: monospace; margin-top: 5px; }
 
-        /* DCA Stats Row */
         .dca-stats { display: flex; justify-content: center; gap: 15px; margin-top: 10px; font-family: monospace; font-size: 0.7rem; }
         .dca-item { display: flex; flex-direction: column; align-items: center; }
         .dca-lbl { color: #666; font-size: 0.6rem; margin-bottom: 2px; }
@@ -143,6 +153,8 @@
             padding: 12px; width: 100%; box-sizing: border-box; 
             font-size: 1rem; text-align: center; margin-bottom: 15px;
         }
+        select.modal-input { appearance: none; -webkit-appearance: none; }
+
         .modal-actions { display: flex; gap: 10px; }
         .modal-btn { flex: 1; padding: 12px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; }
         .btn-confirm { background: var(--mana); color: black; }
@@ -150,13 +162,32 @@
 
         /* SETTINGS SPECIFIC */
         .settings-section { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .settings-label { font-size: 0.6rem; color: #888; text-align: left; margin-bottom: 5px; display:block;}
+        .settings-label { font-size: 0.6rem; color: #888; text-align: left; margin-bottom: 5px; display:block; font-weight:bold;}
         .file-btn { background: #222; border: 1px dashed #666; color: #ccc; padding: 10px; width: 100%; cursor: pointer; font-size: 0.7rem; margin-bottom: 10px; }
         .file-btn:hover { border-color: var(--mana); color: white; }
         
-        /* RECURRING LIST IN SETTINGS */
         .recurring-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #333; font-size: 0.75rem; color: #ccc; }
         .btn-del-rec { background: none; border: none; color: var(--danger); font-weight: bold; cursor: pointer; }
+
+        /* GRAPH STYLES */
+        .graph-container {
+            width: 100%; height: 150px; background: rgba(0,0,0,0.3); border: 1px solid #333;
+            margin-bottom: 15px; position: relative; overflow: hidden;
+        }
+        svg { width: 100%; height: 100%; }
+        polyline { fill: none; stroke: var(--mana); stroke-width: 2; vector-effect: non-scaling-stroke; }
+        circle.graph-point { fill: #000; stroke: var(--mana); stroke-width: 2; cursor: pointer; transition: 0.2s; }
+        circle.graph-point:hover { r: 6; fill: var(--mana); }
+        .graph-tooltip { 
+            position: absolute; background: rgba(0,0,0,0.9); color: white; 
+            padding: 3px 6px; font-size: 0.6rem; border: 1px solid var(--mana);
+            pointer-events: none; display: none; border-radius: 4px; z-index: 10;
+        }
+
+        /* CUSTOM RANK INPUTS */
+        .rank-config-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .rank-badge-sm { width: 30px; font-weight: bold; font-size: 0.8rem; text-align: center; }
+        .rank-input { width: 150px !important; padding: 5px !important; margin: 0 !important; font-size: 0.8rem !important; }
 
         /* AUTH OVERLAY */
         #authOverlay {
@@ -209,7 +240,6 @@
         .btn-pay { background: var(--success); color: black; border: none; padding: 8px 15px; font-weight: bold; font-size: 0.75rem; cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 0 10px rgba(80, 250, 123, 0.3); position: relative; z-index: 2; }
         .discard-btn { color: var(--danger); background: none; border: 1px solid rgba(255,49,49,0.2); padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 10px; display: inline-block; position: relative; z-index: 2; }
         .btn-zero { background: var(--danger); color: white; border: none; padding: 6px 12px; font-size: 0.7rem; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 8px; display: none; box-shadow: 0 0 8px var(--danger); }
-        .btn-rate { background: transparent; border: 1px solid #444; color: #888; font-size: 0.6rem; padding: 2px 6px; cursor: pointer; margin-left: 5px; border-radius: 4px; }
         
         .salary-container { border: 1px solid var(--success); background: rgba(80, 250, 123, 0.05); padding: 12px; margin-bottom: 15px; text-align: center; border-radius: 4px; }
         .salary-value { font-size: 1.8rem; color: var(--success); font-weight: bold; font-family: monospace; display: block; }
@@ -289,7 +319,6 @@
             border: 1px solid var(--debt-color); margin-bottom: 20px;
         }
 
-        /* CHECKBOX STYLE */
         .checkbox-wrapper { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
         .custom-checkbox { width: 16px; height: 16px; accent-color: var(--debt-color); cursor: pointer; margin: 0; }
         .checkbox-label { font-size: 0.7rem; color: #ccc; cursor: pointer; }
@@ -317,45 +346,100 @@
 <body>
 
     <div id="saveIndicator"></div>
-    <div id="savingText">DATA SAVING...</div>
+    <div id="savingText">SAVING...</div>
     <div id="toastContainer"></div>
 
     <div id="authOverlay">
         <div class="login-card">
-            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V3.0</div>
+            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V4.0</div>
             <button class="btn-system" id="loginBtn" style="background: white; color: black; border: none;">INITIALIZE (GOOGLE)</button>
         </div>
     </div>
 
-    <!-- SETTINGS MODAL (UNIFIED) -->
+    <!-- SETTINGS MODAL (V4.0) -->
     <div id="settingsModal" class="modal-backdrop">
         <div class="modal-window">
-            <div class="modal-title">SYSTEM SETTINGS</div>
+            <div class="modal-title" data-i18n="settings">SYSTEM SETTINGS</div>
             
+            <!-- SECTION 1: GENERAL -->
             <div class="settings-section">
-                <span class="settings-label">EXCHANGE RATE (LIRA)</span>
+                <span class="settings-label" data-i18n="exchangeRate">EXCHANGE RATE (LIRA)</span>
                 <input type="number" id="settingRateInput" class="modal-input" placeholder="e.g. 89500">
+                <span class="settings-label" data-i18n="manaBudget">MONTHLY BUDGET (MANA CAP)</span>
+                <input type="number" id="settingManaInput" class="modal-input" placeholder="e.g. 500 or 45,000,000">
             </div>
 
+            <!-- SECTION 2: GRAPH -->
             <div class="settings-section">
-                <span class="settings-label">RECURRING TASKS</span>
-                <button class="btn-system" onclick="openRecurringList()" style="margin-bottom:10px; border-color:var(--debt-color); color:var(--debt-color);">MANAGE FIXED EXPENSES</button>
+                <span class="settings-label" data-i18n="growthGraph">SYSTEM GROWTH HISTORY</span>
+                <div class="graph-container" id="growthGraph">
+                    <svg id="chartSvg"></svg>
+                    <div id="graphTooltip" class="graph-tooltip"></div>
+                </div>
             </div>
 
+            <!-- SECTION 3: CONFIGURATION (RANKS, LOC, LANG) -->
             <div class="settings-section">
-                <span class="settings-label">DATA MANAGEMENT (JSON)</span>
-                <button class="btn-system" onclick="shareData()" style="margin-bottom:10px; border-color:var(--success); color:var(--success);">📤 SHARE BACKUP (GMAIL/WHATSAPP)</button>
-                <button class="btn-system" onclick="exportData()" style="margin-bottom:10px;">⬇ DOWNLOAD FILE (LOCAL)</button>
-                <button class="file-btn" onclick="document.getElementById('importFile').click()">⬆ IMPORT BACKUP</button>
+                <button class="btn-system" onclick="toggleConfigMode()" style="margin-bottom:10px;">🛠 CONFIG (RANKS / LOC)</button>
+                <div id="configPanel" style="display:none; text-align:left;">
+                    
+                    <span class="settings-label" style="margin-top:10px;">CUSTOM RANK THRESHOLDS (USD/LBP)</span>
+                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-e)">E</span><input type="number" id="rankE" class="modal-input rank-input"></div>
+                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-c)">C</span><input type="number" id="rankC" class="modal-input rank-input"></div>
+                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-b)">B</span><input type="number" id="rankB" class="modal-input rank-input"></div>
+                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-a)">A</span><input type="number" id="rankA" class="modal-input rank-input"></div>
+                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-s)">S</span><input type="number" id="rankS" class="modal-input rank-input"></div>
+                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-ss)">SS</span><input type="number" id="rankSS" class="modal-input rank-input"></div>
+
+                    <span class="settings-label" style="margin-top:10px;">ENVIRONMENT (WEATHER)</span>
+                    <input type="text" id="locName" class="modal-input" placeholder="City Name (e.g. Baalbek)">
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="locLat" class="modal-input" placeholder="Lat (34.00)">
+                        <input type="number" id="locLon" class="modal-input" placeholder="Lon (36.21)">
+                    </div>
+
+                    <span class="settings-label">LANGUAGE</span>
+                    <button class="btn-system" onclick="toggleLanguage()" id="langBtn">SWITCH TO ARABIC</button>
+                </div>
+            </div>
+
+            <!-- SECTION 4: DATA -->
+            <div class="settings-section">
+                <span class="settings-label" data-i18n="recurring">RECURRING TASKS</span>
+                <button class="btn-system" onclick="openRecurringList()" style="margin-bottom:10px; border-color:var(--debt-color); color:var(--debt-color);" data-i18n="manageRecurring">MANAGE FIXED EXPENSES</button>
+                
+                <span class="settings-label" data-i18n="dataMgmt">DATA MANAGEMENT</span>
+                <button class="btn-system" onclick="exportData()" style="margin-bottom:10px;" data-i18n="download">⬇ DOWNLOAD FILE (LOCAL)</button>
+                <button class="file-btn" onclick="document.getElementById('importFile').click()" data-i18n="import">⬆ IMPORT BACKUP</button>
                 <input type="file" id="importFile" style="display:none;" onchange="importData(this)">
             </div>
 
             <div class="settings-section" style="border:none;">
-                <button class="btn-system" style="border-color:var(--danger); color:var(--danger); margin-bottom:10px;" onclick="hardReset()">♻ FACTORY RESET</button>
-                <button class="btn-system" style="border-color:#666; color:#aaa;" onclick="logout()">LOGOUT</button>
+                <button class="btn-system" style="border-color:var(--danger); color:var(--danger); margin-bottom:10px;" onclick="hardReset()" data-i18n="reset">♻ FACTORY RESET</button>
+                <button class="btn-system" style="border-color:#666; color:#aaa;" onclick="logout()" data-i18n="logout">LOGOUT</button>
             </div>
 
-            <button class="modal-btn btn-cancel" style="width:100%" onclick="closeSettings()">CLOSE</button>
+            <button class="modal-btn btn-cancel" style="width:100%" onclick="closeSettings()" data-i18n="close">CLOSE & SAVE</button>
+        </div>
+    </div>
+
+    <!-- MANA EXPENSE MODAL (NEW) -->
+    <div id="manaModal" class="modal-backdrop">
+        <div class="modal-window">
+            <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">LOG TRAINING EXPENSE</div>
+            <p style="font-size:0.6rem; color:#aaa; margin-bottom:10px;">Deducts from Budget Bar ONLY (Not Vault)</p>
+            
+            <input type="number" id="manaAmountInput" class="modal-input" placeholder="Amount">
+            
+            <span class="settings-label">SELECT CATEGORY</span>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:15px;">
+                <button class="btn-system" onclick="submitMana('VIT')" style="border-color:var(--cat-vit); color:var(--cat-vit);">🔴 VIT (LIVING)</button>
+                <button class="btn-system" onclick="submitMana('AGI')" style="border-color:var(--cat-agi); color:var(--cat-agi);">🟢 AGI (MOVE)</button>
+                <button class="btn-system" onclick="submitMana('INT')" style="border-color:var(--cat-int); color:var(--cat-int);">🔵 INT (FIXED)</button>
+                <button class="btn-system" onclick="submitMana('EQP')" style="border-color:var(--cat-eqp); color:var(--cat-eqp);">🟡 EQP (GEAR)</button>
+            </div>
+            
+            <button class="modal-btn btn-cancel" onclick="document.getElementById('manaModal').style.display='none'">CANCEL</button>
         </div>
     </div>
 
@@ -465,18 +549,29 @@
     <!-- MAIN VIEW -->
     <div id="mainView" style="display: none;">
         
-        <!-- NEW HEADER: WEATHER + SETTINGS -->
         <div class="system-header">
             <div class="weather-widget">
-                <span class="weather-loc">ENV: BAALBEK</span>
+                <span class="weather-loc">ENV: LOADING...</span>
                 <span class="weather-det" id="weatherDetail">SCANNING...</span>
             </div>
             <div class="settings-icon" onclick="openSettings()">⚙️</div>
         </div>
 
+        <!-- NEW MANA SECTION -->
+        <div class="mana-section">
+            <div class="mana-header">
+                <div class="mana-label">TRAINING BUDGET (MANA)</div>
+                <button class="discard-btn" style="color:#5352ed; border-color:#5352ed;" onclick="openManaModal()">LOG EXPENSE</button>
+            </div>
+            <div class="mana-bar-container" onclick="openManaModal()">
+                <div class="mana-fill" id="manaFill"></div>
+                <div class="mana-text" id="manaText">Loading...</div>
+            </div>
+        </div>
+
         <div class="hp-section">
             <div class="hp-header">
-                <div class="hp-label">MONTHLY ACTIVITY</div>
+                <div class="hp-label" data-i18n="activity">MONTHLY ACTIVITY</div>
             </div>
             <div class="hp-bar-container">
                 <div class="hp-fill" id="hpFill"></div>
@@ -485,13 +580,13 @@
         </div>
 
         <div class="salary-container">
-            <div style="font-size:0.6rem; color:var(--success); letter-spacing:2px;">SALARY WALLET</div>
+            <div style="font-size:0.6rem; color:var(--success); letter-spacing:2px;" data-i18n="salary">SALARY WALLET</div>
             <span class="salary-value" id="salaryDisplay">$0.00</span>
             <div style="font-size:0.7rem; color:#888;">Rate: <span id="displayRate">89500</span></div>
             <button id="zeroSalary" class="btn-zero" onclick="confirmZero('salary')">Zero Remainder (<1k)</button>
             <div style="display:flex; gap:5px; margin-top:10px;">
-                <button class="btn-system" style="border-color:var(--success); color:var(--success); flex:1;" onclick="addSalary()">+ Income</button>
-                <button class="btn-system" style="border-color:var(--mana); color:var(--mana); flex:1;" onclick="salaryToVault()">Transfer</button>
+                <button class="btn-system" style="border-color:var(--success); color:var(--success); flex:1;" onclick="addSalary()" data-i18n="income">+ Income</button>
+                <button class="btn-system" style="border-color:var(--mana); color:var(--mana); flex:1;" onclick="salaryToVault()" data-i18n="transfer">Transfer</button>
             </div>
         </div>
 
@@ -510,12 +605,12 @@
             </div>
 
             <div class="master-main-val">
-                <span class="lbl-sm" style="color:var(--mana);">TOTAL CASH AVAILABLE (LIQUID)</span>
+                <span class="lbl-sm" style="color:var(--mana);" data-i18n="totalCash">TOTAL CASH AVAILABLE (LIQUID)</span>
                 <span class="net-gold" id="totalAssets">0</span>
                 <span class="net-usd" id="totalUSD">$0.00</span>
                 
                 <div class="net-assets-row">
-                    TOTAL NET WORTH: <span id="realNetWorth" style="color:white; font-weight:bold;">0</span>
+                    <span data-i18n="netWorth">TOTAL NET WORTH</span>: <span id="realNetWorth" style="color:white; font-weight:bold;">0</span>
                 </div>
 
                 <div style="margin: 20px 15px 5px 15px;">
@@ -532,12 +627,12 @@
 
             <div class="master-grid">
                 <div class="m-col">
-                    <span class="lbl-sm" style="color:var(--hp-bg);">THIS MONTH (CASH)</span>
+                    <span class="lbl-sm" style="color:var(--hp-bg);" data-i18n="vaultCurrent">THIS MONTH (CASH)</span>
                     <div class="val-lg" id="vaultCurrentDisplay">0</div>
                     <div class="val-usd-sub" id="vaultCurrentUSD">$0.00</div>
                 </div>
                 <div class="m-col">
-                    <span class="lbl-sm" style="color:var(--success);">SAVINGS (CASH)</span>
+                    <span class="lbl-sm" style="color:var(--success);" data-i18n="vaultSavings">SAVINGS (CASH)</span>
                     <div class="val-lg" id="vaultSavingsDisplay">0</div>
                     <div class="val-usd-sub" id="vaultSavingsUSD">$0.00</div>
                 </div>
@@ -547,11 +642,11 @@
         </div>
 
         <div class="main-actions" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-            <button class="btn-system" onclick="startFlowDeposit()">+ Add Assets</button>
-            <button class="btn-system btn-withdraw" style="border-color:var(--danger); color:var(--danger);" onclick="openWithdrawModal()">Withdrawal</button>
+            <button class="btn-system" onclick="startFlowDeposit()" data-i18n="addAssets">+ Add Assets</button>
+            <button class="btn-system btn-withdraw" style="border-color:var(--danger); color:var(--danger);" onclick="openWithdrawModal()" data-i18n="withdraw">Withdrawal</button>
         </div>
 
-        <!-- NEW GOLD VAULT CARD (WITH DCA) -->
+        <!-- NEW GOLD VAULT CARD -->
         <div class="gold-vault-card">
             <div class="gold-vault-header">
                 <span>PHYSICAL GOLD VAULT</span>
@@ -559,7 +654,7 @@
             </div>
             
             <div class="portfolio-summary">
-                <div class="portfolio-label">TOTAL PORTFOLIO VALUE (ALL KARATS)</div>
+                <div class="portfolio-label" data-i18n="portValue">TOTAL PORTFOLIO VALUE (ALL KARATS)</div>
                 <div class="portfolio-total" id="portTotalVal">$0.00</div>
                 <div class="portfolio-spent">TOTAL SPENT: <span id="portTotalSpent">$0.00</span></div>
                 <div class="portfolio-profit" id="portProfit">0.00</div>
@@ -576,7 +671,6 @@
                 <div id="goldVaultGrams" class="gold-grams-display">0.00g</div>
                 <div id="goldVaultVal" class="gold-val-display">$0.00</div>
                 
-                <!-- NEW DCA SECTION -->
                 <div class="dca-stats">
                     <div class="dca-item">
                         <span class="dca-lbl">AVG COST/g</span>
@@ -597,10 +691,10 @@
             </div>
 
             <div style="display:flex; border-top:1px solid rgba(255,215,0,0.2);">
-                <button class="btn-system" style="border:none; border-right:1px solid rgba(255,215,0,0.2); color:white; background:rgba(0,0,0,0.2);" onclick="openGoldTransaction('buy')">
+                <button class="btn-system" style="border:none; border-right:1px solid rgba(255,215,0,0.2); color:white; background:rgba(0,0,0,0.2);" onclick="openGoldTransaction('buy')" data-i18n="store">
                     STORE (BUY)
                 </button>
-                <button class="btn-system" style="border:none; color:var(--gold); background:rgba(0,0,0,0.2);" onclick="openGoldTransaction('sell')">
+                <button class="btn-system" style="border:none; color:var(--gold); background:rgba(0,0,0,0.2);" onclick="openGoldTransaction('sell')" data-i18n="liquidate">
                     LIQUIDATE (SELL)
                 </button>
             </div>
@@ -619,26 +713,26 @@
         <!-- STATS FOOTER -->
         <div class="stats-footer">
             <div class="stat-box" onclick="openMonthlyList('paid')" style="color:var(--debt-color); border-color:var(--debt-color);">
-                <div class="stat-title">PAID (MONTH)</div>
+                <div class="stat-title" data-i18n="paid">PAID (MONTH)</div>
                 <div class="stat-val" id="countPaidDebts">0</div>
                 <div class="stat-sub" id="valPaidDebts">$0.00</div>
             </div>
 
             <div class="stat-box" onclick="openMonthlyList('pending')" style="color:var(--danger); border-color:var(--danger);">
-                <div class="stat-title">UNPAID (MONTH)</div>
+                <div class="stat-title" data-i18n="unpaid">UNPAID (MONTH)</div>
                 <div class="stat-val" id="countUnpaidDebts">0</div>
                 <div class="stat-sub" id="valUnpaidDebts">$0.00</div>
             </div>
 
             <div class="stat-box" style="color:var(--gold); border-color:var(--gold);" onclick="showToast('Showing Lifetime Achievements', 'info')">
-                <div class="stat-title">ALL TIME PAID</div>
+                <div class="stat-title" data-i18n="allTime">ALL TIME PAID</div>
                 <div class="stat-val" id="countAllPaid">0</div>
                 <div class="stat-sub" id="valAllPaid">$0.00</div>
             </div>
         </div>
 
         <div style="margin-top:10px;">
-            <button class="btn-system" onclick="showGoldPrices()" style="border-color:var(--gold); color:black; background:var(--gold); width:100%;">
+            <button class="btn-system" onclick="showGoldPrices()" style="border-color:var(--gold); color:black; background:var(--gold); width:100%;" data-i18n="goldPrices">
                 GOLD PRICES 🟡
             </button>
         </div>
@@ -657,7 +751,6 @@
             <input type="text" id="qTitle" placeholder="Debt Name / Title">
             <input type="text" id="qTarget" placeholder="Amount (e.g. $50, 100k, 1m)">
             
-            <!-- RECURRING CHECKBOX -->
             <div class="checkbox-wrapper">
                 <input type="checkbox" id="qRecurring" class="custom-checkbox">
                 <label for="qRecurring" class="checkbox-label">Repeat Monthly (Fixed Expense)</label>
@@ -695,12 +788,8 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        // ENABLE OFFLINE PERSISTENCE (V3.0 Feature)
-        enableIndexedDbPersistence(db).catch((err) => {
-            console.log("Persistence error:", err.code);
-        });
+        enableIndexedDbPersistence(db).catch((err) => { console.log("Persistence error:", err.code); });
 
-        /* UTILS */
         const Money = {
             add: (a, b) => Math.round((a + b) * 100) / 100,
             sub: (a, b) => Math.round((a - b) * 100) / 100,
@@ -719,22 +808,52 @@
             toast.className = `toast ${type}`;
             toast.textContent = msg;
             container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
         };
+
+        // --- TRANSLATIONS V4.0 ---
+        const TRANSLATIONS = {
+            en: {
+                settings: "SYSTEM SETTINGS", exchangeRate: "EXCHANGE RATE (LIRA)", manaBudget: "MONTHLY BUDGET (MANA CAP)",
+                growthGraph: "SYSTEM GROWTH HISTORY", recurring: "RECURRING TASKS", manageRecurring: "MANAGE FIXED EXPENSES",
+                dataMgmt: "DATA MANAGEMENT", download: "⬇ DOWNLOAD FILE (LOCAL)", import: "⬆ IMPORT BACKUP",
+                reset: "♻ FACTORY RESET", logout: "LOGOUT", close: "CLOSE & SAVE", activity: "MONTHLY ACTIVITY",
+                salary: "SALARY WALLET", income: "+ Income", transfer: "Transfer", totalCash: "TOTAL CASH AVAILABLE (LIQUID)",
+                netWorth: "TOTAL NET WORTH", vaultCurrent: "THIS MONTH (CASH)", vaultSavings: "SAVINGS (CASH)",
+                addAssets: "+ Add Assets", withdraw: "Withdrawal", portValue: "TOTAL PORTFOLIO VALUE (ALL KARATS)",
+                store: "STORE (BUY)", liquidate: "LIQUIDATE (SELL)", paid: "PAID (MONTH)", unpaid: "UNPAID (MONTH)",
+                allTime: "ALL TIME PAID", goldPrices: "GOLD PRICES 🟡"
+            },
+            ar: {
+                settings: "إعدادات النظام", exchangeRate: "سعر الصرف (ليرة)", manaBudget: "الميزانية التدريبية (المانا)",
+                growthGraph: "سجل نمو النظام", recurring: "المهام المتكررة", manageRecurring: "إدارة المصاريف الثابتة",
+                dataMgmt: "إدارة البيانات", download: "⬇ تحميل ملف (محلي)", import: "⬆ استعادة نسخة",
+                reset: "♻ إعادة ضبط المصنع", logout: "تسجيل خروج", close: "إغلاق وحفظ", activity: "النشاط الشهري",
+                salary: "محفظة الراتب", income: "+ إضافة دخل", transfer: "تحويل", totalCash: "النقد المتاح (سيولة)",
+                netWorth: "صافي الثروة", vaultCurrent: "هذا الشهر (كاش)", vaultSavings: "الادخار (كاش)",
+                addAssets: "+ إضافة أصول", withdraw: "سحب أموال", portValue: "قيمة المحفظة (جميع العيارات)",
+                store: "تخزين (شراء)", liquidate: "تسييل (بيع)", paid: "مدفوع (شهري)", unpaid: "غير مدفوع",
+                allTime: "المدفوعات الكلية", goldPrices: "أسعار الذهب 🟡"
+            }
+        };
+
+        function t(key) {
+            const lang = system.language || 'en';
+            return TRANSLATIONS[lang][key] || key;
+        }
 
         let system = { 
             vaultCurrent: 0, vaultSavings: 0, salary: 0, 
-            quests: [], 
-            dayArchives: {}, 
-            history: {}, 
-            hpMonth: "",
+            quests: [], dayArchives: {}, history: {}, hpMonth: "",
             exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
             goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
             goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
-            recurringTemplates: [] // V3.0 Feature
+            recurringTemplates: [],
+            // V4.0 NEW FIELDS
+            budgetCap: 0, budgetCurrent: 0,
+            customRanks: { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 },
+            location: { name: "Baalbek", lat: 34.00, lon: 36.21 },
+            language: "en"
         };
 
         let navDate = new Date();
@@ -744,7 +863,6 @@
         let global24kGramPrice = 88.0; 
         let isSaving = false;
         let activeVaultKarat = 24; 
-        
         const karatRatios = { 18: 0.75, 21: 0.875, 22: 0.9167, 24: 1.0 };
 
         /* AUTH & CORE */
@@ -753,29 +871,28 @@
         window.logout = () => { if(confirm("Disconnect from System?")) signOut(auth).then(()=>location.reload()); };
 
         window.hardReset = async () => {
-            if(confirm("⚠ FACTORY RESET ⚠\n\nPermanently delete ALL data?\n(Gold, Money, Quests, History)")) {
-                if(confirm("FINAL WARNING: This cannot be undone.")) {
-                    if(currentUser) {
-                        try {
-                            setSaving(true);
-                            system = { 
-                                vaultCurrent: 0, vaultSavings: 0, salary: 0, 
-                                quests: [], dayArchives: {}, history: {}, hpMonth: getSystemDate().substring(0, 7),
-                                exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
-                                goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
-                                goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
-                                recurringTemplates: [],
-                                lastUpdated: serverTimestamp()
-                            };
-                            await setDoc(doc(db, "users", currentUser.uid), system);
-                            showToast("System Reset Complete", "success");
-                            location.reload(); 
-                        } catch(e) {
-                            showToast("Error during reset", "error");
-                        } finally {
-                            setSaving(false);
-                        }
-                    }
+            if(confirm("⚠ FACTORY RESET ⚠\n\nPermanently delete ALL data?")) {
+                if(currentUser) {
+                    try {
+                        setSaving(true);
+                        // Reset but keep defaults
+                        system = { 
+                            vaultCurrent: 0, vaultSavings: 0, salary: 0, 
+                            quests: [], dayArchives: {}, history: {}, hpMonth: getSystemDate().substring(0, 7),
+                            exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
+                            goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
+                            goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
+                            recurringTemplates: [],
+                            budgetCap: 0, budgetCurrent: 0,
+                            customRanks: { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 },
+                            location: { name: "Baalbek", lat: 34.00, lon: 36.21 },
+                            language: "en",
+                            lastUpdated: serverTimestamp()
+                        };
+                        await setDoc(doc(db, "users", currentUser.uid), system);
+                        showToast("System Reset Complete", "success");
+                        location.reload(); 
+                    } catch(e) { showToast("Error during reset", "error"); } finally { setSaving(false); }
                 }
             }
         };
@@ -786,29 +903,26 @@
             document.getElementById('savingText').style.display = state ? 'block' : 'none';
         }
 
-        /* WEATHER (UPDATED FOR BAALBEK) */
+        /* WEATHER V4.0 (Location Config) */
         async function fetchWeather() {
             try {
-                const lat = 34.00; const lon = 36.21;
-                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code&timezone=auto`);
+                const loc = system.location || { name: "Baalbek", lat: 34.00, lon: 36.21 };
+                document.querySelector('.weather-loc').textContent = `ENV: ${loc.name}`;
+                
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code&timezone=auto`);
                 const data = await res.json();
                 const temp = data.current.temperature_2m;
                 const wind = data.current.wind_speed_10m;
                 const todayCode = data.daily.weather_code[0];
                 let conditionText = "CLEAR"; let conditionColor = "var(--mana)";
 
-                if([71, 73, 75, 77, 85, 86].includes(todayCode)) {
-                    conditionText = "SNOW WARNING ❄️"; conditionColor = "#ffffff";
-                } else if([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(todayCode)) {
-                    conditionText = "RAIN EXPECTED 🌧️"; conditionColor = "#4facfe";
-                } else if([95, 96, 99].includes(todayCode)) {
-                    conditionText = "STORM WARNING ⛈️"; conditionColor = "var(--danger)";
-                }
+                if([71, 73, 75, 77, 85, 86].includes(todayCode)) { conditionText = "SNOW ❄️"; conditionColor = "#ffffff"; } 
+                else if([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(todayCode)) { conditionText = "RAIN 🌧️"; conditionColor = "#4facfe"; } 
+                else if([95, 96, 99].includes(todayCode)) { conditionText = "STORM ⛈️"; conditionColor = "var(--danger)"; }
 
                 const widget = document.getElementById('weatherDetail');
                 widget.textContent = `${temp}°C | ${wind}km/h | ${conditionText}`;
                 widget.style.color = conditionColor;
-                document.querySelector('.weather-loc').textContent = "ENV: BAALBEK";
             } catch(e) {
                 document.getElementById('weatherDetail').textContent = "OFFLINE | SYNC FAILED";
             }
@@ -821,27 +935,28 @@
                 document.getElementById('mainView').style.display = 'block';
                 document.getElementById('userEmailDisplay').textContent = user.email;
                 
-                fetchWeather(); 
-                
                 await loadSubCollections(user.uid);
 
                 onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
                         
+                        // Legacy handling
                         if(data.vault !== undefined && data.vaultSavings === undefined) {
                             data.vaultSavings = data.vault; data.vaultCurrent = 0; delete data.vault;
                         }
                         
+                        // Merge Sub-collections
                         const existingArchives = system.dayArchives || {};
                         const existingHistory = system.history || {};
 
                         system = { ...system, ...data };
                         
-                        if(!system.goldInventory) system.goldInventory = { 18: 0, 21: 0, 22: 0, 24: 0 };
-                        if(!system.goldCosts) system.goldCosts = { 18: 0, 21: 0, 22: 0, 24: 0 };
-                        if(!system.recurringTemplates) system.recurringTemplates = [];
-                        
+                        // Default Checks for V4.0
+                        if(!system.customRanks) system.customRanks = { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 };
+                        if(!system.location) system.location = { name: "Baalbek", lat: 34.00, lon: 36.21 };
+                        if(!system.language) system.language = "en";
+
                         system.dayArchives = existingArchives;
                         system.history = { ...existingHistory, ...(data.history || {}) };
 
@@ -849,9 +964,11 @@
                         if(!system.exchangeRate || system.exchangeRate < 1) system.exchangeRate = 89500;
 
                         checkMonthRollover(); 
+                        applyLanguage();
                         render();
                         updateGoldModalUI(); 
                         fetchLiveGoldPrice();
+                        fetchWeather();
                     } else {
                         system.hpMonth = getSystemDate().substring(0, 7);
                         save(true);
@@ -870,7 +987,6 @@
                     const d = doc.data();
                     if(d.month) system.history[d.month] = { val: d.val, rate: d.rate };
                 });
-
                 const archivesSnap = await getDocs(collection(db, "users", uid, "archived_quests"));
                 archivesSnap.forEach(doc => {
                     const q = doc.data();
@@ -878,9 +994,7 @@
                     if(!system.dayArchives[dateKey]) system.dayArchives[dateKey] = [];
                     system.dayArchives[dateKey].push({ ...q, docId: doc.id });
                 });
-            } catch (e) {
-                console.error("Error loading sub-collections", e);
-            }
+            } catch (e) { console.error("Error loading sub-collections", e); }
         }
 
         async function fetchLiveGoldPrice() {
@@ -888,15 +1002,12 @@
                 const response = await fetch('https://api.gold-api.com/price/XAU');
                 if (!response.ok) throw new Error("Network response was not ok");
                 const data = await response.json();
-                
                 if(data.price) {
                     global24kGramPrice = data.price / 31.1035;
                     system.storedGoldPrice = global24kGramPrice; 
-                    
                     const now = new Date();
-                    const timeStr = now.toLocaleTimeString();
                     const dateStr = document.getElementById('lastUpdateText');
-                    if(dateStr) dateStr.textContent = "LAST UPDATE: " + timeStr;
+                    if(dateStr) dateStr.textContent = "LAST UPDATE: " + now.toLocaleTimeString();
                     render(); 
                 }
             } catch (e) { 
@@ -913,20 +1024,23 @@
                 system.vaultCurrent = Money.val(system.vaultCurrent || 0);
                 system.vaultSavings = Money.val(system.vaultSavings || 0);
                 system.salary = Money.val(system.salary || 0);
+                system.budgetCurrent = Money.val(system.budgetCurrent || 0); // V4.0
                 system.storedGoldPrice = global24kGramPrice;
 
+                // Strip history and archives from main doc save (they are subcollections)
                 const payload = { 
-                    vaultCurrent: system.vaultCurrent,
-                    vaultSavings: system.vaultSavings,
-                    salary: system.salary,
-                    exchangeRate: system.exchangeRate,
-                    preferredKarat: system.preferredKarat,
-                    storedGoldPrice: system.storedGoldPrice,
-                    goldInventory: system.goldInventory,
-                    goldCosts: system.goldCosts,
-                    quests: system.quests,
-                    hpMonth: system.hpMonth,
+                    vaultCurrent: system.vaultCurrent, vaultSavings: system.vaultSavings,
+                    salary: system.salary, exchangeRate: system.exchangeRate,
+                    preferredKarat: system.preferredKarat, storedGoldPrice: system.storedGoldPrice,
+                    goldInventory: system.goldInventory, goldCosts: system.goldCosts,
+                    quests: system.quests, hpMonth: system.hpMonth,
                     recurringTemplates: system.recurringTemplates || [],
+                    // V4.0 Fields
+                    budgetCap: system.budgetCap || 0,
+                    budgetCurrent: system.budgetCurrent,
+                    customRanks: system.customRanks,
+                    location: system.location,
+                    language: system.language,
                     lastUpdated: serverTimestamp() 
                 };
                 
@@ -950,7 +1064,6 @@
 
         async function checkMonthRollover() {
             if(isSaving) return; 
-
             const currentMonthStr = getSystemDate().substring(0, 7); 
             if (!system.hpMonth) system.hpMonth = currentMonthStr;
 
@@ -960,36 +1073,29 @@
             while(storedMonth < currentMonthStr) {
                 needsSave = true;
                 const monthVal = Money.add(system.vaultCurrent || 0, system.vaultSavings || 0);
-                const monthData = {
-                    val: monthVal,
-                    rate: system.exchangeRate,
-                    month: storedMonth,
-                    createdAt: serverTimestamp()
-                };
-
+                
+                // Add Historical Point
                 system.history[storedMonth] = { val: monthVal, rate: system.exchangeRate };
-                await addDoc(collection(db, "users", currentUser.uid, "history_log"), monthData);
+                await addDoc(collection(db, "users", currentUser.uid, "history_log"), {
+                    val: monthVal, rate: system.exchangeRate, month: storedMonth, createdAt: serverTimestamp()
+                });
 
-                // Rollover Logic
+                // Rollover Money
                 system.vaultSavings = Money.add(system.vaultSavings || 0, system.vaultCurrent || 0);
                 system.vaultCurrent = 0;
                 
-                // RECURRING TASK GENERATION (V3.0 Feature)
+                // Reset Budget for new month (V4.0)
+                system.budgetCurrent = system.budgetCap;
+
+                // Recurring Tasks
                 if(system.recurringTemplates && system.recurringTemplates.length > 0) {
                     const nextM = getNextMonth(storedMonth);
                     system.recurringTemplates.forEach(template => {
                         const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
-                        // Construct date for the new month (e.g. currentMonth-01)
                         const targetDay = template.targetDay || "01";
-                        const newDate = `${nextM}-${targetDay}`;
-                        
                         system.quests.push({
-                            id: uniqueId,
-                            title: template.title,
-                            target: template.target,
-                            current: 0,
-                            isDebt: true,
-                            targetDate: newDate
+                            id: uniqueId, title: template.title, target: template.target,
+                            current: 0, isDebt: true, targetDate: `${nextM}-${targetDay}`
                         });
                     });
                 }
@@ -1000,7 +1106,7 @@
             if(needsSave) {
                 system.hpMonth = currentMonthStr;
                 await save();
-                showToast("New Month Initialized: Recurring Tasks Added", "success");
+                showToast("New Month Initialized", "success");
             }
         }
 
@@ -1025,29 +1131,30 @@
             return Math.floor(v);
         }
 
+        // V4.0 Dynamic Ranks
         function getRankInfo(val) {
-            if (val >= 100000000) return { r: 'SS', c: 'var(--rank-ss)' }; 
-            if (val >= 50000000) return { r: 'S', c: 'var(--rank-s)' };   
-            if (val >= 10000000) return { r: 'A', c: 'var(--rank-a)' };   
-            if (val >= 2000000) return { r: 'B', c: 'var(--rank-b)' };    
-            if (val >= 400000) return { r: 'C', c: 'var(--rank-c)' };     
+            const r = system.customRanks || { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 };
+            if (val >= r.SS) return { r: 'SS', c: 'var(--rank-ss)' }; 
+            if (val >= r.S) return { r: 'S', c: 'var(--rank-s)' };   
+            if (val >= r.A) return { r: 'A', c: 'var(--rank-a)' };   
+            if (val >= r.B) return { r: 'B', c: 'var(--rank-b)' };    
+            if (val >= r.C) return { r: 'C', c: 'var(--rank-c)' };     
             return { r: 'E', c: 'var(--rank-e)' };
         }
 
         /* ACTIONS */
         window.addSalary = async () => {
-            let a = prompt("Add Salary Income (e.g. $500 or 45000000):");
+            let a = prompt("Add Salary Income:");
             let val = parseWish(a);
-            if(val > 0 && system.exchangeRate > 0) { 
-                let usdVal = Money.val(val / system.exchangeRate);
-                system.salary = Money.add(system.salary || 0, usdVal); 
+            if(val > 0) { 
+                system.salary = Money.add(system.salary || 0, Money.val(val / system.exchangeRate)); 
                 await save(); 
-                showToast("Income Added Successfully", "success");
+                showToast("Income Added", "success");
             }
         };
 
         window.salaryToVault = async () => {
-            let a = prompt("Transfer to Assets (e.g. 50k, $100):");
+            let a = prompt("Transfer to Assets:");
             if(!a) return;
             let goldAmount = parseWish(a);
             let costInUSD = Money.val(goldAmount / system.exchangeRate);
@@ -1055,18 +1162,13 @@
                 system.salary = Money.sub(system.salary, costInUSD); 
                 await directDeposit(goldAmount); 
                 showToast("Transfer Complete", "success");
-            } else {
-                showToast("Insufficient Salary funds", "error");
-            }
+            } else { showToast("Insufficient Salary funds", "error"); }
         };
 
         window.startFlowDeposit = async () => { 
-            let a = prompt("Deposit Assets Directly (e.g. $50 or 100k):"); 
+            let a = prompt("Deposit Assets Directly:"); 
             let val = parseWish(a);
-            if(val > 0) {
-                 await directDeposit(val); 
-                 showToast("Assets Updated", "success");
-            }
+            if(val > 0) { await directDeposit(val); showToast("Assets Updated", "success"); }
         };
 
         async function directDeposit(amount) {
@@ -1077,7 +1179,7 @@
         }
 
         window.confirmZero = async (type) => {
-            if(confirm(`Clean up the remaining fraction (less than 1000)?`)) {
+            if(confirm(`Clean up remainder?`)) {
                 if(type === 'salary') system.salary = 0; 
                 else {
                     if(system.vaultCurrent < 1000) system.vaultCurrent = 0;
@@ -1090,54 +1192,56 @@
 
         window.payDebt = async (id) => {
             let q = system.quests.find(x => x.id == id);
-            
-            if(!q) { console.error("Debt ID not found:", id); return; }
-            
-            let remainingGold = q.target;
+            if(!q) return;
             let rate = (system.exchangeRate > 0) ? system.exchangeRate : 89500;
-            let costUSD = Money.val(remainingGold / rate);
+            let costUSD = Money.val(q.target / rate);
             
             if((system.salary || 0) >= costUSD) {
-                if(confirm(`PAY DEBT: "${q.title}"?\nCost: $${costUSD.toFixed(2)}\n(Deducted from SALARY)`)) {
-                    try {
-                        setSaving(true);
-                        const batch = writeBatch(db);
-                        const archiveRef = doc(collection(db, "users", currentUser.uid, "archived_quests"));
-                        const archiveData = { ...q, current: q.target, archivedAt: serverTimestamp() };
-                        batch.set(archiveRef, archiveData);
+                if(confirm(`PAY DEBT: "${q.title}"?\nCost: $${costUSD.toFixed(2)}`)) {
+                    setSaving(true);
+                    const batch = writeBatch(db);
+                    const archiveRef = doc(collection(db, "users", currentUser.uid, "archived_quests"));
+                    const archiveData = { ...q, current: q.target, archivedAt: serverTimestamp() };
+                    batch.set(archiveRef, archiveData);
 
-                        const userRef = doc(db, "users", currentUser.uid);
-                        const newSalary = Money.sub(system.salary, costUSD);
-                        const newQuests = system.quests.filter(x => x.id != id);
+                    const newSalary = Money.sub(system.salary, costUSD);
+                    const newQuests = system.quests.filter(x => x.id != id);
 
-                        batch.update(userRef, { salary: newSalary, quests: newQuests, lastUpdated: serverTimestamp() });
-                        await batch.commit();
-
-                        system.salary = newSalary;
-                        system.quests = newQuests;
-
-                        const d = q.targetDate || getSystemDate();
-                        if(!system.dayArchives[d]) system.dayArchives[d] = [];
-                        system.dayArchives[d].push({ ...archiveData, docId: archiveRef.id });
-
-                        render();
-                        showToast("Debt Paid & Archived", "success");
-                        if(document.getElementById('monthlyView').style.display === 'block') {
-                            openMonthlyList('pending');
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        showToast("Error paying debt", "error");
-                    } finally {
-                        setSaving(false);
-                    }
+                    system.salary = newSalary; system.quests = newQuests;
+                    batch.update(doc(db, "users", currentUser.uid), { salary: newSalary, quests: newQuests, lastUpdated: serverTimestamp() });
+                    
+                    const d = q.targetDate || getSystemDate();
+                    if(!system.dayArchives[d]) system.dayArchives[d] = [];
+                    system.dayArchives[d].push({ ...archiveData, docId: archiveRef.id });
+                    
+                    await batch.commit();
+                    setSaving(false);
+                    render();
+                    showToast("Debt Paid & Archived", "success");
+                    if(document.getElementById('monthlyView').style.display === 'block') openMonthlyList('pending');
                 }
-            } else {
-                showToast("Insufficient Salary!", "error");
-            }
+            } else { showToast("Insufficient Salary!", "error"); }
         };
 
-        /* WITHDRAWAL LOGIC (UPDATED WITH SAVINGS PENALTY) */
+        /* MANA / BUDGET LOGIC V4.0 */
+        window.openManaModal = () => document.getElementById('manaModal').style.display = 'flex';
+        
+        window.submitMana = async (cat) => {
+            let val = parseFloat(document.getElementById('manaAmountInput').value);
+            if(!val || val <= 0) { showToast("Invalid Amount", "error"); return; }
+            
+            // Just subtract from Mana bar, do not touch real vault
+            if(!system.budgetCurrent) system.budgetCurrent = system.budgetCap || 0;
+            system.budgetCurrent = Money.sub(system.budgetCurrent, val);
+            
+            await save();
+            document.getElementById('manaAmountInput').value = '';
+            document.getElementById('manaModal').style.display = 'none';
+            render();
+            showToast(`Spent ${val} on ${cat}`, "success");
+        };
+
+        /* WITHDRAWAL */
         window.openWithdrawModal = () => {
             document.getElementById('withdrawModal').style.display = 'flex';
             document.getElementById('withdrawInput').value = '';
@@ -1145,143 +1249,196 @@
             document.getElementById('dispSavings').textContent = formatVal(system.vaultSavings || 0);
             let curUSD = (system.vaultCurrent || 0) / system.exchangeRate;
             let savUSD = (system.vaultSavings || 0) / system.exchangeRate;
-            document.getElementById('dispCurrentUSD').textContent = '$' + curUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            document.getElementById('dispSavingsUSD').textContent = '$' + savUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            document.getElementById('dispCurrentUSD').textContent = '$' + curUSD.toLocaleString(undefined, {minimumFractionDigits:2});
+            document.getElementById('dispSavingsUSD').textContent = '$' + savUSD.toLocaleString(undefined, {minimumFractionDigits:2});
             selectedWithdrawSource = null;
             document.getElementById('btnSrcCurrent').classList.remove('active');
             document.getElementById('btnSrcSavings').classList.remove('active');
             document.getElementById('savingsWarning').style.display = 'none';
         };
-
         window.closeWithdrawModal = () => document.getElementById('withdrawModal').style.display = 'none';
-
         window.selectSource = (src) => {
             selectedWithdrawSource = src;
             document.getElementById('btnSrcCurrent').classList.remove('active');
             document.getElementById('btnSrcSavings').classList.remove('active');
             document.getElementById('savingsWarning').style.display = 'none';
-            
             if(src === 'current') document.getElementById('btnSrcCurrent').classList.add('active');
             if(src === 'savings') {
                 document.getElementById('btnSrcSavings').classList.add('active');
-                document.getElementById('savingsWarning').style.display = 'block'; // V3.0 Feature
+                document.getElementById('savingsWarning').style.display = 'block';
             }
         };
-
         window.submitWithdraw = async () => {
             let val = document.getElementById('withdrawInput').value;
             let req = parseWish(val);
-            if(req <= 0) { showToast("Invalid Amount", "error"); return; }
-            if(!selectedWithdrawSource) { showToast("Select a Source", "error"); return; }
+            if(req <= 0) return;
+            if(!selectedWithdrawSource) { showToast("Select Source", "error"); return; }
             
             if(selectedWithdrawSource === 'savings') {
-                // PENALTY WARNING CONFIRM
-                if(!confirm("⚠ PENALTY WARNING ⚠\n\nYou are about to withdraw from SAVINGS.\nThis is discouraged by the System.\n\nProceed anyway?")) return;
-
+                if(!confirm("⚠ PENALTY WARNING ⚠\nWithdraw from SAVINGS?")) return;
                 if((system.vaultSavings || 0) >= req) system.vaultSavings = Money.sub(system.vaultSavings, req);
                 else { showToast("Not enough in Savings", "error"); return; }
             } else {
                 if((system.vaultCurrent || 0) >= req) system.vaultCurrent = Money.sub(system.vaultCurrent, req);
                 else { showToast("Not enough in Current", "error"); return; }
             }
-            render();
-            await save(); 
-            closeWithdrawModal();
-            showToast("Withdrawal Confirmed", "success");
+            render(); await save(); closeWithdrawModal(); showToast("Withdrawal Confirmed", "success");
         };
 
-        /* SETTINGS & EXPORT/IMPORT */
+        /* SETTINGS V4.0 */
         window.openSettings = () => {
             document.getElementById('settingsModal').style.display = 'flex';
             document.getElementById('settingRateInput').value = system.exchangeRate;
+            document.getElementById('settingManaInput').value = system.budgetCap || 0;
+            
+            // Populate Config Inputs
+            document.getElementById('rankE').value = system.customRanks.E;
+            document.getElementById('rankC').value = system.customRanks.C;
+            document.getElementById('rankB').value = system.customRanks.B;
+            document.getElementById('rankA').value = system.customRanks.A;
+            document.getElementById('rankS').value = system.customRanks.S;
+            document.getElementById('rankSS').value = system.customRanks.SS;
+            document.getElementById('locName').value = system.location.name;
+            document.getElementById('locLat').value = system.location.lat;
+            document.getElementById('locLon').value = system.location.lon;
+            document.getElementById('langBtn').textContent = (system.language === 'en') ? "SWITCH TO ARABIC" : "SWITCH TO ENGLISH";
+
+            drawGrowthGraph();
+        }
+
+        window.toggleConfigMode = () => {
+            const p = document.getElementById('configPanel');
+            p.style.display = (p.style.display === 'none') ? 'block' : 'none';
+        }
+
+        window.toggleLanguage = () => {
+            system.language = (system.language === 'en') ? 'ar' : 'en';
+            document.getElementById('langBtn').textContent = (system.language === 'en') ? "SWITCH TO ARABIC" : "SWITCH TO ENGLISH";
+            applyLanguage();
+        }
+
+        function applyLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = t(key);
+            });
+            // Handle placeholders or dynamic text logic here if needed
+            document.body.style.direction = (system.language === 'ar') ? 'rtl' : 'ltr';
         }
 
         window.closeSettings = async () => {
-            let n = parseFloat(document.getElementById('settingRateInput').value);
-            if(n >= 1 && n !== system.exchangeRate) {
-                system.exchangeRate = n;
-                await save();
-                showToast("Rate Updated", "success");
-            }
+            let nRate = parseFloat(document.getElementById('settingRateInput').value);
+            let nMana = parseFloat(document.getElementById('settingManaInput').value);
+            
+            if(nRate >= 1) system.exchangeRate = nRate;
+            if(!isNaN(nMana)) system.budgetCap = nMana;
+
+            // Save Config
+            system.customRanks.E = parseFloat(document.getElementById('rankE').value) || 0;
+            system.customRanks.C = parseFloat(document.getElementById('rankC').value) || 0;
+            system.customRanks.B = parseFloat(document.getElementById('rankB').value) || 0;
+            system.customRanks.A = parseFloat(document.getElementById('rankA').value) || 0;
+            system.customRanks.S = parseFloat(document.getElementById('rankS').value) || 0;
+            system.customRanks.SS = parseFloat(document.getElementById('rankSS').value) || 0;
+            
+            system.location.name = document.getElementById('locName').value || "Baalbek";
+            system.location.lat = parseFloat(document.getElementById('locLat').value) || 34.00;
+            system.location.lon = parseFloat(document.getElementById('locLon').value) || 36.21;
+
+            await save();
+            showToast("Settings Saved", "success");
             document.getElementById('settingsModal').style.display = 'none';
+            fetchWeather();
+            render();
         }
 
-        // --- ANDROID FIX SHARE FUNCTION ---
-        window.shareData = async () => {
-            const backup = {
-                system: system,
-                timestamp: new Date().toISOString(),
-                version: "3.0"
-            };
-            const jsonStr = JSON.stringify(backup);
-            
-            // CHANGED TO text/plain FOR ANDROID COMPATIBILITY
-            const blob = new Blob([jsonStr], { type: "text/plain" });
-            const file = new File([blob], "sung_jin_woo_backup.json", { type: "text/plain" });
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        title: 'System Backup',
-                        text: 'Sung Jin-Woo System Data Backup',
-                        files: [file]
-                    });
-                    showToast("Shared Successfully", "success");
-                } catch (err) {
-                    console.error("Share failed:", err);
-                }
-            } else {
-                // Fallback attempt without check (some browsers lie)
-                try {
-                    await navigator.share({ files: [file] });
-                } catch(e) {
-                    showToast("Share not supported, use Download", "error");
-                }
-            }
-        };
-
         window.exportData = () => {
-            const backup = {
-                system: system,
-                timestamp: new Date().toISOString(),
-                version: "3.0"
-            };
+            const backup = { system: system, timestamp: new Date().toISOString(), version: "4.0" };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "system_backup_" + getSystemDate() + ".json");
+            downloadAnchorNode.setAttribute("download", "system_v4_" + getSystemDate() + ".json");
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
-            showToast("Backup Downloaded", "success");
+            showToast("Download Started", "success");
         };
 
         window.importData = (input) => {
             const file = input.files[0];
             if(!file) return;
-
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
-                    if(data.system && confirm("Overwrite current system with this backup?")) {
+                    if(data.system && confirm("Overwrite current system?")) {
                         setSaving(true);
                         system = { ...system, ...data.system };
                         await save(true); 
-                        alert("Backup Restored. System will restart.");
+                        alert("Backup Restored. Reloading.");
                         location.reload();
                     }
-                } catch(err) {
-                    showToast("Invalid Backup File", "error");
-                    console.error(err);
-                } finally {
-                    setSaving(false);
-                }
+                } catch(err) { showToast("Invalid File", "error"); } finally { setSaving(false); }
             };
             reader.readAsText(file);
         };
 
-        /* GOLD LOGIC (UPDATED DCA) */
+        /* GRAPH V4.0 */
+        function drawGrowthGraph() {
+            const svg = document.getElementById('chartSvg');
+            svg.innerHTML = ''; // clear
+            const hKeys = Object.keys(system.history).sort();
+            if(hKeys.length < 2) {
+                svg.innerHTML = '<text x="50%" y="50%" fill="#666" text-anchor="middle" font-size="10">Not Enough Data</text>';
+                return;
+            }
+
+            // Extract values
+            const dataPoints = hKeys.map(k => {
+                const entry = system.history[k];
+                // Convert to USD equivalent for standard comparison
+                return { month: k, val: (entry.val / entry.rate) }; 
+            });
+
+            // Find Min/Max for scaling
+            let minVal = Math.min(...dataPoints.map(d => d.val));
+            let maxVal = Math.max(...dataPoints.map(d => d.val));
+            if(minVal === maxVal) { minVal = 0; maxVal = maxVal * 1.5; }
+
+            const width = svg.clientWidth;
+            const height = svg.clientHeight;
+            const padding = 20;
+
+            let pointsStr = "";
+            
+            dataPoints.forEach((d, i) => {
+                const x = padding + (i / (dataPoints.length - 1)) * (width - (padding * 2));
+                const y = height - padding - ((d.val - minVal) / (maxVal - minVal)) * (height - (padding * 2));
+                pointsStr += `${x},${y} `;
+                
+                // Draw Circle
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", x); circle.setAttribute("cy", y); circle.setAttribute("r", 3);
+                circle.classList.add("graph-point");
+                
+                // Tooltip event
+                circle.onmouseover = (e) => {
+                    const tt = document.getElementById('graphTooltip');
+                    tt.style.display = 'block';
+                    tt.style.left = (x + 10) + 'px'; tt.style.top = (y - 20) + 'px';
+                    tt.textContent = `${d.month}: $${d.val.toFixed(0)}`;
+                };
+                circle.onmouseout = () => { document.getElementById('graphTooltip').style.display = 'none'; };
+                
+                svg.appendChild(circle);
+            });
+
+            const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            polyline.setAttribute("points", pointsStr);
+            svg.prepend(polyline);
+        }
+
+        /* GOLD & UI LOGIC (Existing) */
         window.showGoldPrices = async () => {
             document.getElementById('goldModal').style.display = 'flex';
             document.getElementById('goldLoading').style.display = 'block';
@@ -1291,14 +1448,7 @@
             document.getElementById('goldLoading').style.display = 'none';
             document.getElementById('goldContent').style.display = 'block';
         };
-
-        window.setKarat = async (k) => {
-            system.preferredKarat = k;
-            await save(); 
-            updateGoldModalUI();
-            render(); 
-        };
-
+        window.setKarat = async (k) => { system.preferredKarat = k; await save(); updateGoldModalUI(); render(); };
         function updateGoldModalUI() {
             let k = system.preferredKarat || 24;
             document.querySelectorAll('.k-btn').forEach(b => b.classList.remove('active'));
@@ -1306,127 +1456,76 @@
             const ratio = karatRatios[k];
             const currentGramPrice = global24kGramPrice * ratio;
             document.getElementById('dispKaratTitle').textContent = k + 'K';
-            document.getElementById('priceDynamicGram').textContent = '$' + currentGramPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            const rowOunce = document.getElementById('rowOunce');
-            const rowLira = document.getElementById('rowLira');
-            const rowHalf = document.getElementById('rowHalfLira');
-            rowOunce.style.display = (k === 24) ? 'flex' : 'none';
-            rowLira.style.display = (k === 22) ? 'flex' : 'none';
-            rowHalf.style.display = (k === 22) ? 'flex' : 'none';
-            if (k === 24) {
-                let ouncePrice = global24kGramPrice * 31.1035;
-                document.getElementById('priceOunce').textContent = '$' + ouncePrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            }
-            else if (k === 22) {
-                let liraPrice = (global24kGramPrice * 0.9167) * 7.216; 
-                document.getElementById('priceLira').textContent = '$' + liraPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-                document.getElementById('priceHalfLira').textContent = '$' + (liraPrice/2).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            }
+            document.getElementById('priceDynamicGram').textContent = '$' + currentGramPrice.toLocaleString(undefined, {minimumFractionDigits:2});
+            document.getElementById('rowOunce').style.display = (k === 24) ? 'flex' : 'none';
+            document.getElementById('rowLira').style.display = (k === 22) ? 'flex' : 'none';
+            if (k === 24) document.getElementById('priceOunce').textContent = '$' + (global24kGramPrice * 31.1035).toLocaleString(undefined, {minimumFractionDigits:2});
+            else if (k === 22) document.getElementById('priceLira').textContent = '$' + ((global24kGramPrice * 0.9167) * 7.216).toLocaleString(undefined, {minimumFractionDigits:2});
         }
-
         window.closeGoldModal = () => document.getElementById('goldModal').style.display = 'none';
-
-        window.selectGoldVaultTab = (k) => {
-            activeVaultKarat = k;
-            render();
-        };
+        window.selectGoldVaultTab = (k) => { activeVaultKarat = k; render(); };
 
         let currentGoldTransType = null;
-
         window.openGoldTransaction = (type) => {
             currentGoldTransType = type;
             const title = document.getElementById('goldTransTitle');
-            const sub = document.getElementById('goldTransSub');
             const btn = document.getElementById('btnConfirmGoldTrans');
-            const input = document.getElementById('goldTransInput');
             const manualCostDiv = document.getElementById('divManualCost');
-            const manualCostInput = document.getElementById('goldManualCostInput');
             
-            input.value = '';
-            manualCostInput.value = '';
+            document.getElementById('goldTransInput').value = '';
+            document.getElementById('goldManualCostInput').value = '';
             document.getElementById('goldTransValuePreview').textContent = '$0.00';
 
             if(type === 'buy') {
                 title.textContent = `STORE GOLD (${activeVaultKarat}K)`;
-                sub.textContent = "Buying with Manual Cost Entry";
-                btn.textContent = "CONFIRM PURCHASE";
-                btn.style.background = "var(--gold)";
+                btn.textContent = "CONFIRM PURCHASE"; btn.style.background = "var(--gold)";
                 manualCostDiv.style.display = 'block';
             } else {
                 title.textContent = `LIQUIDATE GOLD (${activeVaultKarat}K)`;
-                sub.textContent = "Sell Physical Gold and return Money to Current Vault.";
-                btn.textContent = "CONFIRM SALE";
-                btn.style.background = "var(--success)";
+                btn.textContent = "CONFIRM SALE"; btn.style.background = "var(--success)";
                 manualCostDiv.style.display = 'none';
             }
-            
             document.getElementById('goldTransactionModal').style.display = 'flex';
             
-            input.oninput = () => {
-                let w = parseFloat(input.value) || 0;
+            document.getElementById('goldTransInput').oninput = () => {
+                let w = parseFloat(document.getElementById('goldTransInput').value) || 0;
                 let price = (global24kGramPrice * karatRatios[activeVaultKarat]);
-                let totalVal = w * price;
-                document.getElementById('goldTransValuePreview').textContent = '$' + totalVal.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-                
-                if(type === 'buy') {
-                    manualCostInput.value = totalVal.toFixed(2);
-                }
+                document.getElementById('goldTransValuePreview').textContent = '$' + (w*price).toLocaleString(undefined, {minimumFractionDigits:2});
+                if(type === 'buy') document.getElementById('goldManualCostInput').value = (w*price).toFixed(2);
             };
         };
-
         window.closeGoldTransModal = () => document.getElementById('goldTransactionModal').style.display = 'none';
-
         document.getElementById('btnConfirmGoldTrans').onclick = async () => {
             let w = parseFloat(document.getElementById('goldTransInput').value);
-            if(!w || w <= 0) { showToast("Invalid Weight", "error"); return; }
-            
+            if(!w || w <= 0) return;
             let rate = system.exchangeRate || 89500;
 
             if(currentGoldTransType === 'buy') {
                 let manualUSD = parseFloat(document.getElementById('goldManualCostInput').value);
-                if(!manualUSD || manualUSD <= 0) { showToast("Enter Total Cost ($)", "error"); return; }
-
+                if(!manualUSD || manualUSD <= 0) return;
                 let totalCostLira = manualUSD * rate;
                 let totalAvailable = Money.add(system.vaultSavings || 0, system.vaultCurrent || 0);
 
                 if(totalAvailable >= totalCostLira) {
-                    if(confirm(`Confirm Purchase?\n\n${w}g of ${activeVaultKarat}K Gold\nPAID COST: $${manualUSD.toFixed(2)}`)) {
-                        
+                    if(confirm(`Confirm Purchase?\n${w}g (${activeVaultKarat}K)\nCOST: $${manualUSD.toFixed(2)}`)) {
                         let remainingCost = totalCostLira;
                         if(system.vaultSavings > 0) {
-                            if(system.vaultSavings >= remainingCost) {
-                                system.vaultSavings = Money.sub(system.vaultSavings, remainingCost);
-                                remainingCost = 0;
-                            } else {
-                                remainingCost = Money.sub(remainingCost, system.vaultSavings);
-                                system.vaultSavings = 0;
-                            }
+                            if(system.vaultSavings >= remainingCost) { system.vaultSavings = Money.sub(system.vaultSavings, remainingCost); remainingCost = 0; }
+                            else { remainingCost = Money.sub(remainingCost, system.vaultSavings); system.vaultSavings = 0; }
                         }
-                        if(remainingCost > 0) {
-                             system.vaultCurrent = Money.sub(system.vaultCurrent, remainingCost);
-                        }
+                        if(remainingCost > 0) system.vaultCurrent = Money.sub(system.vaultCurrent, remainingCost);
                         
-                        // DCA LOGIC: Buying increases cost and weight
                         system.goldInventory[activeVaultKarat] = Money.add(system.goldInventory[activeVaultKarat] || 0, w);
-                        if(!system.goldCosts) system.goldCosts = { 18: 0, 21: 0, 22: 0, 24: 0 };
                         system.goldCosts[activeVaultKarat] = Money.add(system.goldCosts[activeVaultKarat] || 0, manualUSD);
 
-                        await save();
-                        closeGoldTransModal();
-                        render();
-                        showToast("Gold Stored Successfully", "success");
+                        await save(); closeGoldTransModal(); render(); showToast("Gold Stored", "success");
                     }
-                } else {
-                    showToast("Insufficient Funds in Vault", "error");
-                }
+                } else { showToast("Insufficient Funds", "error"); }
 
             } else {
                 if((system.goldInventory[activeVaultKarat] || 0) >= w) {
                     let gramPriceUSD = global24kGramPrice * karatRatios[activeVaultKarat];
-                    let totalReturnUSD = w * gramPriceUSD;
-
-                    if(confirm(`Confirm LIQUIDATION?\n\nSelling: ${w}g\nValue: $${totalReturnUSD.toFixed(2)}`)) {
-                        // DCA LOGIC: Selling removes cost proportionally (AVG cost remains same)
+                    if(confirm(`Confirm LIQUIDATION?\n${w}g\nValue: $${(w*gramPriceUSD).toFixed(2)}`)) {
                         let currentWeight = system.goldInventory[activeVaultKarat];
                         let sellRatio = w / currentWeight;
                         let costToRemove = (system.goldCosts[activeVaultKarat] || 0) * sellRatio;
@@ -1435,207 +1534,115 @@
                         system.goldCosts[activeVaultKarat] = Money.sub(system.goldCosts[activeVaultKarat], costToRemove);
                         if(system.goldCosts[activeVaultKarat] < 0) system.goldCosts[activeVaultKarat] = 0;
 
-                        // Return money to Vault Current
-                        system.vaultCurrent = Money.add(system.vaultCurrent || 0, totalReturnUSD * rate);
-
-                        await save();
-                        closeGoldTransModal();
-                        render();
-                        showToast("Gold Liquidated", "success");
+                        system.vaultCurrent = Money.add(system.vaultCurrent || 0, (w * gramPriceUSD) * rate);
+                        await save(); closeGoldTransModal(); render(); showToast("Gold Liquidated", "success");
                     }
-                } else {
-                    showToast("Insufficient Gold to Sell", "error");
-                }
+                } else { showToast("Insufficient Gold", "error"); }
             }
         };
 
-        /* QUESTS & RECURRING */
         window.registerQuest = async (isDebt) => {
             let t = document.getElementById('qTitle').value;
             let g = document.getElementById('qTarget').value;
             let d = document.getElementById('qDate').value;
-            let isRecurring = document.getElementById('qRecurring').checked; // V3.0
+            let isRecurring = document.getElementById('qRecurring').checked;
             
             if(!d) {
-                let year = navDate.getFullYear();
-                let month = navDate.getMonth() + 1;
+                let year = navDate.getFullYear(); let month = navDate.getMonth() + 1;
                 let lastDay = new Date(year, month, 0).getDate();
                 d = `${year}-${String(month).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
             }
-
             let amount = parseWish(g);
             if(t && amount > 0) {
-                await addObjective(t, amount, true, d);
+                const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
+                system.quests.push({ id: uniqueId, title: t, target: amount, current: 0, isDebt: true, targetDate: d });
                 
-                // SAVE RECURRING TEMPLATE
                 if(isRecurring) {
                     if(!system.recurringTemplates) system.recurringTemplates = [];
-                    // Extract day
                     const day = d.split('-')[2];
-                    system.recurringTemplates.push({
-                        title: t,
-                        target: amount,
-                        targetDay: day,
-                        createdAt: Date.now()
-                    });
-                    await save();
-                    showToast("Recurring Task Saved", "info");
+                    system.recurringTemplates.push({ title: t, target: amount, targetDay: day, createdAt: Date.now() });
                 }
-
-                document.getElementById('qTitle').value = ''; 
-                document.getElementById('qTarget').value = '';
-                document.getElementById('qRecurring').checked = false;
-                openMonthlyList('pending');
-                showToast("Debt Added", "success");
-            } else {
-                showToast("Invalid Input", "error");
+                await save();
+                document.getElementById('qTitle').value = ''; document.getElementById('qTarget').value = '';
+                openMonthlyList('pending'); showToast("Record Added", "success");
             }
         };
-
-        async function addObjective(title, target, isDebt, date) {
-            const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
-            system.quests.push({ 
-                id: uniqueId, title: title, target: target, 
-                current: 0, isDebt: true, targetDate: date 
-            });
-            await save();
-        }
 
         window.discardQuest = async (id) => {
-            if(confirm("Discard this debt?")) {
+            if(confirm("Discard?")) {
                 let idx = system.quests.findIndex(x => x.id === id);
-                if(idx === -1) return;
-                system.quests.splice(idx,1);
-                await save();
-                openMonthlyList('pending'); 
-                showToast("Debt Discarded", "info");
+                if(idx !== -1) { system.quests.splice(idx,1); await save(); openMonthlyList('pending'); }
             }
         };
-
         window.deleteArchivedDebt = async (date, id) => {
-            if(confirm("Permanently purge this record?")) {
+            if(confirm("Permanently purge?")) {
                 const quest = system.dayArchives[date].find(q => q.id === id);
                 if (quest && quest.docId) {
-                    try {
-                        setSaving(true);
-                        await deleteDoc(doc(db, "users", currentUser.uid, "archived_quests", quest.docId));
-                    } catch(e) { console.error("Could not delete", e); }
-                    finally { setSaving(false); }
+                    try { setSaving(true); await deleteDoc(doc(db, "users", currentUser.uid, "archived_quests", quest.docId)); } 
+                    catch(e) {} finally { setSaving(false); }
                 }
                 system.dayArchives[date] = system.dayArchives[date].filter(q => q.id !== id);
                 if(system.dayArchives[date].length === 0) delete system.dayArchives[date];
-                
                 render();
-                showToast("Record Purged", "info");
-                if(document.getElementById('monthlyView').style.display === 'block') {
-                    openMonthlyList('paid');
-                }
+                if(document.getElementById('monthlyView').style.display === 'block') openMonthlyList('paid');
             }
         };
 
-        // RECURRING MANAGEMENT UI
         window.openRecurringList = () => {
             document.getElementById('recurringModal').style.display = 'flex';
             const list = document.getElementById('recurringList');
             list.innerHTML = '';
-            if(!system.recurringTemplates || system.recurringTemplates.length === 0) {
-                list.innerHTML = '<div style="color:#666; font-size:0.7rem; text-align:center; padding:20px;">No fixed expenses defined.</div>';
-                return;
-            }
+            if(!system.recurringTemplates || system.recurringTemplates.length === 0) { list.innerHTML = '<div style="color:#666; font-size:0.7rem;">No fixed expenses.</div>'; return; }
             system.recurringTemplates.forEach((tpl, idx) => {
-                list.innerHTML += `
-                    <div class="recurring-item">
-                        <span>${tpl.title} (${formatVal(tpl.target)}) - Day ${tpl.targetDay || '01'}</span>
-                        <button class="btn-del-rec" onclick="deleteRecurring(${idx})">DEL</button>
-                    </div>
-                `;
+                list.innerHTML += `<div class="recurring-item"><span>${tpl.title} (${formatVal(tpl.target)}) - Day ${tpl.targetDay||'01'}</span><button class="btn-del-rec" onclick="deleteRecurring(${idx})">DEL</button></div>`;
             });
         };
-
         window.deleteRecurring = async (idx) => {
-            if(confirm("Stop this monthly recurring expense?")) {
-                system.recurringTemplates.splice(idx, 1);
-                await save();
-                openRecurringList(); // Refresh
-                showToast("Recurring Expense Removed", "success");
-            }
+            if(confirm("Stop recurring expense?")) { system.recurringTemplates.splice(idx, 1); await save(); openRecurringList(); }
         };
 
         window.openMonthlyList = (type) => {
             const container = document.getElementById('monthlyListContainer');
             const title = document.getElementById('monthlyViewTitle');
             const addSec = document.getElementById('addDebtSection');
-            const year = navDate.getFullYear();
-            const month = String(navDate.getMonth() + 1).padStart(2,'0');
+            const year = navDate.getFullYear(); const month = String(navDate.getMonth() + 1).padStart(2,'0');
             const currentMonthPrefix = `${year}-${month}`;
             const monthName = navDate.toLocaleString('default', {month:'long'}).toUpperCase();
 
             document.getElementById('monthlyView').style.display = 'block';
             container.innerHTML = '';
-
             let rate = (system.exchangeRate > 0) ? system.exchangeRate : 89500;
 
             if(type === 'pending') {
-                title.textContent = `UNPAID DEBTS: ${monthName} ${year}`;
+                title.textContent = `${t('unpaid')}: ${monthName} ${year}`;
                 addSec.style.display = 'block';
-                
-                let defaultDay;
-                const now = new Date();
-                if (year === now.getFullYear() && (navDate.getMonth()) === now.getMonth()) {
-                    defaultDay = String(now.getDate()).padStart(2, '0');
-                } else {
-                    defaultDay = String(new Date(year, navDate.getMonth() + 1, 0).getDate()).padStart(2, '0');
-                }
-                document.getElementById('qDate').value = `${currentMonthPrefix}-${defaultDay}`;
-
                 let list = system.quests.filter(q => q.isDebt && q.targetDate && q.targetDate.startsWith(currentMonthPrefix));
-                
-                if(list.length === 0) container.innerHTML = `<div style="text-align:center; color:#666; margin-top:30px;">NO PENDING DEBTS FOR ${monthName}</div>`;
-
+                if(list.length === 0) container.innerHTML = `<div style="text-align:center; color:#666; margin-top:30px;">NO DATA</div>`;
                 list.sort((a,b) => new Date(a.targetDate) - new Date(b.targetDate));
                 list.forEach(q => {
-                    let actionButton = `<button class="btn-pay" onclick="payDebt(${q.id})">PAY & ARCHIVE ($${(q.target/rate).toFixed(2)})</button>`;
                     container.innerHTML += `<div class="quest-card" style="border-left: 4px solid var(--danger)">
-                        <div style="font-size:0.6rem; color:#666; display:flex; justify-content:space-between;">
-                            <span>Target: ${q.targetDate}</span>
-                            <span style="color:var(--danger); font-weight:bold;">PENDING</span>
-                        </div>
+                        <div style="font-size:0.6rem; color:#666;">${q.targetDate}</div>
                         <div style="font-weight:bold; color:white; margin:5px 0;">${q.title.toUpperCase()}</div>
                         <div style="font-size:0.8rem; font-family:monospace; display:flex; justify-content:space-between;">
-                            <span>Pending: ${formatVal(q.target)}</span>
-                            <span>$${(q.target/rate).toFixed(2)}</span>
+                            <span>${formatVal(q.target)}</span><span>$${(q.target/rate).toFixed(2)}</span>
                         </div>
-                        ${actionButton}
+                        <button class="btn-pay" onclick="payDebt(${q.id})">PAY (FROM SALARY)</button>
                         <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
                     </div>`;
                 });
-
             } else {
-                title.textContent = `PAID ARCHIVE: ${monthName} ${year}`;
+                title.textContent = `${t('paid')}: ${monthName} ${year}`;
                 addSec.style.display = 'none';
-                
                 let monthlyPaid = [];
-                if(system.dayArchives) {
-                    Object.keys(system.dayArchives).forEach(dateKey => {
-                        if(dateKey.startsWith(currentMonthPrefix)) {
-                            system.dayArchives[dateKey].forEach(q => monthlyPaid.push({...q, dateKey: dateKey}));
-                        }
-                    });
-                }
-
-                if(monthlyPaid.length === 0) container.innerHTML = `<div style="text-align:center; color:#666; margin-top:30px;">NO RECORDS FOUND FOR ${monthName}</div>`;
-
+                if(system.dayArchives) Object.keys(system.dayArchives).forEach(k => { if(k.startsWith(currentMonthPrefix)) system.dayArchives[k].forEach(q => monthlyPaid.push({...q, dateKey: k})); });
+                if(monthlyPaid.length === 0) container.innerHTML = `<div style="text-align:center; color:#666; margin-top:30px;">NO DATA</div>`;
                 monthlyPaid.sort((a,b) => new Date(b.dateKey) - new Date(a.dateKey));
                 monthlyPaid.forEach(q => {
-                    let delButton = `<button class="discard-btn" onclick="deleteArchivedDebt('${q.dateKey}', ${q.id})">Purge Record</button>`;
                     container.innerHTML += `<div class="quest-card archive-debt">
-                        <div style="font-size:0.65rem; color:var(--debt-color); font-weight:bold; display:flex; justify-content:space-between;">
-                            <span>[PAID] ${q.dateKey}</span>
-                            <span>✓</span>
-                        </div>
+                        <div style="font-size:0.65rem; color:var(--debt-color);">[PAID] ${q.dateKey}</div>
                         <div style="font-weight:bold; margin-top:5px;">${q.title}</div>
-                        <div style="font-family:monospace;">Amount: ${formatVal(q.target)} ($${(q.target/rate).toFixed(2)})</div>
-                        <div style="margin-top:10px;">${delButton}</div>
+                        <div style="font-family:monospace;">${formatVal(q.target)} ($${(q.target/rate).toFixed(2)})</div>
+                        <button class="discard-btn" onclick="deleteArchivedDebt('${q.dateKey}', ${q.id})">Purge</button>
                     </div>`;
                 });
             }
@@ -1643,182 +1650,106 @@
 
         function render() {
             const todayStr = getSystemDate(); 
-            let rate = system.exchangeRate; 
-            if(rate < 1) rate = 89500;
-
+            let rate = system.exchangeRate || 89500;
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
             
-            let totalPortfolioValueUSD = 0;
-            let totalPortfolioCostUSD = 0;
+            // Gold Portfolio
+            let totalPortfolioValueUSD = 0; let totalPortfolioCostUSD = 0;
+            if(system.goldInventory) for(let [k, g] of Object.entries(system.goldInventory)) totalPortfolioValueUSD += g * (global24kGramPrice * karatRatios[k]);
+            if(system.goldCosts) for(let [k, c] of Object.entries(system.goldCosts)) totalPortfolioCostUSD += c;
 
-            if(system.goldInventory) {
-                for(let [k, grams] of Object.entries(system.goldInventory)) {
-                    totalPortfolioValueUSD += grams * (global24kGramPrice * karatRatios[k]);
-                }
-            }
-            if(system.goldCosts) {
-                for(let [k, cost] of Object.entries(system.goldCosts)) {
-                    totalPortfolioCostUSD += cost;
-                }
-            }
-
-            document.getElementById('portTotalVal').textContent = '$' + totalPortfolioValueUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            document.getElementById('portTotalSpent').textContent = '$' + totalPortfolioCostUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            
+            document.getElementById('portTotalVal').textContent = '$' + totalPortfolioValueUSD.toLocaleString(undefined, {minimumFractionDigits:2});
+            document.getElementById('portTotalSpent').textContent = '$' + totalPortfolioCostUSD.toLocaleString(undefined, {minimumFractionDigits:2});
             let profit = totalPortfolioValueUSD - totalPortfolioCostUSD;
             const profitEl = document.getElementById('portProfit');
-            let symbol = profit >= 0 ? "+" : "";
-            profitEl.textContent = symbol + '$' + profit.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+            profitEl.textContent = (profit >= 0 ? "+" : "") + '$' + profit.toLocaleString(undefined, {minimumFractionDigits:2});
             profitEl.className = 'portfolio-profit ' + (profit >= 0 ? 'profit-plus' : 'profit-minus');
 
             let totalGoldValueLira = totalPortfolioValueUSD * rate;
-            
             const totalCashAvailable = vCurrent + vSavings;
             const totalNetWorth = totalCashAvailable + totalGoldValueLira;
             
-            const netWorthUSD = totalNetWorth / rate;
-            document.getElementById('realNetWorth').innerHTML = 
-                `${formatVal(totalNetWorth)} <span style="font-size:0.6rem; color:#ccc;">($${netWorthUSD.toLocaleString(undefined, {minimumFractionDigits:2})})</span>`;
-
-            const hpBase = 15; 
-            let currentMonthUSD = vCurrent / rate; 
-            let hpLevel = Math.floor(currentMonthUSD / hpBase) + 1;
-            let hpProgressVal = currentMonthUSD % hpBase;
-            let hpPerc = (hpProgressVal / hpBase) * 100;
-            if (currentMonthUSD > 0 && hpProgressVal < 0.001) hpProgressVal = 0;
-
-            const hpFill = document.getElementById('hpFill');
-            const hpText = document.getElementById('hpText');
-            hpFill.style.width = hpPerc + "%";
-            hpText.textContent = `LVL ${hpLevel} | $${hpProgressVal.toFixed(2)} / $15.00`;
-            hpFill.className = 'hp-fill'; 
-            if(hpLevel % 3 === 1) hpFill.classList.add('lvl-1');
-            else if(hpLevel % 3 === 2) hpFill.classList.add('lvl-2');
-            else hpFill.classList.add('lvl-3');
-
+            document.getElementById('realNetWorth').innerHTML = `${formatVal(totalNetWorth)} <span style="font-size:0.6rem; color:#ccc;">($${(totalNetWorth/rate).toLocaleString(undefined, {minimumFractionDigits:2})})</span>`;
             document.getElementById('totalAssets').textContent = formatVal(totalCashAvailable);
             document.getElementById('totalUSD').textContent = `$${(totalCashAvailable/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
-            
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
-            document.getElementById('vaultCurrentUSD').textContent = `$${(vCurrent/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-            
+            document.getElementById('vaultCurrentUSD').textContent = `$${(vCurrent/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
-            document.getElementById('vaultSavingsUSD').textContent = `$${(vSavings/rate).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            document.getElementById('vaultSavingsUSD').textContent = `$${(vSavings/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
-            // GOLD BAR
+            // HP Bar (Activity)
+            const hpBase = 15; let currentMonthUSD = vCurrent / rate; 
+            let hpLevel = Math.floor(currentMonthUSD / hpBase) + 1;
+            let hpPerc = ((currentMonthUSD % hpBase) / hpBase) * 100;
+            const hpFill = document.getElementById('hpFill');
+            hpFill.style.width = hpPerc + "%";
+            document.getElementById('hpText').textContent = `LVL ${hpLevel} | $${(currentMonthUSD % hpBase).toFixed(2)}`;
+            hpFill.className = 'hp-fill ' + (hpLevel%3===1 ? 'lvl-1' : hpLevel%3===2 ? 'lvl-2' : 'lvl-3');
+
+            // MANA BAR (V4.0)
+            const manaCap = system.budgetCap || 1;
+            let manaCur = (system.budgetCurrent !== undefined) ? system.budgetCurrent : manaCap;
+            if(manaCur < 0) manaCur = 0; // Prevent negative visual
+            let manaPerc = (manaCur / manaCap) * 100;
+            document.getElementById('manaFill').style.width = manaPerc + "%";
+            document.getElementById('manaText').textContent = `${formatVal(manaCur)} / ${formatVal(manaCap)} (MANA)`;
+
+            // Gold Bar
             let activeKarat = system.preferredKarat || 24;
-            let activeRatio = karatRatios[activeKarat];
-            let activeGramPrice = global24kGramPrice * activeRatio;
-
+            let activeGramPrice = global24kGramPrice * karatRatios[activeKarat];
             document.getElementById('barKaratIndicator').textContent = activeKarat + 'K ⚙️';
-
-            let gramsOwned = 0;
-            if (activeGramPrice > 0) {
-                gramsOwned = (totalCashAvailable / rate) / activeGramPrice;
-            }
-
-            let goldLevel = Math.floor(gramsOwned); 
-            let goldProgress = gramsOwned % 1;
-            let goldPerc = goldProgress * 100;
-            
-            if (isNaN(gramsOwned) || gramsOwned < 0.01) { 
-                gramsOwned = 0; 
-                goldPerc = 0; 
-                goldLevel = 0;
-            }
-
+            let gramsOwned = (activeGramPrice > 0) ? (totalCashAvailable / rate) / activeGramPrice : 0;
+            if (gramsOwned < 0.01) gramsOwned = 0;
             const goldFill = document.getElementById('goldFill');
-            const goldText = document.getElementById('goldText');
-            
-            goldFill.style.width = goldPerc + "%";
-            goldText.textContent = `Reserve: ${gramsOwned.toFixed(2)}g (${activeKarat}K)`;
-            
-            goldFill.className = 'gold-fill';
-            if(goldLevel % 3 === 0) goldFill.classList.add('lvl-0'); 
-            else if(goldLevel % 3 === 1) goldFill.classList.add('lvl-1'); 
-            else goldFill.classList.add('lvl-2');
+            goldFill.style.width = ((gramsOwned % 1) * 100) + "%";
+            document.getElementById('goldText').textContent = `Reserve: ${gramsOwned.toFixed(2)}g (${activeKarat}K)`;
 
+            // DCA
             document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
             document.getElementById('gt' + activeVaultKarat).classList.add('active');
-
-            // NEW DCA DISPLAY LOGIC
-            let vaultGrams = (system.goldInventory && system.goldInventory[activeVaultKarat]) ? system.goldInventory[activeVaultKarat] : 0;
-            let vaultValUSD = vaultGrams * (global24kGramPrice * karatRatios[activeVaultKarat]);
-            let vaultCostUSD = (system.goldCosts && system.goldCosts[activeVaultKarat]) ? system.goldCosts[activeVaultKarat] : 0;
-            
-            let avgCost = 0;
-            if(vaultGrams > 0.01) avgCost = vaultCostUSD / vaultGrams;
+            let vGrams = system.goldInventory[activeVaultKarat] || 0;
+            let vCost = system.goldCosts[activeVaultKarat] || 0;
+            let avgCost = (vGrams > 0.01) ? vCost / vGrams : 0;
             let marketPrice = global24kGramPrice * karatRatios[activeVaultKarat];
+            document.getElementById('dcaAvgCost').textContent = '$' + avgCost.toLocaleString(undefined, {minimumFractionDigits:2});
+            document.getElementById('dcaAvgCost').style.color = (avgCost > 0 && marketPrice >= avgCost) ? "var(--success)" : "#ccc";
+            document.getElementById('dcaMarketPrice').textContent = '$' + marketPrice.toLocaleString(undefined, {minimumFractionDigits:2});
+            document.getElementById('goldVaultGrams').textContent = vGrams.toFixed(2) + "g";
+            document.getElementById('goldVaultVal').textContent = "$" + (vGrams*marketPrice).toLocaleString(undefined, {minimumFractionDigits:2});
+            document.getElementById('goldVaultFill').style.width = Math.min((vGrams / 20) * 100, 100) + "%";
+            document.getElementById('goldVaultText').textContent = (vGrams > 0) ? "SECURE" : "EMPTY";
 
-            document.getElementById('dcaAvgCost').textContent = '$' + avgCost.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            document.getElementById('dcaMarketPrice').textContent = '$' + marketPrice.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            
-            // Color code DCA
-            if(avgCost > 0) {
-                if(marketPrice >= avgCost) document.getElementById('dcaAvgCost').style.color = "var(--success)";
-                else document.getElementById('dcaAvgCost').style.color = "var(--danger)";
-            } else {
-                document.getElementById('dcaAvgCost').style.color = "#ccc";
-            }
-            
-            document.getElementById('goldVaultGrams').textContent = vaultGrams.toFixed(2) + "g";
-            document.getElementById('goldVaultVal').textContent = "$" + vaultValUSD.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-            
-            let vaultCap = 20; 
-            let vaultPerc = Math.min((vaultGrams / vaultCap) * 100, 100);
-            document.getElementById('goldVaultFill').style.width = vaultPerc + "%";
-            document.getElementById('goldVaultText').textContent = (vaultGrams > 0) ? "HOLDING SECURE" : "EMPTY SLOT";
-
+            // Rank (Dynamic)
             const playerRank = getRankInfo(totalNetWorth);
             const pBadge = document.getElementById('playerRankBadge');
             pBadge.textContent = "RANK " + playerRank.r;
             pBadge.style.color = playerRank.c;
             pBadge.style.boxShadow = `0 0 10px ${playerRank.c}`;
             document.getElementById('playerLevel').textContent = hpLevel;
-            document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            document.getElementById('salaryDisplay').textContent = `$${(system.salary || 0).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             document.getElementById('displayRate').textContent = rate.toLocaleString();
             
+            // Buttons
             const salInGold = (system.salary || 0) * rate;
             document.getElementById('zeroSalary').style.display = (salInGold > 0.1 && salInGold < 1000) ? 'inline-block' : 'none';
             document.getElementById('zeroVault').style.display = (totalCashAvailable > 0.1 && totalCashAvailable < 1000) ? 'block' : 'none';
 
-            // STATS
-            const year = navDate.getFullYear();
-            const month = String(navDate.getMonth() + 1).padStart(2,'0');
+            // Stats
+            const year = navDate.getFullYear(); const month = String(navDate.getMonth() + 1).padStart(2,'0');
             const currentMonthPrefix = `${year}-${month}`;
-
             let unpaidList = system.quests.filter(q => q.isDebt && q.targetDate && q.targetDate.startsWith(currentMonthPrefix));
             let unpaidGold = unpaidList.reduce((acc, q) => acc + q.target, 0);
-            
             document.getElementById('countUnpaidDebts').textContent = unpaidList.length;
             document.getElementById('valUnpaidDebts').textContent = `$${(unpaidGold/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
-            let paidCount = 0;
-            let paidGold = 0;
-            if(system.dayArchives) {
-                Object.keys(system.dayArchives).forEach(dateKey => {
-                    if(dateKey.startsWith(currentMonthPrefix)) {
-                        system.dayArchives[dateKey].forEach(q => { 
-                            paidCount++; 
-                            paidGold += q.target; 
-                        });
-                    }
-                });
-            }
+            let paidCount = 0; let paidGold = 0;
+            if(system.dayArchives) Object.keys(system.dayArchives).forEach(k => { if(k.startsWith(currentMonthPrefix)) system.dayArchives[k].forEach(q => { paidCount++; paidGold += q.target; }); });
             document.getElementById('countPaidDebts').textContent = paidCount;
             document.getElementById('valPaidDebts').textContent = `$${(paidGold/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
-            let allTimeCount = 0;
-            let allTimeVal = 0;
-            if(system.dayArchives) {
-                Object.values(system.dayArchives).forEach(dayList => {
-                    dayList.forEach(q => {
-                        allTimeCount++;
-                        allTimeVal += q.target;
-                    });
-                });
-            }
+            let allTimeCount = 0; let allTimeVal = 0;
+            if(system.dayArchives) Object.values(system.dayArchives).forEach(list => list.forEach(q => { allTimeCount++; allTimeVal += q.target; }));
             document.getElementById('countAllPaid').textContent = allTimeCount;
             document.getElementById('valAllPaid').textContent = `$${(allTimeVal/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
@@ -1829,10 +1760,8 @@
             const grid = document.getElementById('daysGrid'); grid.innerHTML = '';
             document.getElementById('monthTitle').textContent = navDate.toLocaleString('default', {month:'long', year:'numeric'}).toUpperCase();
             const todayStr = getSystemDate(); 
-            const year = navDate.getFullYear();
-            const month = navDate.getMonth();
-            const first = new Date(year, month, 1).getDay();
-            const last = new Date(year, month+1, 0).getDate();
+            const year = navDate.getFullYear(); const month = navDate.getMonth();
+            const first = new Date(year, month, 1).getDay(); const last = new Date(year, month+1, 0).getDate();
             for(let i=0; i<first; i++) grid.innerHTML += '<div></div>';
             for(let i=1; i<=last; i++) {
                 const currentDayStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
@@ -1840,8 +1769,7 @@
                 const isToday = (currentDayStr === todayStr);
                 const cell = document.createElement('div');
                 cell.className = `day-cell ${has ? 'has-completed' : ''} ${isToday ? 'today' : ''}`;
-                cell.textContent = i; 
-                cell.onclick = () => openDay(currentDayStr);
+                cell.textContent = i; cell.onclick = () => openDay(currentDayStr);
                 grid.appendChild(cell);
             }
         }
@@ -1853,28 +1781,14 @@
             const l = document.getElementById('dayList'); l.innerHTML = '';
             const rate = system.exchangeRate > 0 ? system.exchangeRate : 89500;
             if(system.dayArchives && system.dayArchives[d]) {
-                (system.dayArchives[d] || []).forEach(q => {
-                    let delButton = `<button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge Record</button>`;
-                    l.innerHTML += `<div class="quest-card archive-debt">
-                        <div style="font-size:0.65rem; color:var(--debt-color); font-weight:bold;">[PAID] ARCHIVE</div>
-                        <div style="font-weight:bold; margin-top:5px;">${q.title}</div>
-                        <div style="font-family:monospace;">Amount: ${formatVal(q.target)} ($${(q.target/rate).toFixed(2)})</div>
-                        <div style="margin-top:10px;">${delButton}</div>
-                    </div>`;
+                system.dayArchives[d].forEach(q => {
+                    l.innerHTML += `<div class="quest-card archive-debt"><div style="font-size:0.65rem; color:var(--debt-color);">[PAID] ARCHIVE</div><div style="font-weight:bold; margin-top:5px;">${q.title}</div><div style="font-family:monospace;">${formatVal(q.target)} ($${(q.target/rate).toFixed(2)})</div><button class="discard-btn" onclick="deleteArchivedDebt('${d}', ${q.id})">Purge</button></div>`;
                 });
             }
         };
 
-        window.closeViews = () => {
-            document.querySelectorAll('.full-view').forEach(v => v.style.display='none');
-            render();
-        };
-        window.changeMonth = (s) => { 
-            navDate.setDate(1); 
-            navDate.setMonth(navDate.getMonth() + s); 
-            drawCalendar(); 
-            render();
-        };
+        window.closeViews = () => { document.querySelectorAll('.full-view').forEach(v => v.style.display='none'); render(); };
+        window.changeMonth = (s) => { navDate.setDate(1); navDate.setMonth(navDate.getMonth() + s); drawCalendar(); render(); };
     </script>
 </body>
 </html>
