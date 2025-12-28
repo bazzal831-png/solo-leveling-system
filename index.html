@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V4.2</title>
+    <title>SUNG JIN-WOO SYSTEM | V5.0 MAX</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -48,14 +48,7 @@
         }
         .gold-vault-card { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.05); }
 
-        /* MANA (BUDGET) SECTION - DASHBOARD DISPLAY */
-        .mana-section {
-            background: rgba(0,0,0,0.4); border: 1px solid #5352ed;
-            padding: 10px; margin-bottom: 15px; border-radius: 4px;
-            box-shadow: 0 0 10px rgba(83, 82, 237, 0.1); cursor: pointer;
-        }
-        .mana-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .mana-label { font-size: 0.7rem; color: #5352ed; font-weight: bold; letter-spacing: 1px; }
+        /* MANA STYLES (INTERNAL) */
         .mana-bar-container {
             height: 18px; background: #0a0a20; border: 1px solid #1a1a40;
             position: relative; border-radius: 2px; overflow: hidden;
@@ -65,12 +58,10 @@
             background: linear-gradient(90deg, #3742fa, #5352ed);
             box-shadow: 0 0 10px #5352ed;
         }
-        /* Negative Mana Style */
         .mana-fill.negative {
             background: linear-gradient(90deg, #4b0082, #bc13fe);
             box-shadow: 0 0 10px #bc13fe;
         }
-
         .mana-text {
             position: absolute; width: 100%; text-align: center; top: 0; line-height: 18px;
             font-size: 0.65rem; color: white; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 2;
@@ -157,7 +148,7 @@
             padding: 12px; width: 100%; box-sizing: border-box; 
             font-size: 1rem; text-align: center; margin-bottom: 15px;
         }
-        select.modal-input { appearance: none; -webkit-appearance: none; }
+        select.modal-input { appearance: none; -webkit-appearance: none; color: var(--mana); font-weight:bold; }
 
         .modal-actions { display: flex; gap: 10px; }
         .modal-btn { flex: 1; padding: 12px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; }
@@ -188,6 +179,13 @@
             pointer-events: none; display: none; border-radius: 4px; z-index: 10;
         }
 
+        /* SHADOW GRAPH STYLES */
+        .shadow-row { margin-bottom: 8px; }
+        .shadow-label { font-size: 0.6rem; color: #aaa; margin-bottom: 2px; display:flex; justify-content:space-between; }
+        .shadow-bar-bg { height: 10px; background: #222; position: relative; border-radius: 2px; }
+        .shadow-bar-prev { height: 100%; background: #444; position: absolute; left: 0; top: 0; opacity: 0.6; }
+        .shadow-bar-curr { height: 100%; background: var(--debt-color); position: absolute; left: 0; top: 0; opacity: 0.9; box-shadow:0 0 5px var(--debt-color); }
+
         /* CUSTOM RANK INPUTS */
         .rank-config-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .rank-badge-sm { width: 30px; font-weight: bold; font-size: 0.8rem; text-align: center; }
@@ -203,7 +201,7 @@
             padding: 40px 20px; text-align: center; background: rgba(0, 30, 50, 0.3);
         }
 
-        /* HP BAR */
+        /* HP BAR (15$ Bar) */
         .hp-section {
             background: rgba(0, 0, 0, 0.5); border: 1px solid #333;
             padding: 10px; margin-bottom: 15px; border-radius: 4px;
@@ -347,7 +345,9 @@
 
         /* MANA PANEL SPECIFIC (V4.2) */
         .mana-panel-item { margin-bottom: 15px; border-bottom:1px solid #333; padding-bottom:10px; }
-        .mana-log-item { display: flex; justify-content: space-between; font-size: 0.7rem; color: #ccc; margin-bottom: 5px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .mana-log-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: #ccc; margin-bottom: 5px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .mana-del-btn { color: var(--danger); cursor: pointer; font-weight: bold; margin-left: 10px; font-size: 0.8rem; }
+        .mana-cat-tag { font-size: 0.6rem; color: var(--mana); background: rgba(0,210,255,0.1); padding: 1px 4px; border-radius: 3px; margin-right: 5px; }
 
     </style>
 </head>
@@ -359,12 +359,12 @@
 
     <div id="authOverlay">
         <div class="login-card">
-            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V4.2</div>
+            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V5.0</div>
             <button class="btn-system" id="loginBtn" style="background: white; color: black; border: none;">INITIALIZE (GOOGLE)</button>
         </div>
     </div>
 
-    <!-- SETTINGS MODAL (V4.2 UPDATE) -->
+    <!-- SETTINGS MODAL (V5.0 UPDATE) -->
     <div id="settingsModal" class="modal-backdrop">
         <div class="modal-window">
             
@@ -372,7 +372,7 @@
             <div id="mainSettingsMenu">
                 <div class="modal-title" data-i18n="settings">SYSTEM SETTINGS</div>
                 
-                <!-- NEW: MANA CONTROL BUTTON -->
+                <!-- MANA CONTROL BUTTON -->
                 <button class="btn-system" onclick="toggleManaPanel()" style="margin-bottom:15px; border-color:#5352ed; color:#5352ed;">
                     MANAGEMENT: PHANTOM SALARY (MANA)
                 </button>
@@ -436,7 +436,7 @@
                 <button class="modal-btn btn-cancel" style="width:100%" onclick="closeSettings()" data-i18n="close">CLOSE & SAVE</button>
             </div>
 
-            <!-- SUB-MENU: MANA CONFIG PANEL (HIDDEN BY DEFAULT) -->
+            <!-- SUB-MENU: MANA CONFIG PANEL (WITH SHADOW GRAPH & CATEGORIES) -->
             <div id="manaConfigPanel" style="display:none; text-align:left;">
                 <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">MANA BUDGET CONTROL</div>
                 
@@ -461,24 +461,43 @@
                     </div>
                 </div>
 
-                <!-- 3. EXPENSE LOGGING (The Main Interaction) -->
+                <!-- 3. EXPENSE LOGGING (Category Added) -->
                 <div class="mana-panel-item">
                     <span class="settings-label">LOG EXPENSE (Smart Input)</span>
                     <p style="font-size:0.6rem; color:#666; margin-bottom:8px;">
-                        Examples: "Coffee", then "800$" or "100k" or "150000" or "2.5"
+                        Examples: "Coffee", then "Drink", then "1.5" or "150k"
                     </p>
-                    <input type="text" id="manaItemInput" class="modal-input" placeholder="Item Name (e.g. Taxi, Lunch...)" style="margin-bottom:5px;">
+                    <input type="text" id="manaItemInput" class="modal-input" placeholder="Item Name (e.g. Eggs)" style="margin-bottom:5px;">
+                    
+                    <!-- Category Selector -->
+                    <select id="manaCatInput" class="modal-input" style="margin-bottom:5px; padding:12px;">
+                        <option value="Food" data-i18n="catFood">Food</option>
+                        <option value="Drink" data-i18n="catDrink">Drink</option>
+                        <option value="Transport" data-i18n="catTransport">Transport</option>
+                        <option value="Bills" data-i18n="catBills">Bills</option>
+                        <option value="Shopping" data-i18n="catShopping">Shopping</option>
+                        <option value="Other" data-i18n="catOther">Other</option>
+                    </select>
+
                     <input type="text" id="manaCostInput" class="modal-input" placeholder="Cost (e.g. 10$ or 200k)" style="margin-bottom:10px;">
                     
                     <button class="btn-system" onclick="submitManaExpense()" style="background:#5352ed; color:white; border:none;">CONFIRM DEDUCTION</button>
                 </div>
 
-                <!-- 4. RECENT LOGS -->
+                <!-- 4. SHADOW GRAPH (Comparison) -->
+                <div class="mana-panel-item">
+                    <span class="settings-label">MONTHLY COMPARISON (SHADOW SYSTEM)</span>
+                    <div id="manaShadowGraph" style="min-height:50px; margin-top:10px;">
+                        <!-- Bars injected via JS -->
+                    </div>
+                    <div style="font-size:0.55rem; color:#666; text-align:center; margin-top:5px;">Gray: Last Month | Color: This Month</div>
+                </div>
+
+                <!-- 5. RECENT LOGS (With Delete) -->
                 <div style="margin-bottom:15px;">
                     <span class="settings-label">RECENT ACTIVITY</span>
                     <div id="manaRecentLogs" style="min-height:50px;">
                         <!-- Logs injected here -->
-                        <div style="font-size:0.7rem; color:#666; text-align:center;">No recent activity.</div>
                     </div>
                 </div>
 
@@ -602,21 +621,12 @@
             <div class="settings-icon" onclick="openSettings()">⚙️</div>
         </div>
 
-        <!-- MANA SECTION (DASHBOARD) - Click opens Settings/Mana -->
-        <div class="mana-section" onclick="openSettingsToMana()">
-            <div class="mana-header">
-                <div class="mana-label">TRAINING BUDGET (MANA)</div>
-                <div style="font-size:0.6rem; color:#5352ed;">CLICK TO MANAGE</div>
-            </div>
-            <div class="mana-bar-container">
-                <div class="mana-fill" id="manaFill"></div>
-                <div class="mana-text" id="manaText">Loading...</div>
-            </div>
-        </div>
+        <!-- MANA SECTION REMOVED FROM MAIN VIEW AS REQUESTED -->
+        <!-- Only HP Bar remains below -->
 
         <div class="hp-section">
             <div class="hp-header">
-                <div class="hp-label" data-i18n="activity">MONTHLY ACTIVITY</div>
+                <div class="hp-label" data-i18n="activity">MONTHLY ACTIVITY ($15 Base)</div>
             </div>
             <div class="hp-bar-container">
                 <div class="hp-fill" id="hpFill"></div>
@@ -856,29 +866,31 @@
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
         };
 
-        // --- TRANSLATIONS V4.2 ---
+        // --- TRANSLATIONS V5.0 ---
         const TRANSLATIONS = {
             en: {
                 settings: "SYSTEM SETTINGS", exchangeRate: "EXCHANGE RATE (LIRA)",
                 growthGraph: "SYSTEM GROWTH HISTORY", recurring: "RECURRING TASKS", manageRecurring: "MANAGE FIXED EXPENSES",
                 dataMgmt: "DATA MANAGEMENT", download: "⬇ DOWNLOAD FILE (LOCAL)", import: "⬆ IMPORT BACKUP",
-                reset: "♻ FACTORY RESET", logout: "LOGOUT", close: "CLOSE & SAVE", activity: "MONTHLY ACTIVITY",
+                reset: "♻ FACTORY RESET", logout: "LOGOUT", close: "CLOSE & SAVE", activity: "MONTHLY ACTIVITY ($15 Base)",
                 salary: "SALARY WALLET", income: "+ Income", transfer: "Transfer", totalCash: "TOTAL CASH AVAILABLE (LIQUID)",
                 netWorth: "TOTAL NET WORTH", vaultCurrent: "THIS MONTH (CASH)", vaultSavings: "SAVINGS (CASH)",
                 addAssets: "+ Add Assets", withdraw: "Withdrawal", portValue: "TOTAL PORTFOLIO VALUE (ALL KARATS)",
                 store: "STORE (BUY)", liquidate: "LIQUIDATE (SELL)", paid: "PAID (MONTH)", unpaid: "UNPAID (MONTH)",
-                allTime: "ALL TIME PAID", goldPrices: "GOLD PRICES 🟡"
+                allTime: "ALL TIME PAID", goldPrices: "GOLD PRICES 🟡",
+                catFood: "Food", catDrink: "Drink", catTransport: "Transport", catBills: "Bills", catShopping: "Shopping", catOther: "Other"
             },
             ar: {
                 settings: "إعدادات النظام", exchangeRate: "سعر الصرف (ليرة)",
                 growthGraph: "سجل نمو النظام", recurring: "المهام المتكررة", manageRecurring: "إدارة المصاريف الثابتة",
                 dataMgmt: "إدارة البيانات", download: "⬇ تحميل ملف (محلي)", import: "⬆ استعادة نسخة",
-                reset: "♻ إعادة ضبط المصنع", logout: "تسجيل خروج", close: "إغلاق وحفظ", activity: "النشاط الشهري",
+                reset: "♻ إعادة ضبط المصنع", logout: "تسجيل خروج", close: "إغلاق وحفظ", activity: "النشاط الشهري (15$)",
                 salary: "محفظة الراتب", income: "+ إضافة دخل", transfer: "تحويل", totalCash: "النقد المتاح (سيولة)",
                 netWorth: "صافي الثروة", vaultCurrent: "هذا الشهر (كاش)", vaultSavings: "الادخار (كاش)",
                 addAssets: "+ إضافة أصول", withdraw: "سحب أموال", portValue: "قيمة المحفظة (جميع العيارات)",
                 store: "تخزين (شراء)", liquidate: "تسييل (بيع)", paid: "مدفوع (شهري)", unpaid: "غير مدفوع",
-                allTime: "المدفوعات الكلية", goldPrices: "أسعار الذهب 🟡"
+                allTime: "المدفوعات الكلية", goldPrices: "أسعار الذهب 🟡",
+                catFood: "طعام", catDrink: "شراب", catTransport: "مواصلات", catBills: "فواتير", catShopping: "مشتريات", catOther: "أخرى"
             }
         };
 
@@ -895,7 +907,7 @@
             goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
             recurringTemplates: [],
             budgetCap: 0, budgetCurrent: 0,
-            expenses: [], // NEW V4.2
+            expenses: [], // [{id, item, cost, category, date}]
             customRanks: { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 },
             location: { name: "Baalbek", lat: 34.00, lon: 36.21 },
             language: "en"
@@ -986,7 +998,6 @@
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
                         
-                        // Legacy handling
                         if(data.vault !== undefined && data.vaultSavings === undefined) {
                             data.vaultSavings = data.vault; data.vaultCurrent = 0; delete data.vault;
                         }
@@ -1080,7 +1091,7 @@
                     recurringTemplates: system.recurringTemplates || [],
                     budgetCap: system.budgetCap || 0,
                     budgetCurrent: system.budgetCurrent,
-                    expenses: system.expenses || [], // Save Expenses List
+                    expenses: system.expenses || [], 
                     customRanks: system.customRanks,
                     location: system.location,
                     language: system.language,
@@ -1131,7 +1142,6 @@
                 system.vaultSavings = Money.add(system.vaultSavings || 0, system.vaultCurrent || 0);
                 system.vaultCurrent = 0;
                 
-                // RESET BUDGET FOR NEW MONTH (Do NOT carry over negative debt)
                 system.budgetCurrent = system.budgetCap;
 
                 if(system.recurringTemplates && system.recurringTemplates.length > 0) {
@@ -1267,15 +1277,13 @@
             } else { showToast("Insufficient Salary!", "error"); }
         };
 
-        /* --- MANA / BUDGET LOGIC V4.2 (INTEGRATED INTO SETTINGS) --- */
+        /* --- MANA / BUDGET LOGIC V5.0 (UPDATED) --- */
         
-        // 1. Open Settings then toggle Mana Panel
         window.openSettingsToMana = () => {
             openSettings();
             toggleManaPanel();
         };
 
-        // 2. Toggle the Hidden Panel
         window.toggleManaPanel = () => {
             const main = document.getElementById('mainSettingsMenu');
             const sub = document.getElementById('manaConfigPanel');
@@ -1289,7 +1297,6 @@
             }
         };
 
-        // 3. Save only Cap (Separate Button)
         window.saveManaCapOnly = async () => {
             let nMana = parseFloat(document.getElementById('settingManaInput').value);
             if(!isNaN(nMana) && nMana > 0) {
@@ -1301,35 +1308,26 @@
             }
         };
 
-        // 4. SMART INPUT PARSER
         function parseSmartCost(inputStr) {
             let str = inputStr.toString().toLowerCase().trim().replace(/,/g, '');
             let rate = system.exchangeRate || 89500;
             
-            // Case 1: Explicit USD ($)
-            if (str.includes('$')) {
-                return parseFloat(str.replace('$', '')) || 0;
-            }
+            if (str.includes('$')) return parseFloat(str.replace('$', '')) || 0;
             
-            // Case 2: Explicit Lira (k) e.g. 100k -> 100,000 LBP
             if (str.includes('k')) {
                 let val = parseFloat(str.replace('k', '')) || 0;
-                let lira = val * 1000;
-                return lira / rate; // Convert to USD
+                return (val * 1000) / rate;
             }
 
-            // Case 3: Raw Number
             let val = parseFloat(str);
             if (isNaN(val)) return 0;
-            
-            // Heuristic: If >= 5000, assume Lira. If < 5000, assume USD.
             if (val >= 5000) return val / rate;
             return val;
         }
 
-        // 5. Submit Expense
         window.submitManaExpense = async () => {
             let item = document.getElementById('manaItemInput').value.trim();
+            let cat = document.getElementById('manaCatInput').value; // Get Category
             let rawCost = document.getElementById('manaCostInput').value.trim();
             
             if(!item || !rawCost) { showToast("Enter Item & Cost", "error"); return; }
@@ -1337,30 +1335,94 @@
             let finalCostUSD = parseSmartCost(rawCost);
             if(finalCostUSD <= 0) { showToast("Invalid Amount", "error"); return; }
 
-            // Deduct
             if(system.budgetCurrent === undefined) system.budgetCurrent = system.budgetCap || 0;
             system.budgetCurrent = Money.sub(system.budgetCurrent, finalCostUSD);
 
-            // Add Log
             if(!system.expenses) system.expenses = [];
             system.expenses.unshift({
-                id: Date.now(), item: item, cost: finalCostUSD, date: getSystemDate()
+                id: Date.now(), item: item, cost: finalCostUSD, category: cat, date: getSystemDate()
             });
-            // Keep only recent 50 for storage size safety
-            if(system.expenses.length > 50) system.expenses.pop();
+            // Increased memory for graph
+            if(system.expenses.length > 200) system.expenses.pop();
 
             await save();
             
-            // Reset Inputs
             document.getElementById('manaItemInput').value = '';
             document.getElementById('manaCostInput').value = '';
             
             updateManaPanelUI();
-            render();
             showToast(`Spent $${finalCostUSD.toFixed(2)} on ${item}`, "success");
         };
 
-        // 6. Update UI inside the Panel
+        // ** NEW: DELETE MANA ENTRY FUNCTION **
+        window.deleteManaExpense = async (id) => {
+            if(confirm("Delete this entry? Budget will be refunded.")) {
+                const expense = system.expenses.find(e => e.id === id);
+                if(expense) {
+                    system.budgetCurrent = Money.add(system.budgetCurrent, expense.cost);
+                    system.expenses = system.expenses.filter(e => e.id !== id);
+                    await save();
+                    updateManaPanelUI();
+                    showToast("Entry Deleted & Refunded", "success");
+                }
+            }
+        }
+
+        function renderManaComparison() {
+            const container = document.getElementById('manaShadowGraph');
+            container.innerHTML = '';
+            
+            if(!system.expenses || system.expenses.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#666; font-size:0.7rem;">Not enough data for shadow graph.</div>';
+                return;
+            }
+
+            const currentMonthStr = getSystemDate().substring(0, 7); // YYYY-MM
+            const prevMonthStr = getPrevMonth(currentMonthStr); // YYYY-MM
+
+            let dataCurr = {}; let dataPrev = {};
+            // Initialize Categories
+            const categories = ["Food", "Drink", "Transport", "Bills", "Shopping", "Other"];
+            categories.forEach(c => { dataCurr[c] = 0; dataPrev[c] = 0; });
+
+            system.expenses.forEach(e => {
+                if(e.date && e.category) {
+                    const monthStr = e.date.substring(0, 7);
+                    if(monthStr === currentMonthStr) dataCurr[e.category] += e.cost;
+                    else if(monthStr === prevMonthStr) dataPrev[e.category] += e.cost;
+                }
+            });
+
+            // Find Max for scaling
+            let maxVal = 1;
+            categories.forEach(c => {
+                if(dataCurr[c] > maxVal) maxVal = dataCurr[c];
+                if(dataPrev[c] > maxVal) maxVal = dataPrev[c];
+            });
+
+            categories.forEach(cat => {
+                // If both are 0, skip
+                if(dataCurr[cat] === 0 && dataPrev[cat] === 0) return;
+
+                const label = t('cat'+cat);
+                const pctPrev = (dataPrev[cat] / maxVal) * 100;
+                const pctCurr = (dataCurr[cat] / maxVal) * 100;
+
+                const html = `
+                <div class="shadow-row">
+                    <div class="shadow-label">
+                        <span>${label}</span>
+                        <span style="font-family:monospace;">$${dataCurr[cat].toFixed(1)} <span style="color:#666;">($${dataPrev[cat].toFixed(1)})</span></span>
+                    </div>
+                    <div class="shadow-bar-bg">
+                        <div class="shadow-bar-prev" style="width:${pctPrev}%"></div>
+                        <div class="shadow-bar-curr" style="width:${pctCurr}%"></div>
+                    </div>
+                </div>`;
+                container.innerHTML += html;
+            });
+        }
+
         function updateManaPanelUI() {
             let cap = system.budgetCap || 0;
             let cur = system.budgetCurrent !== undefined ? system.budgetCurrent : cap;
@@ -1375,7 +1437,6 @@
                 bar.className = 'mana-fill';
                 txt.textContent = `$${cur.toFixed(2)} / $${cap}`;
             } else {
-                // Negative Mode
                 perc = 100; 
                 bar.className = 'mana-fill negative';
                 txt.textContent = `OVERDRAFT: $${cur.toFixed(2)}`;
@@ -1383,10 +1444,9 @@
             bar.style.width = perc + "%";
 
             // Safe Spend Logic
-            // Days remaining in month
             const now = new Date();
             const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            const daysLeft = lastDay - now.getDate() + 1; // +1 to include today
+            const daysLeft = lastDay - now.getDate() + 1; 
             
             let safeSpend = 0;
             if (cur > 0) safeSpend = cur / daysLeft;
@@ -1394,23 +1454,33 @@
             document.getElementById('manaSafeSpend').textContent = 
                 (cur > 0) ? `Daily Safe Limit: $${safeSpend.toFixed(2)} (${daysLeft} days left)` : "BUDGET EXCEEDED";
 
-            // Render Recent Logs
+            // Render Recent Logs with Delete Button and Category
             const logContainer = document.getElementById('manaRecentLogs');
             logContainer.innerHTML = '';
-            const recents = (system.expenses || []).slice(0, 3); // Last 3
+            const recents = (system.expenses || []).slice(0, 10); // Show last 10
             if(recents.length === 0) {
                  logContainer.innerHTML = '<div style="font-size:0.7rem; color:#666; text-align:center;">No recent activity.</div>';
             } else {
                 recents.forEach(ex => {
+                   let catName = t('cat'+(ex.category || 'Other'));
                    logContainer.innerHTML += `
                     <div class="mana-log-item">
-                        <span>${ex.item}</span>
-                        <span style="color:#ff6b6b;">-$${ex.cost.toFixed(2)}</span>
+                        <div style="display:flex; align-items:center;">
+                            <span class="mana-cat-tag">${catName}</span>
+                            <span>${ex.item}</span>
+                        </div>
+                        <div style="display:flex; align-items:center;">
+                            <span style="color:#ff6b6b; font-family:monospace;">-$${ex.cost.toFixed(2)}</span>
+                            <span class="mana-del-btn" onclick="deleteManaExpense(${ex.id})">X</span>
+                        </div>
                     </div>`;
                 });
             }
             
             document.getElementById('settingManaInput').value = cap;
+
+            // Update Shadow Graph
+            renderManaComparison();
         }
 
         /* WITHDRAWAL */
@@ -1457,9 +1527,8 @@
             render(); await save(); closeWithdrawModal(); showToast("Withdrawal Confirmed", "success");
         };
 
-        /* SETTINGS V4.2 */
+        /* SETTINGS V5.0 */
         window.openSettings = () => {
-            // Reset to main menu whenever settings is opened
             document.getElementById('mainSettingsMenu').style.display = 'block';
             document.getElementById('manaConfigPanel').style.display = 'none';
 
@@ -1497,6 +1566,11 @@
                 el.textContent = t(key);
             });
             document.body.style.direction = (system.language === 'ar') ? 'rtl' : 'ltr';
+            
+            // Update Select Options
+            document.querySelectorAll('#manaCatInput option').forEach(opt => {
+                opt.textContent = t(opt.getAttribute('data-i18n'));
+            });
         }
 
         window.closeSettings = async () => {
@@ -1523,11 +1597,11 @@
         }
 
         window.exportData = () => {
-            const backup = { system: system, timestamp: new Date().toISOString(), version: "4.2" };
+            const backup = { system: system, timestamp: new Date().toISOString(), version: "5.0" };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "system_v4.2_" + getSystemDate() + ".json");
+            downloadAnchorNode.setAttribute("download", "system_v5.0_" + getSystemDate() + ".json");
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
@@ -1847,26 +1921,6 @@
             hpFill.style.width = hpPerc + "%";
             document.getElementById('hpText').textContent = `LVL ${hpLevel} | $${(currentMonthUSD % hpBase).toFixed(2)}`;
             hpFill.className = 'hp-fill ' + (hpLevel%3===1 ? 'lvl-1' : hpLevel%3===2 ? 'lvl-2' : 'lvl-3');
-
-            // --- MANA BAR ON DASHBOARD ---
-            const manaCap = system.budgetCap || 0;
-            let manaCur = (system.budgetCurrent !== undefined) ? system.budgetCurrent : manaCap;
-            
-            // Visualizing on dashboard
-            let manaPerc = 0;
-            const manaFill = document.getElementById('manaFill');
-            const manaText = document.getElementById('manaText');
-            
-            if (manaCur >= 0) {
-                 manaPerc = (manaCap > 0) ? (manaCur / manaCap) * 100 : 0;
-                 manaFill.className = 'mana-fill';
-                 manaText.textContent = `${manaCur.toFixed(0)} / ${manaCap} (MANA)`;
-            } else {
-                 manaPerc = 100; // Full bar but purple
-                 manaFill.className = 'mana-fill negative';
-                 manaText.textContent = `OVERDRAFT: ${manaCur.toFixed(0)}`;
-            }
-            manaFill.style.width = manaPerc + "%";
             
             let activeKarat = system.preferredKarat || 24;
             let activeGramPrice = global24kGramPrice * karatRatios[activeKarat];
