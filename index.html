@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V4.1</title>
+    <title>SUNG JIN-WOO SYSTEM | V4.2</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -48,23 +48,29 @@
         }
         .gold-vault-card { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.05); }
 
-        /* MANA (BUDGET) SECTION */
+        /* MANA (BUDGET) SECTION - DASHBOARD DISPLAY */
         .mana-section {
             background: rgba(0,0,0,0.4); border: 1px solid #5352ed;
             padding: 10px; margin-bottom: 15px; border-radius: 4px;
-            box-shadow: 0 0 10px rgba(83, 82, 237, 0.1);
+            box-shadow: 0 0 10px rgba(83, 82, 237, 0.1); cursor: pointer;
         }
         .mana-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .mana-label { font-size: 0.7rem; color: #5352ed; font-weight: bold; letter-spacing: 1px; }
         .mana-bar-container {
             height: 18px; background: #0a0a20; border: 1px solid #1a1a40;
-            position: relative; border-radius: 2px; overflow: hidden; cursor: pointer;
+            position: relative; border-radius: 2px; overflow: hidden;
         }
         .mana-fill {
-            height: 100%; width: 100%; transition: width 0.5s ease-in-out;
+            height: 100%; width: 100%; transition: width 0.5s ease-in-out, background 0.5s;
             background: linear-gradient(90deg, #3742fa, #5352ed);
             box-shadow: 0 0 10px #5352ed;
         }
+        /* Negative Mana Style */
+        .mana-fill.negative {
+            background: linear-gradient(90deg, #4b0082, #bc13fe);
+            box-shadow: 0 0 10px #bc13fe;
+        }
+
         .mana-text {
             position: absolute; width: 100%; text-align: center; top: 0; line-height: 18px;
             font-size: 0.65rem; color: white; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 2;
@@ -181,29 +187,6 @@
             padding: 3px 6px; font-size: 0.6rem; border: 1px solid var(--mana);
             pointer-events: none; display: none; border-radius: 4px; z-index: 10;
         }
-
-        /* BUDGET SHADOW GRAPH STYLES */
-        .budget-bar-group { margin-bottom: 12px; }
-        .budget-labels { display: flex; justify-content: space-between; font-size: 0.65rem; color: #ccc; margin-bottom: 3px; }
-        .b-bar-track { height: 12px; background: rgba(255,255,255,0.05); position: relative; border-radius: 2px; }
-        
-        /* The "Shadow" (Previous Month) */
-        .b-bar-shadow {
-            position: absolute; top: 0; left: 0; height: 100%;
-            background: repeating-linear-gradient(45deg, #333, #333 5px, #444 5px, #444 10px);
-            opacity: 0.5; z-index: 1; border-right: 2px solid #666;
-        }
-        
-        /* The "Current" (This Month) */
-        .b-bar-current {
-            position: absolute; top: 0; left: 0; height: 100%;
-            background: linear-gradient(90deg, #5352ed, #3742fa);
-            z-index: 2; opacity: 0.85; box-shadow: 0 0 5px #5352ed;
-        }
-        
-        .budget-diff-text { font-size: 0.6rem; margin-top: 2px; text-align: right; font-family: monospace; }
-        .diff-good { color: var(--success); }
-        .diff-bad { color: var(--danger); }
 
         /* CUSTOM RANK INPUTS */
         .rank-config-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
@@ -362,6 +345,10 @@
         
         @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
+        /* MANA PANEL SPECIFIC (V4.2) */
+        .mana-panel-item { margin-bottom: 15px; border-bottom:1px solid #333; padding-bottom:10px; }
+        .mana-log-item { display: flex; justify-content: space-between; font-size: 0.7rem; color: #ccc; margin-bottom: 5px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
     </style>
 </head>
 <body>
@@ -372,114 +359,132 @@
 
     <div id="authOverlay">
         <div class="login-card">
-            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V4.1</div>
+            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V4.2</div>
             <button class="btn-system" id="loginBtn" style="background: white; color: black; border: none;">INITIALIZE (GOOGLE)</button>
         </div>
     </div>
 
-    <!-- SETTINGS MODAL (V4.1 UPDATE) -->
+    <!-- SETTINGS MODAL (V4.2 UPDATE) -->
     <div id="settingsModal" class="modal-backdrop">
         <div class="modal-window">
-            <div class="modal-title" data-i18n="settings">SYSTEM SETTINGS</div>
             
-            <!-- SECTION 0: BUDGET ANALYTICS (NEW) -->
-            <div class="settings-section">
-                <span class="settings-label" style="color:#5352ed; font-size:0.7rem;">BUDGET ANALYTICS (SHADOW GRAPH)</span>
-                <p style="font-size:0.6rem; color:#888; margin-bottom:10px;">Comparison: Current Month vs Last Month</p>
-                <div id="budgetAnalyticsContainer" style="text-align:left; min-height:100px;">
-                    <!-- Graphs will be injected here -->
-                    <div style="color:#666; font-size:0.7rem; text-align:center;">No expense data yet.</div>
-                </div>
-            </div>
-
-            <!-- SECTION 1: GENERAL -->
-            <div class="settings-section">
-                <span class="settings-label" data-i18n="exchangeRate">EXCHANGE RATE (LIRA)</span>
-                <input type="number" id="settingRateInput" class="modal-input" placeholder="e.g. 89500">
-                <span class="settings-label" data-i18n="manaBudget">MONTHLY BUDGET (MANA CAP)</span>
-                <input type="number" id="settingManaInput" class="modal-input" placeholder="e.g. 500 or 45,000,000">
-            </div>
-
-            <!-- SECTION 2: GRAPH -->
-            <div class="settings-section">
-                <span class="settings-label" data-i18n="growthGraph">SYSTEM GROWTH HISTORY</span>
-                <div class="graph-container" id="growthGraph">
-                    <svg id="chartSvg"></svg>
-                    <div id="graphTooltip" class="graph-tooltip"></div>
-                </div>
-            </div>
-
-            <!-- SECTION 3: CONFIGURATION (RANKS, LOC, LANG) -->
-            <div class="settings-section">
-                <button class="btn-system" onclick="toggleConfigMode()" style="margin-bottom:10px;">🛠 CONFIG (RANKS / LOC)</button>
-                <div id="configPanel" style="display:none; text-align:left;">
-                    
-                    <span class="settings-label" style="margin-top:10px;">CUSTOM RANK THRESHOLDS (USD/LBP)</span>
-                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-e)">E</span><input type="number" id="rankE" class="modal-input rank-input"></div>
-                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-c)">C</span><input type="number" id="rankC" class="modal-input rank-input"></div>
-                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-b)">B</span><input type="number" id="rankB" class="modal-input rank-input"></div>
-                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-a)">A</span><input type="number" id="rankA" class="modal-input rank-input"></div>
-                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-s)">S</span><input type="number" id="rankS" class="modal-input rank-input"></div>
-                    <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-ss)">SS</span><input type="number" id="rankSS" class="modal-input rank-input"></div>
-
-                    <span class="settings-label" style="margin-top:10px;">ENVIRONMENT (WEATHER)</span>
-                    <input type="text" id="locName" class="modal-input" placeholder="City Name (e.g. Baalbek)">
-                    <div style="display:flex; gap:5px;">
-                        <input type="number" id="locLat" class="modal-input" placeholder="Lat (34.00)">
-                        <input type="number" id="locLon" class="modal-input" placeholder="Lon (36.21)">
-                    </div>
-
-                    <span class="settings-label">LANGUAGE</span>
-                    <button class="btn-system" onclick="toggleLanguage()" id="langBtn">SWITCH TO ARABIC</button>
-                </div>
-            </div>
-
-            <!-- SECTION 4: DATA -->
-            <div class="settings-section">
-                <span class="settings-label" data-i18n="recurring">RECURRING TASKS</span>
-                <button class="btn-system" onclick="openRecurringList()" style="margin-bottom:10px; border-color:var(--debt-color); color:var(--debt-color);" data-i18n="manageRecurring">MANAGE FIXED EXPENSES</button>
+            <!-- MAIN SETTINGS MENU -->
+            <div id="mainSettingsMenu">
+                <div class="modal-title" data-i18n="settings">SYSTEM SETTINGS</div>
                 
-                <span class="settings-label" data-i18n="dataMgmt">DATA MANAGEMENT</span>
-                <button class="btn-system" onclick="exportData()" style="margin-bottom:10px;" data-i18n="download">⬇ DOWNLOAD FILE (LOCAL)</button>
-                <button class="file-btn" onclick="document.getElementById('importFile').click()" data-i18n="import">⬆ IMPORT BACKUP</button>
-                <input type="file" id="importFile" style="display:none;" onchange="importData(this)">
+                <!-- NEW: MANA CONTROL BUTTON -->
+                <button class="btn-system" onclick="toggleManaPanel()" style="margin-bottom:15px; border-color:#5352ed; color:#5352ed;">
+                    MANAGEMENT: PHANTOM SALARY (MANA)
+                </button>
+
+                <!-- SECTION 1: GENERAL -->
+                <div class="settings-section">
+                    <span class="settings-label" data-i18n="exchangeRate">EXCHANGE RATE (LIRA)</span>
+                    <input type="number" id="settingRateInput" class="modal-input" placeholder="e.g. 89500">
+                </div>
+
+                <!-- SECTION 2: GRAPH -->
+                <div class="settings-section">
+                    <span class="settings-label" data-i18n="growthGraph">SYSTEM GROWTH HISTORY</span>
+                    <div class="graph-container" id="growthGraph">
+                        <svg id="chartSvg"></svg>
+                        <div id="graphTooltip" class="graph-tooltip"></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: CONFIGURATION (RANKS, LOC, LANG) -->
+                <div class="settings-section">
+                    <button class="btn-system" onclick="toggleConfigMode()" style="margin-bottom:10px;">🛠 CONFIG (RANKS / LOC)</button>
+                    <div id="configPanel" style="display:none; text-align:left;">
+                        
+                        <span class="settings-label" style="margin-top:10px;">CUSTOM RANK THRESHOLDS (USD/LBP)</span>
+                        <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-e)">E</span><input type="number" id="rankE" class="modal-input rank-input"></div>
+                        <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-c)">C</span><input type="number" id="rankC" class="modal-input rank-input"></div>
+                        <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-b)">B</span><input type="number" id="rankB" class="modal-input rank-input"></div>
+                        <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-a)">A</span><input type="number" id="rankA" class="modal-input rank-input"></div>
+                        <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-s)">S</span><input type="number" id="rankS" class="modal-input rank-input"></div>
+                        <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-ss)">SS</span><input type="number" id="rankSS" class="modal-input rank-input"></div>
+
+                        <span class="settings-label" style="margin-top:10px;">ENVIRONMENT (WEATHER)</span>
+                        <input type="text" id="locName" class="modal-input" placeholder="City Name (e.g. Baalbek)">
+                        <div style="display:flex; gap:5px;">
+                            <input type="number" id="locLat" class="modal-input" placeholder="Lat (34.00)">
+                            <input type="number" id="locLon" class="modal-input" placeholder="Lon (36.21)">
+                        </div>
+
+                        <span class="settings-label">LANGUAGE</span>
+                        <button class="btn-system" onclick="toggleLanguage()" id="langBtn">SWITCH TO ARABIC</button>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: DATA -->
+                <div class="settings-section">
+                    <span class="settings-label" data-i18n="recurring">RECURRING TASKS</span>
+                    <button class="btn-system" onclick="openRecurringList()" style="margin-bottom:10px; border-color:var(--debt-color); color:var(--debt-color);" data-i18n="manageRecurring">MANAGE FIXED EXPENSES</button>
+                    
+                    <span class="settings-label" data-i18n="dataMgmt">DATA MANAGEMENT</span>
+                    <button class="btn-system" onclick="exportData()" style="margin-bottom:10px;" data-i18n="download">⬇ DOWNLOAD FILE (LOCAL)</button>
+                    <button class="file-btn" onclick="document.getElementById('importFile').click()" data-i18n="import">⬆ IMPORT BACKUP</button>
+                    <input type="file" id="importFile" style="display:none;" onchange="importData(this)">
+                </div>
+
+                <div class="settings-section" style="border:none;">
+                    <button class="btn-system" style="border-color:var(--danger); color:var(--danger); margin-bottom:10px;" onclick="hardReset()" data-i18n="reset">♻ FACTORY RESET</button>
+                    <button class="btn-system" style="border-color:#666; color:#aaa;" onclick="logout()" data-i18n="logout">LOGOUT</button>
+                </div>
+
+                <button class="modal-btn btn-cancel" style="width:100%" onclick="closeSettings()" data-i18n="close">CLOSE & SAVE</button>
             </div>
 
-            <div class="settings-section" style="border:none;">
-                <button class="btn-system" style="border-color:var(--danger); color:var(--danger); margin-bottom:10px;" onclick="hardReset()" data-i18n="reset">♻ FACTORY RESET</button>
-                <button class="btn-system" style="border-color:#666; color:#aaa;" onclick="logout()" data-i18n="logout">LOGOUT</button>
+            <!-- SUB-MENU: MANA CONFIG PANEL (HIDDEN BY DEFAULT) -->
+            <div id="manaConfigPanel" style="display:none; text-align:left;">
+                <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">MANA BUDGET CONTROL</div>
+                
+                <!-- 1. THE BAR DISPLAY (Visual) -->
+                <div class="mana-panel-item">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <span style="font-size:0.6rem; color:#888;">CURRENT STATUS</span>
+                        <span id="manaSafeSpend" style="font-size:0.6rem; color:var(--success);">Safe Daily: Calculating...</span>
+                    </div>
+                    <div class="mana-bar-container">
+                        <div class="mana-fill" id="manaPanelFill"></div>
+                        <div class="mana-text" id="manaPanelText">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- 2. BUDGET CAP INPUT -->
+                <div class="mana-panel-item">
+                    <span class="settings-label">MONTHLY BUDGET LIMIT ($)</span>
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="settingManaInput" class="modal-input" placeholder="e.g. 500" style="margin-bottom:0;">
+                        <button class="btn-system" style="width:auto; padding:0 15px;" onclick="saveManaCapOnly()">SET</button>
+                    </div>
+                </div>
+
+                <!-- 3. EXPENSE LOGGING (The Main Interaction) -->
+                <div class="mana-panel-item">
+                    <span class="settings-label">LOG EXPENSE (Smart Input)</span>
+                    <p style="font-size:0.6rem; color:#666; margin-bottom:8px;">
+                        Examples: "Coffee", then "800$" or "100k" or "150000" or "2.5"
+                    </p>
+                    <input type="text" id="manaItemInput" class="modal-input" placeholder="Item Name (e.g. Taxi, Lunch...)" style="margin-bottom:5px;">
+                    <input type="text" id="manaCostInput" class="modal-input" placeholder="Cost (e.g. 10$ or 200k)" style="margin-bottom:10px;">
+                    
+                    <button class="btn-system" onclick="submitManaExpense()" style="background:#5352ed; color:white; border:none;">CONFIRM DEDUCTION</button>
+                </div>
+
+                <!-- 4. RECENT LOGS -->
+                <div style="margin-bottom:15px;">
+                    <span class="settings-label">RECENT ACTIVITY</span>
+                    <div id="manaRecentLogs" style="min-height:50px;">
+                        <!-- Logs injected here -->
+                        <div style="font-size:0.7rem; color:#666; text-align:center;">No recent activity.</div>
+                    </div>
+                </div>
+
+                <button class="modal-btn btn-cancel" style="width:100%" onclick="toggleManaPanel()">BACK TO SETTINGS</button>
             </div>
 
-            <button class="modal-btn btn-cancel" style="width:100%" onclick="closeSettings()" data-i18n="close">CLOSE & SAVE</button>
-        </div>
-    </div>
-
-    <!-- MANA EXPENSE MODAL (UPDATED V4.1) -->
-    <div id="manaModal" class="modal-backdrop">
-        <div class="modal-window">
-            <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">LOG EXPENSE</div>
-            <p style="font-size:0.6rem; color:#aaa; margin-bottom:10px;">Deducted from Phantom Salary (Budget)</p>
-            
-            <span class="settings-label">ITEM NAME</span>
-            <input type="text" id="manaItemInput" class="modal-input" placeholder="e.g. Nescafe, Shawarma...">
-
-            <span class="settings-label">CATEGORY (FOR SHADOW GRAPH)</span>
-            <input type="text" id="manaCatInput" class="modal-input" list="catSuggestions" placeholder="e.g. Food, Transport, Home...">
-            <datalist id="catSuggestions">
-                <option value="Food">
-                <option value="Transport">
-                <option value="Home">
-                <option value="Entertainment">
-                <option value="Health">
-                <option value="Bills">
-            </datalist>
-
-            <span class="settings-label">COST</span>
-            <input type="number" id="manaAmountInput" class="modal-input" placeholder="Amount (e.g. 100000 or 2.5$)">
-            <p style="font-size:0.6rem; color:#666; margin-top:-10px; margin-bottom:15px;">* Values &lt; 5000 treated as USD</p>
-            
-            <button class="modal-btn btn-confirm" onclick="submitManaExpense()" style="width:100%; margin-bottom:5px;">CONFIRM EXPENSE</button>
-            <button class="modal-btn btn-cancel" onclick="document.getElementById('manaModal').style.display='none'" style="width:100%">CANCEL</button>
         </div>
     </div>
 
@@ -597,13 +602,13 @@
             <div class="settings-icon" onclick="openSettings()">⚙️</div>
         </div>
 
-        <!-- NEW MANA SECTION -->
-        <div class="mana-section">
+        <!-- MANA SECTION (DASHBOARD) - Click opens Settings/Mana -->
+        <div class="mana-section" onclick="openSettingsToMana()">
             <div class="mana-header">
                 <div class="mana-label">TRAINING BUDGET (MANA)</div>
-                <button class="discard-btn" style="color:#5352ed; border-color:#5352ed;" onclick="openManaModal()">LOG EXPENSE</button>
+                <div style="font-size:0.6rem; color:#5352ed;">CLICK TO MANAGE</div>
             </div>
-            <div class="mana-bar-container" onclick="openManaModal()">
+            <div class="mana-bar-container">
                 <div class="mana-fill" id="manaFill"></div>
                 <div class="mana-text" id="manaText">Loading...</div>
             </div>
@@ -851,10 +856,10 @@
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
         };
 
-        // --- TRANSLATIONS V4.1 ---
+        // --- TRANSLATIONS V4.2 ---
         const TRANSLATIONS = {
             en: {
-                settings: "SYSTEM SETTINGS", exchangeRate: "EXCHANGE RATE (LIRA)", manaBudget: "MONTHLY BUDGET (MANA CAP)",
+                settings: "SYSTEM SETTINGS", exchangeRate: "EXCHANGE RATE (LIRA)",
                 growthGraph: "SYSTEM GROWTH HISTORY", recurring: "RECURRING TASKS", manageRecurring: "MANAGE FIXED EXPENSES",
                 dataMgmt: "DATA MANAGEMENT", download: "⬇ DOWNLOAD FILE (LOCAL)", import: "⬆ IMPORT BACKUP",
                 reset: "♻ FACTORY RESET", logout: "LOGOUT", close: "CLOSE & SAVE", activity: "MONTHLY ACTIVITY",
@@ -865,7 +870,7 @@
                 allTime: "ALL TIME PAID", goldPrices: "GOLD PRICES 🟡"
             },
             ar: {
-                settings: "إعدادات النظام", exchangeRate: "سعر الصرف (ليرة)", manaBudget: "الميزانية التدريبية (المانا)",
+                settings: "إعدادات النظام", exchangeRate: "سعر الصرف (ليرة)",
                 growthGraph: "سجل نمو النظام", recurring: "المهام المتكررة", manageRecurring: "إدارة المصاريف الثابتة",
                 dataMgmt: "إدارة البيانات", download: "⬇ تحميل ملف (محلي)", import: "⬆ استعادة نسخة",
                 reset: "♻ إعادة ضبط المصنع", logout: "تسجيل خروج", close: "إغلاق وحفظ", activity: "النشاط الشهري",
@@ -890,7 +895,7 @@
             goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
             recurringTemplates: [],
             budgetCap: 0, budgetCurrent: 0,
-            expenses: [], // NEW V4.1
+            expenses: [], // NEW V4.2
             customRanks: { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 },
             location: { name: "Baalbek", lat: 34.00, lon: 36.21 },
             language: "en"
@@ -943,7 +948,7 @@
             document.getElementById('savingText').style.display = state ? 'block' : 'none';
         }
 
-        /* WEATHER V4.1 */
+        /* WEATHER V4.2 */
         async function fetchWeather() {
             try {
                 const loc = system.location || { name: "Baalbek", lat: 34.00, lon: 36.21 };
@@ -1126,6 +1131,7 @@
                 system.vaultSavings = Money.add(system.vaultSavings || 0, system.vaultCurrent || 0);
                 system.vaultCurrent = 0;
                 
+                // RESET BUDGET FOR NEW MONTH (Do NOT carry over negative debt)
                 system.budgetCurrent = system.budgetCap;
 
                 if(system.recurringTemplates && system.recurringTemplates.length > 0) {
@@ -1261,49 +1267,151 @@
             } else { showToast("Insufficient Salary!", "error"); }
         };
 
-        /* MANA / BUDGET LOGIC V4.1 */
-        window.openManaModal = () => {
-            document.getElementById('manaModal').style.display = 'flex';
-            document.getElementById('manaItemInput').value = '';
-            document.getElementById('manaCatInput').value = '';
-            document.getElementById('manaAmountInput').value = '';
-        }
+        /* --- MANA / BUDGET LOGIC V4.2 (INTEGRATED INTO SETTINGS) --- */
         
-        window.submitManaExpense = async () => {
-            let item = document.getElementById('manaItemInput').value.trim();
-            let cat = document.getElementById('manaCatInput').value.trim();
-            let rawVal = parseFloat(document.getElementById('manaAmountInput').value);
+        // 1. Open Settings then toggle Mana Panel
+        window.openSettingsToMana = () => {
+            openSettings();
+            toggleManaPanel();
+        };
 
-            if(!item || !cat || !rawVal || rawVal <= 0) {
-                showToast("Please fill all fields", "error"); return;
+        // 2. Toggle the Hidden Panel
+        window.toggleManaPanel = () => {
+            const main = document.getElementById('mainSettingsMenu');
+            const sub = document.getElementById('manaConfigPanel');
+            if(sub.style.display === 'none') {
+                main.style.display = 'none';
+                sub.style.display = 'block';
+                updateManaPanelUI();
+            } else {
+                sub.style.display = 'none';
+                main.style.display = 'block';
+            }
+        };
+
+        // 3. Save only Cap (Separate Button)
+        window.saveManaCapOnly = async () => {
+            let nMana = parseFloat(document.getElementById('settingManaInput').value);
+            if(!isNaN(nMana) && nMana > 0) {
+                system.budgetCap = nMana;
+                await save();
+                updateManaPanelUI();
+                render();
+                showToast("Budget Cap Updated", "success");
+            }
+        };
+
+        // 4. SMART INPUT PARSER
+        function parseSmartCost(inputStr) {
+            let str = inputStr.toString().toLowerCase().trim().replace(/,/g, '');
+            let rate = system.exchangeRate || 89500;
+            
+            // Case 1: Explicit USD ($)
+            if (str.includes('$')) {
+                return parseFloat(str.replace('$', '')) || 0;
+            }
+            
+            // Case 2: Explicit Lira (k) e.g. 100k -> 100,000 LBP
+            if (str.includes('k')) {
+                let val = parseFloat(str.replace('k', '')) || 0;
+                let lira = val * 1000;
+                return lira / rate; // Convert to USD
             }
 
-            // Detect Currency (Assume USD if < 5000, else Lira)
-            let finalVal = rawVal;
-            if(rawVal < 5000) finalVal = rawVal * (system.exchangeRate || 89500);
-
-            // Deduct from Phantom Budget
-            if(!system.budgetCurrent && system.budgetCurrent !== 0) system.budgetCurrent = system.budgetCap || 0;
-            system.budgetCurrent = Money.sub(system.budgetCurrent, finalVal);
-
-            // Add to Expenses List for Graph
-            if(!system.expenses) system.expenses = [];
-            const newExpense = {
-                id: Date.now(),
-                item: item,
-                category: cat, // Store exact category string
-                cost: finalVal,
-                date: getSystemDate() // YYYY-MM-DD
-            };
-            system.expenses.push(newExpense);
+            // Case 3: Raw Number
+            let val = parseFloat(str);
+            if (isNaN(val)) return 0;
             
+            // Heuristic: If >= 5000, assume Lira. If < 5000, assume USD.
+            if (val >= 5000) return val / rate;
+            return val;
+        }
+
+        // 5. Submit Expense
+        window.submitManaExpense = async () => {
+            let item = document.getElementById('manaItemInput').value.trim();
+            let rawCost = document.getElementById('manaCostInput').value.trim();
+            
+            if(!item || !rawCost) { showToast("Enter Item & Cost", "error"); return; }
+            
+            let finalCostUSD = parseSmartCost(rawCost);
+            if(finalCostUSD <= 0) { showToast("Invalid Amount", "error"); return; }
+
+            // Deduct
+            if(system.budgetCurrent === undefined) system.budgetCurrent = system.budgetCap || 0;
+            system.budgetCurrent = Money.sub(system.budgetCurrent, finalCostUSD);
+
+            // Add Log
+            if(!system.expenses) system.expenses = [];
+            system.expenses.unshift({
+                id: Date.now(), item: item, cost: finalCostUSD, date: getSystemDate()
+            });
+            // Keep only recent 50 for storage size safety
+            if(system.expenses.length > 50) system.expenses.pop();
+
             await save();
-            document.getElementById('manaModal').style.display = 'none';
+            
+            // Reset Inputs
+            document.getElementById('manaItemInput').value = '';
+            document.getElementById('manaCostInput').value = '';
+            
+            updateManaPanelUI();
             render();
-            // Refresh Analysis if settings open
-            if(document.getElementById('settingsModal').style.display === 'flex') drawBudgetAnalytics();
-            showToast(`Spent on ${item} (${cat})`, "success");
+            showToast(`Spent $${finalCostUSD.toFixed(2)} on ${item}`, "success");
         };
+
+        // 6. Update UI inside the Panel
+        function updateManaPanelUI() {
+            let cap = system.budgetCap || 0;
+            let cur = system.budgetCurrent !== undefined ? system.budgetCurrent : cap;
+            
+            // Bar Logic
+            let perc = 0;
+            const bar = document.getElementById('manaPanelFill');
+            const txt = document.getElementById('manaPanelText');
+            
+            if (cur >= 0) {
+                perc = (cap > 0) ? (cur / cap) * 100 : 0;
+                bar.className = 'mana-fill';
+                txt.textContent = `$${cur.toFixed(2)} / $${cap}`;
+            } else {
+                // Negative Mode
+                perc = 100; 
+                bar.className = 'mana-fill negative';
+                txt.textContent = `OVERDRAFT: $${cur.toFixed(2)}`;
+            }
+            bar.style.width = perc + "%";
+
+            // Safe Spend Logic
+            // Days remaining in month
+            const now = new Date();
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            const daysLeft = lastDay - now.getDate() + 1; // +1 to include today
+            
+            let safeSpend = 0;
+            if (cur > 0) safeSpend = cur / daysLeft;
+            
+            document.getElementById('manaSafeSpend').textContent = 
+                (cur > 0) ? `Daily Safe Limit: $${safeSpend.toFixed(2)} (${daysLeft} days left)` : "BUDGET EXCEEDED";
+
+            // Render Recent Logs
+            const logContainer = document.getElementById('manaRecentLogs');
+            logContainer.innerHTML = '';
+            const recents = (system.expenses || []).slice(0, 3); // Last 3
+            if(recents.length === 0) {
+                 logContainer.innerHTML = '<div style="font-size:0.7rem; color:#666; text-align:center;">No recent activity.</div>';
+            } else {
+                recents.forEach(ex => {
+                   logContainer.innerHTML += `
+                    <div class="mana-log-item">
+                        <span>${ex.item}</span>
+                        <span style="color:#ff6b6b;">-$${ex.cost.toFixed(2)}</span>
+                    </div>`;
+                });
+            }
+            
+            document.getElementById('settingManaInput').value = cap;
+        }
 
         /* WITHDRAWAL */
         window.openWithdrawModal = () => {
@@ -1349,11 +1457,14 @@
             render(); await save(); closeWithdrawModal(); showToast("Withdrawal Confirmed", "success");
         };
 
-        /* SETTINGS V4.1 */
+        /* SETTINGS V4.2 */
         window.openSettings = () => {
+            // Reset to main menu whenever settings is opened
+            document.getElementById('mainSettingsMenu').style.display = 'block';
+            document.getElementById('manaConfigPanel').style.display = 'none';
+
             document.getElementById('settingsModal').style.display = 'flex';
             document.getElementById('settingRateInput').value = system.exchangeRate;
-            document.getElementById('settingManaInput').value = system.budgetCap || 0;
             
             document.getElementById('rankE').value = system.customRanks.E;
             document.getElementById('rankC').value = system.customRanks.C;
@@ -1367,7 +1478,6 @@
             document.getElementById('langBtn').textContent = (system.language === 'en') ? "SWITCH TO ARABIC" : "SWITCH TO ENGLISH";
 
             drawGrowthGraph();
-            drawBudgetAnalytics(); // NEW V4.1
         }
 
         window.toggleConfigMode = () => {
@@ -1391,10 +1501,8 @@
 
         window.closeSettings = async () => {
             let nRate = parseFloat(document.getElementById('settingRateInput').value);
-            let nMana = parseFloat(document.getElementById('settingManaInput').value);
             
             if(nRate >= 1) system.exchangeRate = nRate;
-            if(!isNaN(nMana)) system.budgetCap = nMana;
 
             system.customRanks.E = parseFloat(document.getElementById('rankE').value) || 0;
             system.customRanks.C = parseFloat(document.getElementById('rankC').value) || 0;
@@ -1415,11 +1523,11 @@
         }
 
         window.exportData = () => {
-            const backup = { system: system, timestamp: new Date().toISOString(), version: "4.1" };
+            const backup = { system: system, timestamp: new Date().toISOString(), version: "4.2" };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "system_v4.1_" + getSystemDate() + ".json");
+            downloadAnchorNode.setAttribute("download", "system_v4.2_" + getSystemDate() + ".json");
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
@@ -1491,103 +1599,6 @@
             const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
             polyline.setAttribute("points", pointsStr);
             svg.prepend(polyline);
-        }
-
-        /* BUDGET SHADOW GRAPH (V4.1) */
-        function drawBudgetAnalytics() {
-            const container = document.getElementById('budgetAnalyticsContainer');
-            container.innerHTML = '';
-
-            const expenses = system.expenses || [];
-            if(expenses.length === 0) {
-                container.innerHTML = '<div style="color:#666; font-size:0.7rem; text-align:center;">No expense data available.</div>';
-                return;
-            }
-
-            // 1. Get current month and previous month strings
-            const currentMonth = getSystemDate().substring(0, 7); // YYYY-MM
-            const prevMonth = getPrevMonth(currentMonth);
-
-            // 2. Aggregate Data
-            const currentTotals = {};
-            const prevTotals = {};
-            const allCategories = new Set();
-
-            expenses.forEach(ex => {
-                const exMonth = ex.date.substring(0, 7);
-                const cat = ex.category;
-                if(exMonth === currentMonth) {
-                    currentTotals[cat] = (currentTotals[cat] || 0) + ex.cost;
-                    allCategories.add(cat);
-                }
-                if(exMonth === prevMonth) {
-                    prevTotals[cat] = (prevTotals[cat] || 0) + ex.cost;
-                    allCategories.add(cat);
-                }
-            });
-
-            if(allCategories.size === 0) {
-                 container.innerHTML = '<div style="color:#666; font-size:0.7rem; text-align:center;">No data for this month or last month.</div>';
-                 return;
-            }
-
-            // Sort categories for consistency
-            const cats = Array.from(allCategories).sort();
-
-            // Find Max for scaling
-            let maxVal = 0;
-            cats.forEach(c => {
-                if((currentTotals[c] || 0) > maxVal) maxVal = currentTotals[c];
-                if((prevTotals[c] || 0) > maxVal) maxVal = prevTotals[c];
-            });
-            if(maxVal === 0) maxVal = 1;
-
-            // 3. Render Bars
-            cats.forEach(cat => {
-                const cur = currentTotals[cat] || 0;
-                const prev = prevTotals[cat] || 0;
-                
-                // Format display numbers
-                const curDisplay = formatVal(cur);
-                const prevDisplay = formatVal(prev);
-                
-                // Calculate percentages width
-                const curWidth = (cur / maxVal) * 100;
-                const prevWidth = (prev / maxVal) * 100;
-
-                // Difference Text
-                let diffText = "";
-                let diffClass = "";
-                if(prev > 0) {
-                    const diff = cur - prev;
-                    if(diff <= 0) {
-                        diffText = `SAVED: ${formatVal(Math.abs(diff))}`;
-                        diffClass = "diff-good";
-                    } else {
-                        diffText = `EXTRA: ${formatVal(diff)}`;
-                        diffClass = "diff-bad";
-                    }
-                } else {
-                    diffText = "NEW CATEGORY";
-                }
-
-                const html = `
-                <div class="budget-bar-group">
-                    <div class="budget-labels">
-                        <span style="color:white; font-weight:bold;">${cat}</span>
-                        <span>${curDisplay} <span style="color:#666;">(Prev: ${prevDisplay})</span></span>
-                    </div>
-                    <div class="b-bar-track">
-                        <!-- Shadow Bar (Previous Month) -->
-                        <div class="b-bar-shadow" style="width:${prevWidth}%"></div>
-                        <!-- Current Bar (This Month) -->
-                        <div class="b-bar-current" style="width:${curWidth}%"></div>
-                    </div>
-                    <div class="budget-diff-text ${diffClass}">${diffText}</div>
-                </div>
-                `;
-                container.innerHTML += html;
-            });
         }
 
         /* GOLD & UI LOGIC */
@@ -1837,13 +1848,26 @@
             document.getElementById('hpText').textContent = `LVL ${hpLevel} | $${(currentMonthUSD % hpBase).toFixed(2)}`;
             hpFill.className = 'hp-fill ' + (hpLevel%3===1 ? 'lvl-1' : hpLevel%3===2 ? 'lvl-2' : 'lvl-3');
 
-            const manaCap = system.budgetCap || 1;
+            // --- MANA BAR ON DASHBOARD ---
+            const manaCap = system.budgetCap || 0;
             let manaCur = (system.budgetCurrent !== undefined) ? system.budgetCurrent : manaCap;
-            if(manaCur < 0) manaCur = 0; 
-            let manaPerc = (manaCur / manaCap) * 100;
-            document.getElementById('manaFill').style.width = manaPerc + "%";
-            document.getElementById('manaText').textContent = `${formatVal(manaCur)} / ${formatVal(manaCap)} (MANA)`;
-
+            
+            // Visualizing on dashboard
+            let manaPerc = 0;
+            const manaFill = document.getElementById('manaFill');
+            const manaText = document.getElementById('manaText');
+            
+            if (manaCur >= 0) {
+                 manaPerc = (manaCap > 0) ? (manaCur / manaCap) * 100 : 0;
+                 manaFill.className = 'mana-fill';
+                 manaText.textContent = `${manaCur.toFixed(0)} / ${manaCap} (MANA)`;
+            } else {
+                 manaPerc = 100; // Full bar but purple
+                 manaFill.className = 'mana-fill negative';
+                 manaText.textContent = `OVERDRAFT: ${manaCur.toFixed(0)}`;
+            }
+            manaFill.style.width = manaPerc + "%";
+            
             let activeKarat = system.preferredKarat || 24;
             let activeGramPrice = global24kGramPrice * karatRatios[activeKarat];
             document.getElementById('barKaratIndicator').textContent = activeKarat + 'K ⚙️';
