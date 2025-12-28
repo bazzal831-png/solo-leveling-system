@@ -31,7 +31,7 @@
             display: flex; flex-direction: column;
         }
         .weather-loc { font-weight: bold; letter-spacing: 1px; }
-        .weather-det { color: #888; font-size: 0.6rem; margin-top: 2px; }
+        .weather-det { color: #888; font-size: 0.6rem; margin-top: 2px; transition: color 0.3s; }
         
         .settings-icon {
             font-size: 1.2rem; cursor: pointer; transition: 0.3s;
@@ -323,7 +323,8 @@
 
             <div class="settings-section">
                 <span class="settings-label">DATA MANAGEMENT (JSON)</span>
-                <button class="btn-system" onclick="exportData()" style="margin-bottom:10px;">⬇ EXPORT BACKUP</button>
+                <button class="btn-system" onclick="shareData()" style="margin-bottom:10px; border-color:var(--success); color:var(--success);">📤 SHARE BACKUP (GMAIL/FILES)</button>
+                <button class="btn-system" onclick="exportData()" style="margin-bottom:10px;">⬇ DOWNLOAD FILE (LOCAL)</button>
                 <button class="file-btn" onclick="document.getElementById('importFile').click()">⬆ IMPORT BACKUP</button>
                 <input type="file" id="importFile" style="display:none;" onchange="importData(this)">
             </div>
@@ -431,7 +432,7 @@
         <!-- NEW HEADER: WEATHER + SETTINGS -->
         <div class="system-header">
             <div class="weather-widget">
-                <span class="weather-loc">ENV: BEIRUT</span>
+                <span class="weather-loc">ENV: BAALBEK</span>
                 <span class="weather-det" id="weatherDetail">SCANNING...</span>
             </div>
             <div class="settings-icon" onclick="openSettings()">⚙️</div>
@@ -723,20 +724,50 @@
             document.getElementById('savingText').style.display = state ? 'block' : 'none';
         }
 
-        /* WEATHER */
+        /* WEATHER (UPDATED FOR BAALBEK & SNOW/RAIN LOGIC) */
         async function fetchWeather() {
             try {
-                // Fixed Coordinates for Beirut for stability
-                const lat = 33.89;
-                const lon = 35.50;
-                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m`);
+                // Baalbek Coordinates
+                const lat = 34.00;
+                const lon = 36.21;
+                // Get current weather + daily forecast code to see if it will rain/snow today
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code&timezone=auto`);
                 const data = await res.json();
                 
                 const temp = data.current.temperature_2m;
                 const wind = data.current.wind_speed_10m;
                 
-                document.getElementById('weatherDetail').textContent = `${temp}°C | WIND ${wind}km/h | ONLINE`;
+                // Get today's forecast code from daily array (index 0 is today)
+                const todayCode = data.daily.weather_code[0];
+                
+                let conditionText = "CLEAR";
+                let conditionColor = "var(--mana)";
+
+                // Logic for Snow: Codes 71, 73, 75, 77, 85, 86
+                if([71, 73, 75, 77, 85, 86].includes(todayCode)) {
+                    conditionText = "SNOW WARNING ❄️";
+                    conditionColor = "#ffffff";
+                }
+                // Logic for Rain: Codes 51-67, 80-82
+                else if([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(todayCode)) {
+                    conditionText = "RAIN EXPECTED 🌧️";
+                    conditionColor = "#4facfe"; // Light Blue
+                }
+                // Thunderstorm: 95, 96, 99
+                else if([95, 96, 99].includes(todayCode)) {
+                    conditionText = "STORM WARNING ⛈️";
+                    conditionColor = "var(--danger)";
+                }
+
+                const widget = document.getElementById('weatherDetail');
+                widget.textContent = `${temp}°C | ${wind}km/h | ${conditionText}`;
+                widget.style.color = conditionColor;
+                
+                // Ensure Location says Baalbek
+                document.querySelector('.weather-loc').textContent = "ENV: BAALBEK";
+
             } catch(e) {
+                console.log(e);
                 document.getElementById('weatherDetail').textContent = "OFFLINE | SYNC FAILED";
             }
         }
@@ -1100,10 +1131,35 @@
             document.getElementById('settingsModal').style.display = 'none';
         }
 
+        // --- NEW SHARE FUNCTION (GMAIL/FILES) ---
+        window.shareData = async () => {
+            const backup = {
+                system: system,
+                timestamp: new Date().toISOString(),
+                version: "2.0"
+            };
+            const jsonStr = JSON.stringify(backup);
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const file = new File([blob], "sung_jin_woo_backup.json", { type: "application/json" });
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'System Backup',
+                        text: 'Sung Jin-Woo System Data Backup',
+                        files: [file]
+                    });
+                    showToast("Shared Successfully", "success");
+                } catch (err) {
+                    console.error("Share failed:", err);
+                    // User might have cancelled, which is fine
+                }
+            } else {
+                showToast("Sharing not supported. Use Download.", "error");
+            }
+        };
+
         window.exportData = () => {
-            // Full system export including day archives if needed (here simplified to current state object)
-            // For a full backup we need to ensure local archives match cloud. 
-            // Since archives are loaded into system.dayArchives, this works.
             const backup = {
                 system: system,
                 timestamp: new Date().toISOString(),
@@ -1116,7 +1172,7 @@
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
-            showToast("Backup Exported", "success");
+            showToast("Backup Downloaded", "success");
         };
 
         window.importData = (input) => {
@@ -1132,9 +1188,6 @@
                         system = { ...system, ...data.system };
                         // Force save to cloud
                         await save(true); 
-                        // If dayArchives were in the backup, we might want to batch write them to subcollection
-                        // But for simplicity in this version, we assume they are loaded in memory.
-                        // Ideally, we just reload the page to refresh everything from cloud if we just pushed.
                         alert("Backup Restored. System will restart.");
                         location.reload();
                     }
