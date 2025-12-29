@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V5.1 MAX</title>
+    <title>SUNG JIN-WOO SYSTEM | V5.2 WORLD</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -362,12 +362,12 @@
 
     <div id="authOverlay">
         <div class="login-card">
-            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V5.1</div>
+            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V5.2 WORLD</div>
             <button class="btn-system" id="loginBtn" style="background: white; color: black; border: none;">INITIALIZE (GOOGLE)</button>
         </div>
     </div>
 
-    <!-- SETTINGS MODAL (V5.1 UPDATE) -->
+    <!-- SETTINGS MODAL (V5.2 UPDATED) -->
     <div id="settingsModal" class="modal-backdrop">
         <div class="modal-window">
             
@@ -380,10 +380,28 @@
                     MANAGEMENT: PHANTOM SALARY (MANA)
                 </button>
 
+                <!-- SECTION: COUNTRY SELECTION -->
+                <div class="settings-section">
+                    <span class="settings-label" style="color:var(--success);">SELECT REGION (PRESET)</span>
+                    <select id="countrySelector" class="modal-input" onchange="applyCountryPreset(this.value)">
+                        <option value="LB">🇱🇧 LEBANON (LBP)</option>
+                        <option value="EG">🇪🇬 EGYPT (EGP)</option>
+                        <option value="SA">🇸🇦 SAUDI ARABIA (SAR)</option>
+                        <option value="AE">🇦🇪 UAE (AED)</option>
+                        <option value="US">🇺🇸 USA (USD)</option>
+                    </select>
+                </div>
+
                 <!-- SECTION 1: GENERAL -->
                 <div class="settings-section">
-                    <span class="settings-label" data-i18n="exchangeRate">EXCHANGE RATE (LIRA)</span>
-                    <input type="number" id="settingRateInput" class="modal-input" placeholder="e.g. 89500">
+                    <span class="settings-label" data-i18n="exchangeRate">EXCHANGE RATE</span>
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="settingRateInput" class="modal-input" placeholder="Value">
+                        <button class="btn-system" style="width:auto; padding:0 15px;" onclick="syncRateFromAPI()">🔄 SYNC RATE</button>
+                    </div>
+                    <div style="font-size:0.6rem; color:#666; text-align:left; margin-top:-10px; margin-bottom:10px;">
+                        Active: <span id="activeCurrencyDisplay">LBP</span> | Weather Loc: <span id="activeLocDisplay">Baalbek</span>
+                    </div>
                 </div>
 
                 <!-- SECTION 2: GRAPH -->
@@ -400,7 +418,7 @@
                     <button class="btn-system" onclick="toggleConfigMode()" style="margin-bottom:10px;">🛠 CONFIG (RANKS / LOC)</button>
                     <div id="configPanel" style="display:none; text-align:left;">
                         
-                        <span class="settings-label" style="margin-top:10px;">CUSTOM RANK THRESHOLDS (USD/LBP)</span>
+                        <span class="settings-label" style="margin-top:10px;">CUSTOM RANK THRESHOLDS (USD/LOCAL)</span>
                         <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-e)">E</span><input type="number" id="rankE" class="modal-input rank-input"></div>
                         <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-c)">C</span><input type="number" id="rankC" class="modal-input rank-input"></div>
                         <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-b)">B</span><input type="number" id="rankB" class="modal-input rank-input"></div>
@@ -409,10 +427,10 @@
                         <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-ss)">SS</span><input type="number" id="rankSS" class="modal-input rank-input"></div>
 
                         <span class="settings-label" style="margin-top:10px;">ENVIRONMENT (WEATHER)</span>
-                        <input type="text" id="locName" class="modal-input" placeholder="City Name (e.g. Baalbek)">
+                        <input type="text" id="locName" class="modal-input" placeholder="City Name">
                         <div style="display:flex; gap:5px;">
-                            <input type="number" id="locLat" class="modal-input" placeholder="Lat (34.00)">
-                            <input type="number" id="locLon" class="modal-input" placeholder="Lon (36.21)">
+                            <input type="number" id="locLat" class="modal-input" placeholder="Lat">
+                            <input type="number" id="locLon" class="modal-input" placeholder="Lon">
                         </div>
 
                         <span class="settings-label">LANGUAGE</span>
@@ -439,7 +457,7 @@
                 <button class="modal-btn btn-cancel" style="width:100%" onclick="closeSettings()" data-i18n="close">CLOSE & SAVE</button>
             </div>
 
-            <!-- SUB-MENU: MANA CONFIG PANEL (WITH CUSTOM OTHER & ARCHIVE BTN) -->
+            <!-- SUB-MENU: MANA CONFIG PANEL -->
             <div id="manaConfigPanel" style="display:none; text-align:left;">
                 <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">MANA BUDGET CONTROL</div>
                 
@@ -482,7 +500,6 @@
                         <option value="Other" data-i18n="catOther">Other (Custom)</option>
                     </select>
 
-                    <!-- CUSTOM OTHER INPUT (Hidden by default) -->
                     <input type="text" id="manaCustomCatInput" class="modal-input" placeholder="Specify Category (e.g. Trip)" style="display:none; margin-bottom:5px; border-color:var(--debt-color);">
 
                     <input type="text" id="manaCostInput" class="modal-input" placeholder="Cost (e.g. 10$ or 200k)" style="margin-bottom:10px;">
@@ -498,7 +515,7 @@
                     </div>
                 </div>
 
-                <!-- 5. ARCHIVE BUTTON (New V5.1) -->
+                <!-- 5. ARCHIVE BUTTON -->
                 <div style="margin-bottom:15px;">
                     <button class="btn-system" onclick="openManaHistory()" style="border-color:#888; color:#ccc;">
                          📂 MANA HISTORY / S.LOG
@@ -511,7 +528,7 @@
         </div>
     </div>
 
-    <!-- MANA HISTORY MODAL (NEW V5.1) -->
+    <!-- MANA HISTORY MODAL -->
     <div id="manaHistoryModal" class="modal-backdrop">
         <div class="modal-window">
             <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">MANA EXPENSE LOG</div>
@@ -866,6 +883,15 @@
             val: (a) => Math.round(a * 100) / 100
         };
 
+        // --- NEW: PRESET DATA ---
+        const COUNTRIES = {
+            'LB': { name: 'Lebanon', city: 'Baalbek', lat: 34.00, lon: 36.21, currency: 'LBP', symbol: 'L.L', useK: true },
+            'EG': { name: 'Egypt', city: 'Cairo', lat: 30.04, lon: 31.23, currency: 'EGP', symbol: 'E£', useK: false },
+            'SA': { name: 'Saudi Arabia', city: 'Riyadh', lat: 24.71, lon: 46.67, currency: 'SAR', symbol: 'SAR', useK: false },
+            'AE': { name: 'UAE', city: 'Dubai', lat: 25.20, lon: 55.27, currency: 'AED', symbol: 'DH', useK: false },
+            'US': { name: 'USA', city: 'New York', lat: 40.71, lon: -74.00, currency: 'USD', symbol: '$', useK: false }
+        };
+
         function getSystemDate() {
             const options = { timeZone: "Asia/Beirut", year: 'numeric', month: '2-digit', day: '2-digit' };
             const formatter = new Intl.DateTimeFormat('en-CA', options);
@@ -881,10 +907,9 @@
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
         };
 
-        // --- TRANSLATIONS V5.1 ---
         const TRANSLATIONS = {
             en: {
-                settings: "SYSTEM SETTINGS", exchangeRate: "EXCHANGE RATE (LIRA)",
+                settings: "SYSTEM SETTINGS", exchangeRate: "EXCHANGE RATE",
                 growthGraph: "SYSTEM GROWTH HISTORY", recurring: "RECURRING TASKS", manageRecurring: "MANAGE FIXED EXPENSES",
                 dataMgmt: "DATA MANAGEMENT", download: "⬇ DOWNLOAD FILE (LOCAL)", import: "⬆ IMPORT BACKUP",
                 reset: "♻ FACTORY RESET", logout: "LOGOUT", close: "CLOSE & SAVE", activity: "MONTHLY ACTIVITY ($15 Base)",
@@ -896,7 +921,7 @@
                 catFood: "Food", catDrink: "Drink", catTransport: "Transport", catBills: "Bills", catShopping: "Shopping", catOther: "Other (Custom)"
             },
             ar: {
-                settings: "إعدادات النظام", exchangeRate: "سعر الصرف (ليرة)",
+                settings: "إعدادات النظام", exchangeRate: "سعر الصرف",
                 growthGraph: "سجل نمو النظام", recurring: "المهام المتكررة", manageRecurring: "إدارة المصاريف الثابتة",
                 dataMgmt: "إدارة البيانات", download: "⬇ تحميل ملف (محلي)", import: "⬆ استعادة نسخة",
                 reset: "♻ إعادة ضبط المصنع", logout: "تسجيل خروج", close: "إغلاق وحفظ", activity: "النشاط الشهري (15$)",
@@ -922,10 +947,11 @@
             goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
             recurringTemplates: [],
             budgetCap: 0, budgetCurrent: 0,
-            expenses: [], // [{id, item, cost, category, date}]
+            expenses: [], 
             customRanks: { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 },
             location: { name: "Baalbek", lat: 34.00, lon: 36.21 },
-            language: "en"
+            language: "en",
+            countryCode: "LB", currencySymbol: "L.L", useKSystem: true // Default Lebanon
         };
 
         let navDate = new Date();
@@ -959,6 +985,7 @@
                             customRanks: { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 },
                             location: { name: "Baalbek", lat: 34.00, lon: 36.21 },
                             language: "en",
+                            countryCode: "LB", currencySymbol: "L.L", useKSystem: true,
                             lastUpdated: serverTimestamp()
                         };
                         await setDoc(doc(db, "users", currentUser.uid), system);
@@ -975,7 +1002,7 @@
             document.getElementById('savingText').style.display = state ? 'block' : 'none';
         }
 
-        /* WEATHER V4.2 */
+        /* WEATHER */
         async function fetchWeather() {
             try {
                 const loc = system.location || { name: "Baalbek", lat: 34.00, lon: 36.21 };
@@ -999,6 +1026,32 @@
                 document.getElementById('weatherDetail').textContent = "OFFLINE | SYNC FAILED";
             }
         }
+
+        /* RATE SYNC API */
+        window.syncRateFromAPI = async () => {
+            const country = system.countryCode || 'LB';
+            if(country === 'LB') {
+                alert("Lebanon typically uses a parallel market rate. Update manually if needed, or stick to ~89,500.");
+                return;
+            }
+            if(country === 'US') {
+                document.getElementById('settingRateInput').value = 1;
+                return;
+            }
+
+            const targetCurrency = COUNTRIES[country].currency;
+            document.getElementById('settingRateInput').placeholder = "Fetching...";
+            try {
+                const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                const data = await res.json();
+                if(data.rates && data.rates[targetCurrency]) {
+                    document.getElementById('settingRateInput').value = data.rates[targetCurrency];
+                    showToast(`Synced: 1 USD = ${data.rates[targetCurrency]} ${targetCurrency}`, "success");
+                }
+            } catch(e) {
+                showToast("Failed to fetch rate", "error");
+            }
+        };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -1026,6 +1079,11 @@
                         if(!system.location) system.location = { name: "Baalbek", lat: 34.00, lon: 36.21 };
                         if(!system.language) system.language = "en";
                         if(!system.expenses) system.expenses = [];
+                        
+                        // Default to Lebanon config if missing
+                        if(!system.countryCode) system.countryCode = "LB";
+                        if(system.useKSystem === undefined) system.useKSystem = true;
+                        if(!system.currencySymbol) system.currencySymbol = "L.L";
 
                         system.dayArchives = existingArchives;
                         system.history = { ...existingHistory, ...(data.history || {}) };
@@ -1110,6 +1168,9 @@
                     customRanks: system.customRanks,
                     location: system.location,
                     language: system.language,
+                    countryCode: system.countryCode,
+                    currencySymbol: system.currencySymbol,
+                    useKSystem: system.useKSystem,
                     lastUpdated: serverTimestamp() 
                 };
                 
@@ -1195,10 +1256,19 @@
             return Money.val(finalVal);
         }
 
+        // --- NEW: INTELLIGENT FORMATTING ---
         function formatVal(v) {
-            if (v >= 1000000) return (v / 1000000).toFixed(2) + "m";
-            if (v >= 1000) return (v / 1000).toFixed(1) + "k";
-            return Math.floor(v);
+            const isK = system.useKSystem; // True for Lebanon
+            const sym = system.currencySymbol || '';
+
+            if (isK) {
+                if (v >= 1000000) return (v / 1000000).toFixed(2) + "m";
+                if (v >= 1000) return (v / 1000).toFixed(1) + "k";
+                return Math.floor(v);
+            } else {
+                // For Egypt/Other: Full Number with commas
+                return v.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' ' + sym;
+            }
         }
 
         function getRankInfo(val) {
@@ -1292,8 +1362,7 @@
             } else { showToast("Insufficient Salary!", "error"); }
         };
 
-        /* --- MANA / BUDGET LOGIC V5.1 (UPDATED) --- */
-        
+        /* MANA / BUDGET LOGIC */
         window.openSettingsToMana = () => {
             openSettings();
             toggleManaPanel();
@@ -1323,7 +1392,6 @@
             }
         };
 
-        // EVENT LISTENER FOR OTHER CATEGORY
         document.getElementById('manaCatInput').addEventListener('change', (e) => {
             const val = e.target.value;
             const customInput = document.getElementById('manaCustomCatInput');
@@ -1354,12 +1422,11 @@
 
         window.submitManaExpense = async () => {
             let item = document.getElementById('manaItemInput').value.trim();
-            let cat = document.getElementById('manaCatInput').value; // Get Category
+            let cat = document.getElementById('manaCatInput').value; 
             
-            // Check for Custom Category
             if(cat === 'Other') {
                 let customVal = document.getElementById('manaCustomCatInput').value.trim();
-                if(customVal) cat = customVal; // Overwrite 'Other' with user input
+                if(customVal) cat = customVal;
             }
 
             let rawCost = document.getElementById('manaCostInput').value.trim();
@@ -1376,7 +1443,6 @@
             system.expenses.unshift({
                 id: Date.now(), item: item, cost: finalCostUSD, category: cat, date: getSystemDate()
             });
-            // Keep expenses list manageable but allow history
             if(system.expenses.length > 500) system.expenses.pop();
 
             await save();
@@ -1400,7 +1466,6 @@
                  list.innerHTML = '<div style="font-size:0.7rem; color:#666; text-align:center;">No activity recorded.</div>';
             } else {
                 recents.forEach(ex => {
-                   // Only translate standard categories
                    let standardCats = ['Food','Drink','Transport','Bills','Shopping','Other'];
                    let catDisplay = standardCats.includes(ex.category) ? t('cat'+ex.category) : ex.category;
                    
@@ -1425,7 +1490,6 @@
             document.getElementById('manaHistoryModal').style.display = 'none';
         };
 
-        // ** UPDATED DELETE MANA ENTRY FUNCTION **
         window.deleteManaExpense = async (id) => {
             if(confirm("Delete this entry? Budget will be refunded.")) {
                 const expense = system.expenses.find(e => e.id === id);
@@ -1434,8 +1498,6 @@
                     system.expenses = system.expenses.filter(e => e.id !== id);
                     await save();
                     updateManaPanelUI();
-                    
-                    // Refresh the history list if open
                     if(document.getElementById('manaHistoryModal').style.display === 'flex') {
                         openManaHistory();
                     }
@@ -1453,26 +1515,22 @@
                 return;
             }
 
-            const currentMonthStr = getSystemDate().substring(0, 7); // YYYY-MM
-            const prevMonthStr = getPrevMonth(currentMonthStr); // YYYY-MM
+            const currentMonthStr = getSystemDate().substring(0, 7); 
+            const prevMonthStr = getPrevMonth(currentMonthStr); 
 
             let dataCurr = {}; let dataPrev = {};
-            // Initialize Standard Categories
             const categories = ["Food", "Drink", "Transport", "Bills", "Shopping", "Other"];
             categories.forEach(c => { dataCurr[c] = 0; dataPrev[c] = 0; });
 
             system.expenses.forEach(e => {
                 if(e.date) {
                     const monthStr = e.date.substring(0, 7);
-                    // Map custom categories to "Other" for the graph mainly, or keep them if standard
                     let catKey = categories.includes(e.category) ? e.category : "Other";
-                    
                     if(monthStr === currentMonthStr) dataCurr[catKey] += e.cost;
                     else if(monthStr === prevMonthStr) dataPrev[catKey] += e.cost;
                 }
             });
 
-            // Find Max for scaling
             let maxVal = 1;
             categories.forEach(c => {
                 if(dataCurr[c] > maxVal) maxVal = dataCurr[c];
@@ -1481,7 +1539,6 @@
 
             categories.forEach(cat => {
                 if(dataCurr[cat] === 0 && dataPrev[cat] === 0) return;
-
                 const label = t('cat'+cat);
                 const pctPrev = (dataPrev[cat] / maxVal) * 100;
                 const pctCurr = (dataCurr[cat] / maxVal) * 100;
@@ -1505,7 +1562,6 @@
             let cap = system.budgetCap || 0;
             let cur = system.budgetCurrent !== undefined ? system.budgetCurrent : cap;
             
-            // Bar Logic
             let perc = 0;
             const bar = document.getElementById('manaPanelFill');
             const txt = document.getElementById('manaPanelText');
@@ -1521,7 +1577,6 @@
             }
             bar.style.width = perc + "%";
 
-            // Safe Spend Logic
             const now = new Date();
             const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             const daysLeft = lastDay - now.getDate() + 1; 
@@ -1533,8 +1588,6 @@
                 (cur > 0) ? `Daily Safe Limit: $${safeSpend.toFixed(2)} (${daysLeft} days left)` : "BUDGET EXCEEDED";
 
             document.getElementById('settingManaInput').value = cap;
-
-            // Update Shadow Graph
             renderManaComparison();
         }
 
@@ -1582,13 +1635,16 @@
             render(); await save(); closeWithdrawModal(); showToast("Withdrawal Confirmed", "success");
         };
 
-        /* SETTINGS V5.1 */
+        /* SETTINGS V5.2 WORLD */
         window.openSettings = () => {
             document.getElementById('mainSettingsMenu').style.display = 'block';
             document.getElementById('manaConfigPanel').style.display = 'none';
 
             document.getElementById('settingsModal').style.display = 'flex';
             document.getElementById('settingRateInput').value = system.exchangeRate;
+            document.getElementById('countrySelector').value = system.countryCode || 'LB';
+            document.getElementById('activeCurrencyDisplay').textContent = (system.currencySymbol || 'L.L');
+            document.getElementById('activeLocDisplay').textContent = system.location ? system.location.name : 'Unknown';
             
             document.getElementById('rankE').value = system.customRanks.E;
             document.getElementById('rankC').value = system.customRanks.C;
@@ -1603,6 +1659,30 @@
 
             drawGrowthGraph();
         }
+
+        window.applyCountryPreset = (code) => {
+            const data = COUNTRIES[code];
+            if(data) {
+                // Update UI Fields
+                document.getElementById('locName').value = data.city;
+                document.getElementById('locLat').value = data.lat;
+                document.getElementById('locLon').value = data.lon;
+                
+                // Set system vars (temporary until saved)
+                system.countryCode = code;
+                system.currencySymbol = data.symbol;
+                system.useKSystem = data.useK;
+                system.location = { name: data.city, lat: data.lat, lon: data.lon };
+
+                document.getElementById('activeCurrencyDisplay').textContent = data.symbol;
+                document.getElementById('activeLocDisplay').textContent = data.city;
+
+                // For Non-Lebanon, allow user to click sync
+                if(code !== 'LB') {
+                    showToast("Preset Applied. Click 'Sync Rate' for live value.", "info");
+                }
+            }
+        };
 
         window.toggleConfigMode = () => {
             const p = document.getElementById('configPanel');
@@ -1622,7 +1702,6 @@
             });
             document.body.style.direction = (system.language === 'ar') ? 'rtl' : 'ltr';
             
-            // Update Select Options
             document.querySelectorAll('#manaCatInput option').forEach(opt => {
                 opt.textContent = t(opt.getAttribute('data-i18n'));
             });
@@ -1630,7 +1709,6 @@
 
         window.closeSettings = async () => {
             let nRate = parseFloat(document.getElementById('settingRateInput').value);
-            
             if(nRate >= 1) system.exchangeRate = nRate;
 
             system.customRanks.E = parseFloat(document.getElementById('rankE').value) || 0;
@@ -1652,11 +1730,11 @@
         }
 
         window.exportData = () => {
-            const backup = { system: system, timestamp: new Date().toISOString(), version: "5.1" };
+            const backup = { system: system, timestamp: new Date().toISOString(), version: "5.2" };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "system_v5.1_" + getSystemDate() + ".json");
+            downloadAnchorNode.setAttribute("download", "system_v5.2_" + getSystemDate() + ".json");
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
@@ -1682,7 +1760,7 @@
             reader.readAsText(file);
         };
 
-        /* GRAPH V4.0 (Growth) */
+        /* GRAPH */
         function drawGrowthGraph() {
             const svg = document.getElementById('chartSvg');
             svg.innerHTML = ''; 
