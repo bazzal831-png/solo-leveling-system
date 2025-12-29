@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V5.2 WORLD</title>
+    <title>SUNG JIN-WOO SYSTEM | V5.3 WORLD</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -362,7 +362,7 @@
 
     <div id="authOverlay">
         <div class="login-card">
-            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V5.2 WORLD</div>
+            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V5.3 WORLD</div>
             <button class="btn-system" id="loginBtn" style="background: white; color: black; border: none;">INITIALIZE (GOOGLE)</button>
         </div>
     </div>
@@ -500,7 +500,7 @@
                         <option value="Other" data-i18n="catOther">Other (Custom)</option>
                     </select>
 
-                    <input type="text" id="manaCustomCatInput" class="modal-input" placeholder="Specify Category (e.g. Trip)" style="display:none; margin-bottom:5px; border-color:var(--debt-color);">
+                    <input type="text" id="manaCustomCatInput" class="modal-input" placeholder="Specify Category (e.g. Eggs / Gym / Trip)" style="display:none; margin-bottom:5px; border-color:var(--debt-color);">
 
                     <input type="text" id="manaCostInput" class="modal-input" placeholder="Cost (e.g. 10$ or 200k)" style="margin-bottom:10px;">
                     
@@ -1426,7 +1426,7 @@
             
             if(cat === 'Other') {
                 let customVal = document.getElementById('manaCustomCatInput').value.trim();
-                if(customVal) cat = customVal;
+                if(customVal) cat = customVal; // Here the category becomes whatever you typed (e.g. Eggs)
             }
 
             let rawCost = document.getElementById('manaCostInput').value.trim();
@@ -1506,6 +1506,7 @@
             }
         }
 
+        // --- UPDATED: Dynamic Category Rendering (Fixes the "Other" grouping issue) ---
         function renderManaComparison() {
             const container = document.getElementById('manaShadowGraph');
             container.innerHTML = '';
@@ -1518,36 +1519,46 @@
             const currentMonthStr = getSystemDate().substring(0, 7); 
             const prevMonthStr = getPrevMonth(currentMonthStr); 
 
-            let dataCurr = {}; let dataPrev = {};
-            const categories = ["Food", "Drink", "Transport", "Bills", "Shopping", "Other"];
-            categories.forEach(c => { dataCurr[c] = 0; dataPrev[c] = 0; });
+            // Dynamic aggregation container
+            // Format: { "Food": {curr:0, prev:0}, "MyCustom": {curr:0, prev:0} }
+            let totals = {};
 
             system.expenses.forEach(e => {
                 if(e.date) {
                     const monthStr = e.date.substring(0, 7);
-                    let catKey = categories.includes(e.category) ? e.category : "Other";
-                    if(monthStr === currentMonthStr) dataCurr[catKey] += e.cost;
-                    else if(monthStr === prevMonthStr) dataPrev[catKey] += e.cost;
+                    // Use the category stored in the expense directly (e.g. "Eggs")
+                    const catKey = e.category; 
+
+                    if(!totals[catKey]) totals[catKey] = { curr: 0, prev: 0 };
+
+                    if(monthStr === currentMonthStr) totals[catKey].curr += e.cost;
+                    else if(monthStr === prevMonthStr) totals[catKey].prev += e.cost;
                 }
             });
 
+            // Calculate Max Value for scaling
             let maxVal = 1;
-            categories.forEach(c => {
-                if(dataCurr[c] > maxVal) maxVal = dataCurr[c];
-                if(dataPrev[c] > maxVal) maxVal = dataPrev[c];
+            Object.values(totals).forEach(t => {
+                if(t.curr > maxVal) maxVal = t.curr;
+                if(t.prev > maxVal) maxVal = t.prev;
             });
 
-            categories.forEach(cat => {
-                if(dataCurr[cat] === 0 && dataPrev[cat] === 0) return;
-                const label = t('cat'+cat);
-                const pctPrev = (dataPrev[cat] / maxVal) * 100;
-                const pctCurr = (dataCurr[cat] / maxVal) * 100;
+            // Render bars for all found categories
+            Object.keys(totals).forEach(cat => {
+                if(totals[cat].curr === 0 && totals[cat].prev === 0) return;
+
+                // If it's a standard key, translate it. If custom, show as is.
+                const standardKeys = ["Food", "Drink", "Transport", "Bills", "Shopping", "Other"];
+                const label = standardKeys.includes(cat) ? t('cat'+cat) : cat; 
+
+                const pctPrev = (totals[cat].prev / maxVal) * 100;
+                const pctCurr = (totals[cat].curr / maxVal) * 100;
 
                 const html = `
                 <div class="shadow-row">
                     <div class="shadow-label">
                         <span>${label}</span>
-                        <span style="font-family:monospace;">$${dataCurr[cat].toFixed(1)} <span style="color:#666;">($${dataPrev[cat].toFixed(1)})</span></span>
+                        <span style="font-family:monospace;">$${totals[cat].curr.toFixed(1)} <span style="color:#666;">($${totals[cat].prev.toFixed(1)})</span></span>
                     </div>
                     <div class="shadow-bar-bg">
                         <div class="shadow-bar-prev" style="width:${pctPrev}%"></div>
@@ -2044,8 +2055,6 @@
             document.getElementById('totalUSD').textContent = `$${(totalCashAvailable/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
             document.getElementById('vaultCurrentDisplay').textContent = formatVal(vCurrent);
             document.getElementById('vaultCurrentUSD').textContent = `$${(vCurrent/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
-            document.getElementById('vaultSavingsDisplay').textContent = formatVal(vSavings);
-            document.getElementById('vaultSavingsUSD').textContent = `$${(vSavings/rate).toLocaleString(undefined, {minimumFractionDigits:2})}`;
 
             const hpBase = 15; let currentMonthUSD = vCurrent / rate; 
             let hpLevel = Math.floor(currentMonthUSD / hpBase) + 1;
