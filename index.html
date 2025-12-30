@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V6.0 GOLD HISTORY</title>
+    <title>SUNG JIN-WOO SYSTEM | V6.1 FIXED</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -115,10 +115,11 @@
         .net-usd { font-size: 1.1rem; color: var(--success); font-weight: bold; background: rgba(80, 250, 123, 0.1); padding: 2px 10px; border-radius: 10px; }
         .net-assets-row { font-size: 0.75rem; color: #aaa; margin-top: 10px; font-family: monospace; }
 
-        /* MODAL STYLES */
+        /* MODAL STYLES - FIXED FOR KEYBOARD */
         .modal-backdrop {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000;
-            display: none; justify-content: center; align-items: center;
+            display: none; justify-content: center; align-items: flex-start; /* Changed from center */
+            padding-top: 40px; /* Space for keyboard */
         }
         .modal-window {
             background: var(--panel); border: 1px solid var(--mana);
@@ -180,11 +181,11 @@
         }
 
         /* SHADOW GRAPH STYLES */
-        .shadow-row { margin-bottom: 8px; }
-        .shadow-label { font-size: 0.6rem; color: #aaa; margin-bottom: 2px; display:flex; justify-content:space-between; }
-        .shadow-bar-bg { height: 10px; background: #222; position: relative; border-radius: 2px; }
-        .shadow-bar-prev { height: 100%; background: #444; position: absolute; left: 0; top: 0; opacity: 0.6; }
-        .shadow-bar-curr { height: 100%; background: var(--debt-color); position: absolute; left: 0; top: 0; opacity: 0.9; box-shadow:0 0 5px var(--debt-color); }
+        .shadow-container { display:flex; align-items:flex-end; justify-content:space-between; height:60px; padding:5px; border:1px solid #222; background:rgba(0,0,0,0.3); }
+        .shadow-col { width: 12%; background: #333; border-radius: 2px 2px 0 0; position:relative; transition:0.3s; }
+        .shadow-col:hover { background: var(--debt-color); }
+        .shadow-val { position:absolute; top:-12px; width:100%; text-align:center; font-size:0.5rem; color:#aaa; }
+        .shadow-day { position:absolute; bottom:-15px; width:100%; text-align:center; font-size:0.5rem; color:#666; }
 
         /* MANA HISTORY LIST */
         .mana-hist-card { 
@@ -378,7 +379,7 @@
 
     <div id="authOverlay">
         <div class="login-card">
-            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V6.0</div>
+            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V6.1</div>
             <button class="btn-system" id="loginBtn" style="background: white; color: black; border: none;">INITIALIZE (GOOGLE)</button>
         </div>
     </div>
@@ -435,6 +436,7 @@
                         <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-a)">A</span><input type="number" id="rankA" class="modal-input rank-input"></div>
                         <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-s)">S</span><input type="number" id="rankS" class="modal-input rank-input"></div>
                         <div class="rank-config-row"><span class="rank-tag rank-badge-sm" style="color:var(--rank-ss)">SS</span><input type="number" id="rankSS" class="modal-input rank-input"></div>
+                        <button class="btn-system" onclick="saveCustomRanks()" style="margin-top:5px; border-color:var(--success); color:var(--success);">SAVE RANKS</button>
 
                         <span class="settings-label" style="margin-top:10px;">ENVIRONMENT (WEATHER)</span>
                         <input type="text" id="locName" class="modal-input" placeholder="City Name">
@@ -513,7 +515,11 @@
 
                 <div class="mana-panel-item" style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
                     <span class="settings-label">MONTHLY COMPARISON (SHADOW SYSTEM)</span>
-                    <div id="manaShadowGraph" style="min-height:50px; margin-top:10px;"></div>
+                    <!-- FIXED GRAPH CONTAINER -->
+                    <div id="manaShadowGraph" class="shadow-container" style="margin-top:15px; margin-bottom:10px;">
+                        <!-- JS WILL INJECT BARS HERE -->
+                    </div>
+                    <div style="text-align:center; font-size:0.5rem; color:#555;">DAILY SPENDING (LAST 7 DAYS)</div>
                 </div>
 
                 <div style="margin-bottom:15px;">
@@ -961,7 +967,7 @@
             exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
             goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
             goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
-            goldTransactions: [], // NEW: Stores {id, date, karat, weight, costUSD, pricePerGramAtBuy}
+            goldTransactions: [], 
             recurringTemplates: [],
             budgetCap: 0, budgetCurrent: 0,
             expenses: [], 
@@ -1063,7 +1069,7 @@
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
                         
-                        // MIGRATION LOGIC: IF OLD GOLD EXISTS BUT NO TRANSACTIONS, CREATE LEGACY TRANSACTION
+                        // MIGRATION LOGIC
                         if(data.goldInventory && (!data.goldTransactions || data.goldTransactions.length === 0)) {
                              let migratedTrans = [];
                              for(let k of [18, 21, 22, 24]) {
@@ -1181,7 +1187,7 @@
         const save = async (forceFull = false) => {
             if (currentUser) {
                 setSaving(true);
-                recalcTotalsFromHistory(); // Always recalc before saving to be safe
+                recalcTotalsFromHistory(); 
                 
                 system.vaultCurrent = Money.val(system.vaultCurrent || 0);
                 system.vaultSavings = Money.val(system.vaultSavings || 0);
@@ -1248,12 +1254,17 @@
 
                 if(system.recurringTemplates && system.recurringTemplates.length > 0) {
                     const nextM = getNextMonth(storedMonth);
+                    const [ny, nm] = nextM.split('-').map(Number);
+                    const daysInNextMonth = new Date(ny, nm, 0).getDate();
+
                     system.recurringTemplates.forEach(template => {
                         const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
-                        const targetDay = template.targetDay || "01";
+                        let desiredDay = parseInt(template.targetDay || 1);
+                        let finalDay = Math.min(desiredDay, daysInNextMonth);
+                        
                         system.quests.push({
                             id: uniqueId, title: template.title, target: template.target,
-                            current: 0, isDebt: true, targetDate: `${nextM}-${targetDay}`
+                            current: 0, isDebt: true, targetDate: `${nextM}-${String(finalDay).padStart(2,'0')}`
                         });
                     });
                 }
@@ -1507,14 +1518,57 @@
             }
         }
 
+        // FIXED MANA GRAPH LOGIC
         function updateManaPanelUI() {
             let cap = system.budgetCap || 0;
             let cur = system.budgetCurrent !== undefined ? system.budgetCurrent : cap;
             let perc = 0;
             if (cur >= 0) perc = (cap > 0) ? (cur / cap) * 100 : 0;
-            else perc = 100;
+            else perc = 100; // Debt mode
             document.getElementById('manaPanelFill').style.width = perc + "%";
+            document.getElementById('manaPanelFill').style.background = (cur < 0) ? "linear-gradient(90deg, #4b0082, #bc13fe)" : "linear-gradient(90deg, #3742fa, #5352ed)";
             document.getElementById('manaPanelText').textContent = `$${cur.toFixed(2)} / $${cap}`;
+
+            // SHADOW GRAPH (LAST 7 DAYS SPENDING)
+            const graphDiv = document.getElementById('manaShadowGraph');
+            graphDiv.innerHTML = '';
+            
+            // 1. Group expenses by date
+            let spendingByDate = {};
+            // Init last 7 days
+            let today = new Date();
+            let dates = [];
+            for(let i=6; i>=0; i--) {
+                let d = new Date(); d.setDate(today.getDate() - i);
+                let key = d.toISOString().split('T')[0];
+                spendingByDate[key] = 0;
+                dates.push(key);
+            }
+
+            if(system.expenses) {
+                system.expenses.forEach(e => {
+                    // expense date format is YYYY-MM-DD
+                    if(spendingByDate[e.date] !== undefined) {
+                        spendingByDate[e.date] += e.cost;
+                    }
+                });
+            }
+
+            let maxSpend = Math.max(...Object.values(spendingByDate));
+            if(maxSpend < 10) maxSpend = 10; // min scale
+
+            dates.forEach(d => {
+                let val = spendingByDate[d];
+                let h = (val / maxSpend) * 100; 
+                if(h > 100) h = 100;
+                let dayLabel = d.split('-')[2]; // just the day
+                
+                graphDiv.innerHTML += `
+                <div class="shadow-col" style="height:${h}%">
+                    <span class="shadow-val">$${Math.floor(val)}</span>
+                    <span class="shadow-day">${dayLabel}</span>
+                </div>`;
+            });
         }
 
         /* WITHDRAWAL */
@@ -1618,9 +1672,16 @@
             document.getElementById('goldContent').style.display = 'block';
         };
         window.setKarat = async (k) => { system.preferredKarat = k; await save(); updateGoldModalUI(); render(); };
+        
+        // FIXED GOLD MODAL UI
         function updateGoldModalUI() {
             let k = system.preferredKarat || 24;
-            document.querySelectorAll('.gold-window .k-btn').forEach(b => b.classList.remove('active'));
+            // FIX: Select only inside goldModal
+            document.querySelectorAll('#goldModal .k-btn').forEach(b => b.classList.remove('active'));
+            // Add active class manually
+            const btn = document.getElementById('k' + k);
+            if(btn) btn.classList.add('active');
+
             const ratio = karatRatios[k];
             const currentGramPrice = global24kGramPrice * ratio;
             document.getElementById('dispKaratTitle').textContent = k + 'K';
@@ -1630,6 +1691,7 @@
             if (k === 24) document.getElementById('priceOunce').textContent = '$' + (global24kGramPrice * 31.1035).toLocaleString(undefined, {minimumFractionDigits:2});
             else if (k === 22) document.getElementById('priceLira').textContent = '$' + ((global24kGramPrice * 0.9167) * 7.216).toLocaleString(undefined, {minimumFractionDigits:2});
         }
+
         window.closeGoldModal = () => document.getElementById('goldModal').style.display = 'none';
         window.selectGoldVaultTab = (k) => { activeVaultKarat = k; render(); };
 
@@ -1664,7 +1726,6 @@
         };
         window.closeGoldTransModal = () => document.getElementById('goldTransactionModal').style.display = 'none';
         
-        // --- MODIFIED TRANSACTION LOGIC FOR HISTORY + LIFO ---
         document.getElementById('btnConfirmGoldTrans').onclick = async () => {
             let w = parseFloat(document.getElementById('goldTransInput').value);
             if(!w || w <= 0) return;
@@ -1678,7 +1739,6 @@
 
                 if(totalAvailable >= totalCostLira) {
                     if(confirm(`Confirm Purchase?\n${w}g (${activeVaultKarat}K)\nCOST: $${manualUSD.toFixed(2)}`)) {
-                        // Deduct Money
                         let remainingCost = totalCostLira;
                         if(system.vaultSavings > 0) {
                             if(system.vaultSavings >= remainingCost) { system.vaultSavings = Money.sub(system.vaultSavings, remainingCost); remainingCost = 0; }
@@ -1686,7 +1746,6 @@
                         }
                         if(remainingCost > 0) system.vaultCurrent = Money.sub(system.vaultCurrent, remainingCost);
                         
-                        // Add Transaction (HISTORY)
                         if(!system.goldTransactions) system.goldTransactions = [];
                         system.goldTransactions.push({
                             id: Date.now(),
@@ -1698,47 +1757,37 @@
                         });
 
                         await save(); closeGoldTransModal(); render(); showToast("Gold Stored", "success");
+                        // REFRESH HISTORY IF OPEN
+                        if(document.getElementById('goldHistoryModal').style.display === 'flex') renderGoldHistory(activeVaultKarat);
                     }
                 } else { showToast("Insufficient Funds", "error"); }
 
             } else {
-                // SELL LOGIC (LIFO - Last In First Out)
                 if((system.goldInventory[activeVaultKarat] || 0) >= w) {
                     let gramPriceUSD = global24kGramPrice * karatRatios[activeVaultKarat];
                     
                     if(confirm(`Confirm LIQUIDATION?\n${w}g\nValue: $${(w*gramPriceUSD).toFixed(2)}`)) {
                         
-                        // Get List for this karat, sort DESC (Newest First) to sell newest
                         let relevantTrans = system.goldTransactions.filter(t => t.karat == activeVaultKarat).sort((a,b) => b.id - a.id);
-                        
                         let weightToSell = w;
                         
                         for(let trans of relevantTrans) {
                             if(weightToSell <= 0) break;
-
                             if(trans.weight <= weightToSell) {
-                                // Consumed this whole transaction record
                                 weightToSell = Money.sub(weightToSell, trans.weight);
-                                // Remove this transaction from system
                                 system.goldTransactions = system.goldTransactions.filter(t => t.id !== trans.id);
                             } else {
-                                // Partial sale from this record
                                 let ratioSold = weightToSell / trans.weight;
                                 let costRemoved = trans.costUSD * ratioSold;
-                                
-                                // Update the record
                                 trans.weight = Money.sub(trans.weight, weightToSell);
                                 trans.costUSD = Money.sub(trans.costUSD, costRemoved);
-                                
-                                // Done
                                 weightToSell = 0;
                             }
                         }
 
-                        // Add Money Back
                         system.vaultCurrent = Money.add(system.vaultCurrent || 0, (w * gramPriceUSD) * rate);
-                        
                         await save(); closeGoldTransModal(); render(); showToast("Gold Liquidated", "success");
+                        if(document.getElementById('goldHistoryModal').style.display === 'flex') renderGoldHistory(activeVaultKarat);
                     }
                 } else { showToast("Insufficient Gold", "error"); }
             }
@@ -1859,8 +1908,45 @@
             document.getElementById('countrySelector').value = system.countryCode || 'LB';
             document.getElementById('activeCurrencyDisplay').textContent = (system.currencySymbol || 'L.L');
             document.getElementById('activeLocDisplay').textContent = system.location ? system.location.name : 'Unknown';
+            populateRankInputs();
             drawGrowthGraph();
         }
+
+        // FIXED: POPULATE INPUTS ON LOAD
+        function populateRankInputs() {
+            if(system.customRanks) {
+                document.getElementById('rankE').value = system.customRanks.E || 0;
+                document.getElementById('rankC').value = system.customRanks.C || 0;
+                document.getElementById('rankB').value = system.customRanks.B || 0;
+                document.getElementById('rankA').value = system.customRanks.A || 0;
+                document.getElementById('rankS').value = system.customRanks.S || 0;
+                document.getElementById('rankSS').value = system.customRanks.SS || 0;
+            }
+            if(system.location) {
+                document.getElementById('locName').value = system.location.name;
+                document.getElementById('locLat').value = system.location.lat;
+                document.getElementById('locLon').value = system.location.lon;
+            }
+        }
+
+        window.saveCustomRanks = async () => {
+            system.customRanks = {
+                E: parseFloat(document.getElementById('rankE').value) || 0,
+                C: parseFloat(document.getElementById('rankC').value) || 0,
+                B: parseFloat(document.getElementById('rankB').value) || 0,
+                A: parseFloat(document.getElementById('rankA').value) || 0,
+                S: parseFloat(document.getElementById('rankS').value) || 0,
+                SS: parseFloat(document.getElementById('rankSS').value) || 0
+            };
+            system.location = {
+                name: document.getElementById('locName').value || 'Unknown',
+                lat: parseFloat(document.getElementById('locLat').value) || 0,
+                lon: parseFloat(document.getElementById('locLon').value) || 0
+            };
+            await save();
+            showToast("Config Saved", "success");
+            render();
+        };
 
         window.closeSettings = async () => {
             let nRate = parseFloat(document.getElementById('settingRateInput').value);
@@ -1940,20 +2026,26 @@
             reader.readAsText(file);
         };
 
-        /* GRAPH */
+        /* GRAPH - ADDED CURRENT MONTH */
         function drawGrowthGraph() {
             const svg = document.getElementById('chartSvg');
             svg.innerHTML = ''; 
             const hKeys = Object.keys(system.history).sort();
-            if(hKeys.length < 2) {
-                svg.innerHTML = '<text x="50%" y="50%" fill="#666" text-anchor="middle" font-size="10">Not Enough Data</text>';
-                return;
-            }
-
-            const dataPoints = hKeys.map(k => {
+            
+            // Build data points
+            let dataPoints = hKeys.map(k => {
                 const entry = system.history[k];
                 return { month: k, val: (entry.val / entry.rate) }; 
             });
+
+            // Add Current Month (Simulated)
+            const currentTotal = Money.add(system.vaultCurrent || 0, system.vaultSavings || 0);
+            dataPoints.push({ month: "NOW", val: (currentTotal / system.exchangeRate) });
+
+            if(dataPoints.length < 2) {
+                svg.innerHTML = '<text x="50%" y="50%" fill="#666" text-anchor="middle" font-size="10">Not Enough Data</text>';
+                return;
+            }
 
             let minVal = Math.min(...dataPoints.map(d => d.val));
             let maxVal = Math.max(...dataPoints.map(d => d.val));
