@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V5.3 WORLD</title>
+    <title>SUNG JIN-WOO SYSTEM | V6.0 GOLD HISTORY</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -352,6 +352,22 @@
         
         @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
+        /* GOLD HISTORY STYLES */
+        .history-list-item {
+            background: rgba(0,0,0,0.4); border: 1px solid #333; 
+            margin-bottom: 8px; padding: 10px; 
+            display: grid; grid-template-columns: 1.5fr 1fr 1fr; 
+            align-items: center; font-family: monospace;
+        }
+        .hist-date { font-size: 0.65rem; color: #888; display: block; }
+        .hist-weight { color: white; font-weight: bold; font-size: 0.9rem; }
+        .hist-cost-block { text-align: center; border-left: 1px solid #333; border-right: 1px solid #333; }
+        .hist-label { font-size: 0.55rem; color: #666; display: block; }
+        .hist-val { font-size: 0.75rem; color: #ccc; }
+        .hist-pl-block { text-align: right; }
+        .hist-pl-val { font-size: 0.8rem; font-weight: bold; }
+        .hist-market { font-size: 0.65rem; color: var(--gold); }
+
     </style>
 </head>
 <body>
@@ -362,25 +378,22 @@
 
     <div id="authOverlay">
         <div class="login-card">
-            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V5.3 WORLD</div>
+            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V6.0</div>
             <button class="btn-system" id="loginBtn" style="background: white; color: black; border: none;">INITIALIZE (GOOGLE)</button>
         </div>
     </div>
 
-    <!-- SETTINGS MODAL (V5.2 UPDATED) -->
+    <!-- SETTINGS MODAL -->
     <div id="settingsModal" class="modal-backdrop">
         <div class="modal-window">
             
-            <!-- MAIN SETTINGS MENU -->
             <div id="mainSettingsMenu">
                 <div class="modal-title" data-i18n="settings">SYSTEM SETTINGS</div>
                 
-                <!-- MANA CONTROL BUTTON -->
                 <button class="btn-system" onclick="toggleManaPanel()" style="margin-bottom:15px; border-color:#5352ed; color:#5352ed;">
                     MANAGEMENT: PHANTOM SALARY (MANA)
                 </button>
 
-                <!-- SECTION: COUNTRY SELECTION -->
                 <div class="settings-section">
                     <span class="settings-label" style="color:var(--success);">SELECT REGION (PRESET)</span>
                     <select id="countrySelector" class="modal-input" onchange="applyCountryPreset(this.value)">
@@ -392,7 +405,6 @@
                     </select>
                 </div>
 
-                <!-- SECTION 1: GENERAL -->
                 <div class="settings-section">
                     <span class="settings-label" data-i18n="exchangeRate">EXCHANGE RATE</span>
                     <div style="display:flex; gap:5px;">
@@ -404,7 +416,6 @@
                     </div>
                 </div>
 
-                <!-- SECTION 2: GRAPH -->
                 <div class="settings-section">
                     <span class="settings-label" data-i18n="growthGraph">SYSTEM GROWTH HISTORY</span>
                     <div class="graph-container" id="growthGraph">
@@ -413,7 +424,6 @@
                     </div>
                 </div>
 
-                <!-- SECTION 3: CONFIGURATION (RANKS, LOC, LANG) -->
                 <div class="settings-section">
                     <button class="btn-system" onclick="toggleConfigMode()" style="margin-bottom:10px;">🛠 CONFIG (RANKS / LOC)</button>
                     <div id="configPanel" style="display:none; text-align:left;">
@@ -438,7 +448,6 @@
                     </div>
                 </div>
 
-                <!-- SECTION 4: DATA -->
                 <div class="settings-section">
                     <span class="settings-label" data-i18n="recurring">RECURRING TASKS</span>
                     <button class="btn-system" onclick="openRecurringList()" style="margin-bottom:10px; border-color:var(--debt-color); color:var(--debt-color);" data-i18n="manageRecurring">MANAGE FIXED EXPENSES</button>
@@ -457,11 +466,9 @@
                 <button class="modal-btn btn-cancel" style="width:100%" onclick="closeSettings()" data-i18n="close">CLOSE & SAVE</button>
             </div>
 
-            <!-- SUB-MENU: MANA CONFIG PANEL -->
             <div id="manaConfigPanel" style="display:none; text-align:left;">
                 <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">MANA BUDGET CONTROL</div>
                 
-                <!-- 1. THE BAR DISPLAY (Visual) -->
                 <div class="mana-panel-item" style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                         <span style="font-size:0.6rem; color:#888;">CURRENT STATUS</span>
@@ -473,7 +480,6 @@
                     </div>
                 </div>
 
-                <!-- 2. BUDGET CAP INPUT -->
                 <div class="mana-panel-item" style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
                     <span class="settings-label">MONTHLY BUDGET LIMIT ($)</span>
                     <div style="display:flex; gap:5px;">
@@ -482,7 +488,6 @@
                     </div>
                 </div>
 
-                <!-- 3. EXPENSE LOGGING (Custom Other Added) -->
                 <div class="mana-panel-item" style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
                     <span class="settings-label">LOG EXPENSE</span>
                     <p style="font-size:0.6rem; color:#666; margin-bottom:8px;">
@@ -490,7 +495,6 @@
                     </p>
                     <input type="text" id="manaItemInput" class="modal-input" placeholder="Item Name (e.g. Eggs)" style="margin-bottom:5px;">
                     
-                    <!-- Category Selector -->
                     <select id="manaCatInput" class="modal-input" style="margin-bottom:5px; padding:12px;">
                         <option value="Food" data-i18n="catFood">Food</option>
                         <option value="Drink" data-i18n="catDrink">Drink</option>
@@ -500,22 +504,18 @@
                         <option value="Other" data-i18n="catOther">Other (Custom)</option>
                     </select>
 
-                    <input type="text" id="manaCustomCatInput" class="modal-input" placeholder="Specify Category (e.g. Eggs / Gym / Trip)" style="display:none; margin-bottom:5px; border-color:var(--debt-color);">
+                    <input type="text" id="manaCustomCatInput" class="modal-input" placeholder="Specify Category" style="display:none; margin-bottom:5px; border-color:var(--debt-color);">
 
                     <input type="text" id="manaCostInput" class="modal-input" placeholder="Cost (e.g. 10$ or 200k)" style="margin-bottom:10px;">
                     
                     <button class="btn-system" onclick="submitManaExpense()" style="background:#5352ed; color:white; border:none;">CONFIRM DEDUCTION</button>
                 </div>
 
-                <!-- 4. SHADOW GRAPH (Comparison) -->
                 <div class="mana-panel-item" style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
                     <span class="settings-label">MONTHLY COMPARISON (SHADOW SYSTEM)</span>
-                    <div id="manaShadowGraph" style="min-height:50px; margin-top:10px;">
-                        <!-- Bars injected via JS -->
-                    </div>
+                    <div id="manaShadowGraph" style="min-height:50px; margin-top:10px;"></div>
                 </div>
 
-                <!-- 5. ARCHIVE BUTTON -->
                 <div style="margin-bottom:15px;">
                     <button class="btn-system" onclick="openManaHistory()" style="border-color:#888; color:#ccc;">
                          📂 MANA HISTORY / S.LOG
@@ -533,12 +533,28 @@
         <div class="modal-window">
             <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">MANA EXPENSE LOG</div>
             <p style="font-size:0.6rem; color:#888; margin-bottom:10px;">FULL HISTORY OF PHANTOM EXPENSES</p>
+            <div id="manaHistoryList" style="text-align:left; max-height:400px; overflow-y:auto; margin-bottom:15px;"></div>
+            <button class="modal-btn btn-cancel" style="width:100%" onclick="closeManaHistory()">CLOSE LOG</button>
+        </div>
+    </div>
+
+    <!-- GOLD HISTORY MODAL (NEW) -->
+    <div id="goldHistoryModal" class="modal-backdrop">
+        <div class="modal-window">
+            <div class="modal-title" style="color:var(--gold); border-color:var(--gold);">GOLD PORTFOLIO HISTORY</div>
             
-            <div id="manaHistoryList" style="text-align:left; max-height:400px; overflow-y:auto; margin-bottom:15px;">
-                <!-- Logs injected here -->
+            <div class="karat-selector">
+                <button class="k-btn active" id="histK24" onclick="renderGoldHistory(24)">24K</button>
+                <button class="k-btn" id="histK22" onclick="renderGoldHistory(22)">22K</button>
+                <button class="k-btn" id="histK21" onclick="renderGoldHistory(21)">21K</button>
+                <button class="k-btn" id="histK18" onclick="renderGoldHistory(18)">18K</button>
             </div>
 
-            <button class="modal-btn btn-cancel" style="width:100%" onclick="closeManaHistory()">CLOSE LOG</button>
+            <div id="historyList" style="text-align:left; max-height:400px; overflow-y:auto; margin-bottom:15px;">
+                <!-- Items Injected -->
+            </div>
+
+            <button class="modal-btn btn-cancel" style="width:100%" onclick="document.getElementById('goldHistoryModal').style.display='none'">CLOSE</button>
         </div>
     </div>
 
@@ -546,9 +562,7 @@
     <div id="recurringModal" class="modal-backdrop">
         <div class="modal-window">
             <div class="modal-title" style="color:var(--debt-color); border-color:var(--debt-color);">FIXED EXPENSES</div>
-            <div id="recurringList" style="text-align:left; max-height:250px; overflow-y:auto; margin-bottom:15px;">
-                <!-- Items here -->
-            </div>
+            <div id="recurringList" style="text-align:left; max-height:250px; overflow-y:auto; margin-bottom:15px;"></div>
             <button class="modal-btn btn-cancel" style="width:100%" onclick="document.getElementById('recurringModal').style.display='none'">BACK</button>
         </div>
     </div>
@@ -561,7 +575,6 @@
             
             <input type="number" id="goldTransInput" class="modal-input" placeholder="Enter Weight (Grams)">
             
-            <!-- ACTUAL COST INPUT (Only visible for Buying) -->
             <div id="divManualCost" style="display:none; margin-bottom:10px;">
                 <div style="font-size:0.6rem; color:#aaa; margin-bottom:5px; text-align:left;">ACTUAL COST PAID ($)</div>
                 <input type="number" id="goldManualCostInput" class="modal-input" placeholder="Total USD Paid">
@@ -777,9 +790,13 @@
                 </div>
             </div>
 
+            <!-- NEW HISTORY BUTTON ADDED HERE -->
             <div style="display:flex; border-top:1px solid rgba(255,215,0,0.2);">
                 <button class="btn-system" style="border:none; border-right:1px solid rgba(255,215,0,0.2); color:white; background:rgba(0,0,0,0.2);" onclick="openGoldTransaction('buy')" data-i18n="store">
                     STORE (BUY)
+                </button>
+                <button class="btn-system" style="border:none; border-right:1px solid rgba(255,215,0,0.2); color:#bc13fe; background:rgba(0,0,0,0.2);" onclick="openGoldHistory()">
+                    📜 HISTORY
                 </button>
                 <button class="btn-system" style="border:none; color:var(--gold); background:rgba(0,0,0,0.2);" onclick="openGoldTransaction('sell')" data-i18n="liquidate">
                     LIQUIDATE (SELL)
@@ -883,7 +900,6 @@
             val: (a) => Math.round(a * 100) / 100
         };
 
-        // --- NEW: PRESET DATA ---
         const COUNTRIES = {
             'LB': { name: 'Lebanon', city: 'Baalbek', lat: 34.00, lon: 36.21, currency: 'LBP', symbol: 'L.L', useK: true },
             'EG': { name: 'Egypt', city: 'Cairo', lat: 30.04, lon: 31.23, currency: 'EGP', symbol: 'E£', useK: false },
@@ -945,13 +961,14 @@
             exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
             goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
             goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
+            goldTransactions: [], // NEW: Stores {id, date, karat, weight, costUSD, pricePerGramAtBuy}
             recurringTemplates: [],
             budgetCap: 0, budgetCurrent: 0,
             expenses: [], 
             customRanks: { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 },
             location: { name: "Baalbek", lat: 34.00, lon: 36.21 },
             language: "en",
-            countryCode: "LB", currencySymbol: "L.L", useKSystem: true // Default Lebanon
+            countryCode: "LB", currencySymbol: "L.L", useKSystem: true
         };
 
         let navDate = new Date();
@@ -979,6 +996,7 @@
                             exchangeRate: 89500, preferredKarat: 24, storedGoldPrice: 88.0,
                             goldInventory: { 18: 0, 21: 0, 22: 0, 24: 0 },
                             goldCosts: { 18: 0, 21: 0, 22: 0, 24: 0 },
+                            goldTransactions: [],
                             recurringTemplates: [],
                             budgetCap: 0, budgetCurrent: 0,
                             expenses: [],
@@ -1002,7 +1020,6 @@
             document.getElementById('savingText').style.display = state ? 'block' : 'none';
         }
 
-        /* WEATHER */
         async function fetchWeather() {
             try {
                 const loc = system.location || { name: "Baalbek", lat: 34.00, lon: 36.21 };
@@ -1012,33 +1029,16 @@
                 const data = await res.json();
                 const temp = data.current.temperature_2m;
                 const wind = data.current.wind_speed_10m;
-                const todayCode = data.daily.weather_code[0];
-                let conditionText = "CLEAR"; let conditionColor = "var(--mana)";
-
-                if([71, 73, 75, 77, 85, 86].includes(todayCode)) { conditionText = "SNOW ❄️"; conditionColor = "#ffffff"; } 
-                else if([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(todayCode)) { conditionText = "RAIN 🌧️"; conditionColor = "#4facfe"; } 
-                else if([95, 96, 99].includes(todayCode)) { conditionText = "STORM ⛈️"; conditionColor = "var(--danger)"; }
-
                 const widget = document.getElementById('weatherDetail');
-                widget.textContent = `${temp}°C | ${wind}km/h | ${conditionText}`;
-                widget.style.color = conditionColor;
+                widget.textContent = `${temp}°C | ${wind}km/h`;
             } catch(e) {
-                document.getElementById('weatherDetail').textContent = "OFFLINE | SYNC FAILED";
+                document.getElementById('weatherDetail').textContent = "OFFLINE";
             }
         }
 
-        /* RATE SYNC API */
         window.syncRateFromAPI = async () => {
             const country = system.countryCode || 'LB';
-            if(country === 'LB') {
-                alert("Lebanon typically uses a parallel market rate. Update manually if needed, or stick to ~89,500.");
-                return;
-            }
-            if(country === 'US') {
-                document.getElementById('settingRateInput').value = 1;
-                return;
-            }
-
+            if(country === 'LB') { alert("Update manually."); return; }
             const targetCurrency = COUNTRIES[country].currency;
             document.getElementById('settingRateInput').placeholder = "Fetching...";
             try {
@@ -1046,11 +1046,9 @@
                 const data = await res.json();
                 if(data.rates && data.rates[targetCurrency]) {
                     document.getElementById('settingRateInput').value = data.rates[targetCurrency];
-                    showToast(`Synced: 1 USD = ${data.rates[targetCurrency]} ${targetCurrency}`, "success");
+                    showToast(`Synced`, "success");
                 }
-            } catch(e) {
-                showToast("Failed to fetch rate", "error");
-            }
+            } catch(e) { showToast("Failed", "error"); }
         };
 
         onAuthStateChanged(auth, async (user) => {
@@ -1059,13 +1057,30 @@
                 document.getElementById('authOverlay').style.display = 'none';
                 document.getElementById('mainView').style.display = 'block';
                 document.getElementById('userEmailDisplay').textContent = user.email;
-                
                 await loadSubCollections(user.uid);
 
                 onSnapshot(doc(db, "users", user.uid), (docSnapshot) => {
                     if (docSnapshot.exists()) {
                         let data = docSnapshot.data();
                         
+                        // MIGRATION LOGIC: IF OLD GOLD EXISTS BUT NO TRANSACTIONS, CREATE LEGACY TRANSACTION
+                        if(data.goldInventory && (!data.goldTransactions || data.goldTransactions.length === 0)) {
+                             let migratedTrans = [];
+                             for(let k of [18, 21, 22, 24]) {
+                                 if(data.goldInventory[k] > 0) {
+                                     migratedTrans.push({
+                                         id: Date.now() + k,
+                                         date: getSystemDate(),
+                                         karat: k,
+                                         weight: data.goldInventory[k],
+                                         costUSD: data.goldCosts[k] || 0,
+                                         pricePerGramAtBuy: 0
+                                     });
+                                 }
+                             }
+                             data.goldTransactions = migratedTrans;
+                        }
+
                         if(data.vault !== undefined && data.vaultSavings === undefined) {
                             data.vaultSavings = data.vault; data.vaultCurrent = 0; delete data.vault;
                         }
@@ -1075,12 +1090,12 @@
 
                         system = { ...system, ...data };
                         
+                        // DEFAULTS
+                        if(!system.goldTransactions) system.goldTransactions = [];
                         if(!system.customRanks) system.customRanks = { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 };
                         if(!system.location) system.location = { name: "Baalbek", lat: 34.00, lon: 36.21 };
                         if(!system.language) system.language = "en";
                         if(!system.expenses) system.expenses = [];
-                        
-                        // Default to Lebanon config if missing
                         if(!system.countryCode) system.countryCode = "LB";
                         if(system.useKSystem === undefined) system.useKSystem = true;
                         if(!system.currencySymbol) system.currencySymbol = "L.L";
@@ -1091,6 +1106,7 @@
                         if(data.storedGoldPrice) global24kGramPrice = data.storedGoldPrice;
                         if(!system.exchangeRate || system.exchangeRate < 1) system.exchangeRate = 89500;
 
+                        recalcTotalsFromHistory(); // Ensure sync
                         checkMonthRollover(); 
                         applyLanguage();
                         render();
@@ -1139,20 +1155,36 @@
                     render(); 
                 }
             } catch (e) { 
-                console.log("Gold API Error - Using Stored Value"); 
                 if(system.storedGoldPrice) global24kGramPrice = system.storedGoldPrice;
                 const dateStr = document.getElementById('lastUpdateText');
                 if(dateStr) dateStr.textContent = "OFFLINE MODE (STORED PRICE)";
             }
         }
 
+        // Recalculates total inventory based on transactions to ensure sync
+        function recalcTotalsFromHistory() {
+            let inv = { 18:0, 21:0, 22:0, 24:0 };
+            let costs = { 18:0, 21:0, 22:0, 24:0 };
+            
+            if(system.goldTransactions) {
+                system.goldTransactions.forEach(t => {
+                    if(inv[t.karat] !== undefined) {
+                        inv[t.karat] = Money.add(inv[t.karat], t.weight);
+                        costs[t.karat] = Money.add(costs[t.karat], t.costUSD);
+                    }
+                });
+            }
+            system.goldInventory = inv;
+            system.goldCosts = costs;
+        }
+
         const save = async (forceFull = false) => {
             if (currentUser) {
                 setSaving(true);
+                recalcTotalsFromHistory(); // Always recalc before saving to be safe
+                
                 system.vaultCurrent = Money.val(system.vaultCurrent || 0);
                 system.vaultSavings = Money.val(system.vaultSavings || 0);
-                system.salary = Money.val(system.salary || 0);
-                system.budgetCurrent = Money.val(system.budgetCurrent || 0);
                 system.storedGoldPrice = global24kGramPrice;
 
                 const payload = { 
@@ -1160,6 +1192,7 @@
                     salary: system.salary, exchangeRate: system.exchangeRate,
                     preferredKarat: system.preferredKarat, storedGoldPrice: system.storedGoldPrice,
                     goldInventory: system.goldInventory, goldCosts: system.goldCosts,
+                    goldTransactions: system.goldTransactions || [],
                     quests: system.quests, hpMonth: system.hpMonth,
                     recurringTemplates: system.recurringTemplates || [],
                     budgetCap: system.budgetCap || 0,
@@ -1191,12 +1224,6 @@
             if(m > 12) { m = 1; y++; }
             return `${y}-${String(m).padStart(2,'0')}`;
         }
-        function getPrevMonth(yyyy_mm) {
-            let [y, m] = yyyy_mm.split('-').map(Number);
-            m--;
-            if(m < 1) { m = 12; y--; }
-            return `${y}-${String(m).padStart(2,'0')}`;
-        }
 
         async function checkMonthRollover() {
             if(isSaving) return; 
@@ -1217,7 +1244,6 @@
 
                 system.vaultSavings = Money.add(system.vaultSavings || 0, system.vaultCurrent || 0);
                 system.vaultCurrent = 0;
-                
                 system.budgetCurrent = system.budgetCap;
 
                 if(system.recurringTemplates && system.recurringTemplates.length > 0) {
@@ -1256,17 +1282,14 @@
             return Money.val(finalVal);
         }
 
-        // --- NEW: INTELLIGENT FORMATTING ---
         function formatVal(v) {
-            const isK = system.useKSystem; // True for Lebanon
+            const isK = system.useKSystem; 
             const sym = system.currencySymbol || '';
-
             if (isK) {
                 if (v >= 1000000) return (v / 1000000).toFixed(2) + "m";
                 if (v >= 1000) return (v / 1000).toFixed(1) + "k";
                 return Math.floor(v);
             } else {
-                // For Egypt/Other: Full Number with commas
                 return v.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 1}) + ' ' + sym;
             }
         }
@@ -1403,37 +1426,26 @@
             }
         });
 
-        function parseSmartCost(inputStr) {
-            let str = inputStr.toString().toLowerCase().trim().replace(/,/g, '');
-            let rate = system.exchangeRate || 89500;
-            
-            if (str.includes('$')) return parseFloat(str.replace('$', '')) || 0;
-            
-            if (str.includes('k')) {
-                let val = parseFloat(str.replace('k', '')) || 0;
-                return (val * 1000) / rate;
-            }
-
-            let val = parseFloat(str);
-            if (isNaN(val)) return 0;
-            if (val >= 5000) return val / rate;
-            return val;
-        }
-
         window.submitManaExpense = async () => {
             let item = document.getElementById('manaItemInput').value.trim();
             let cat = document.getElementById('manaCatInput').value; 
-            
             if(cat === 'Other') {
                 let customVal = document.getElementById('manaCustomCatInput').value.trim();
-                if(customVal) cat = customVal; // Here the category becomes whatever you typed (e.g. Eggs)
+                if(customVal) cat = customVal; 
             }
-
             let rawCost = document.getElementById('manaCostInput').value.trim();
-            
             if(!item || !rawCost) { showToast("Enter Item & Cost", "error"); return; }
+            let finalCostUSD = 0;
+            let str = rawCost.toString().toLowerCase().trim().replace(/,/g, '');
+            let rate = system.exchangeRate || 89500;
+            if (str.includes('$')) finalCostUSD = parseFloat(str.replace('$', '')) || 0;
+            else if (str.includes('k')) finalCostUSD = (parseFloat(str.replace('k', '')) * 1000) / rate;
+            else {
+                let val = parseFloat(str);
+                if (val >= 5000) finalCostUSD = val / rate;
+                else finalCostUSD = val;
+            }
             
-            let finalCostUSD = parseSmartCost(rawCost);
             if(finalCostUSD <= 0) { showToast("Invalid Amount", "error"); return; }
 
             if(system.budgetCurrent === undefined) system.budgetCurrent = system.budgetCap || 0;
@@ -1446,13 +1458,10 @@
             if(system.expenses.length > 500) system.expenses.pop();
 
             await save();
-            
             document.getElementById('manaItemInput').value = '';
             document.getElementById('manaCostInput').value = '';
-            document.getElementById('manaCustomCatInput').value = '';
-            
             updateManaPanelUI();
-            showToast(`Spent $${finalCostUSD.toFixed(2)} on ${item}`, "success");
+            showToast(`Spent $${finalCostUSD.toFixed(2)}`, "success");
         };
 
         window.openManaHistory = () => {
@@ -1462,144 +1471,50 @@
             list.innerHTML = '';
 
             const recents = system.expenses || [];
-            if(recents.length === 0) {
-                 list.innerHTML = '<div style="font-size:0.7rem; color:#666; text-align:center;">No activity recorded.</div>';
-            } else {
+            if(recents.length === 0) list.innerHTML = '<div style="font-size:0.7rem; color:#666; text-align:center;">No activity.</div>';
+            else {
                 recents.forEach(ex => {
-                   let standardCats = ['Food','Drink','Transport','Bills','Shopping','Other'];
-                   let catDisplay = standardCats.includes(ex.category) ? t('cat'+ex.category) : ex.category;
-                   
                    list.innerHTML += `
                     <div class="mana-hist-card">
                         <div>
                             <span class="mana-hist-date">${ex.date}</span>
                             <div class="mana-hist-item">
-                                ${ex.item} <span class="mana-hist-cat">${catDisplay}</span>
+                                ${ex.item} <span class="mana-hist-cat">${ex.category}</span>
                             </div>
                         </div>
                         <div style="display:flex; flex-direction:column; align-items:flex-end;">
                             <span style="color:#ff6b6b; font-family:monospace; font-weight:bold;">-$${ex.cost.toFixed(2)}</span>
-                            <span class="mana-del-btn" style="margin-top:5px; font-size:0.6rem; border:1px solid #333; padding:2px 6px;" onclick="deleteManaExpense(${ex.id})">REFUND/DELETE</span>
+                            <span class="mana-del-btn" style="margin-top:5px; font-size:0.6rem; border:1px solid #333; padding:2px 6px;" onclick="deleteManaExpense(${ex.id})">REFUND</span>
                         </div>
                     </div>`;
                 });
             }
         };
 
-        window.closeManaHistory = () => {
-            document.getElementById('manaHistoryModal').style.display = 'none';
-        };
+        window.closeManaHistory = () => document.getElementById('manaHistoryModal').style.display = 'none';
 
         window.deleteManaExpense = async (id) => {
-            if(confirm("Delete this entry? Budget will be refunded.")) {
+            if(confirm("Refund?")) {
                 const expense = system.expenses.find(e => e.id === id);
                 if(expense) {
                     system.budgetCurrent = Money.add(system.budgetCurrent, expense.cost);
                     system.expenses = system.expenses.filter(e => e.id !== id);
                     await save();
                     updateManaPanelUI();
-                    if(document.getElementById('manaHistoryModal').style.display === 'flex') {
-                        openManaHistory();
-                    }
-                    showToast("Entry Deleted & Refunded", "success");
+                    if(document.getElementById('manaHistoryModal').style.display === 'flex') openManaHistory();
+                    showToast("Refunded", "success");
                 }
             }
-        }
-
-        // --- UPDATED: Dynamic Category Rendering (Fixes the "Other" grouping issue) ---
-        function renderManaComparison() {
-            const container = document.getElementById('manaShadowGraph');
-            container.innerHTML = '';
-            
-            if(!system.expenses || system.expenses.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#666; font-size:0.7rem;">Not enough data for shadow graph.</div>';
-                return;
-            }
-
-            const currentMonthStr = getSystemDate().substring(0, 7); 
-            const prevMonthStr = getPrevMonth(currentMonthStr); 
-
-            // Dynamic aggregation container
-            // Format: { "Food": {curr:0, prev:0}, "MyCustom": {curr:0, prev:0} }
-            let totals = {};
-
-            system.expenses.forEach(e => {
-                if(e.date) {
-                    const monthStr = e.date.substring(0, 7);
-                    // Use the category stored in the expense directly (e.g. "Eggs")
-                    const catKey = e.category; 
-
-                    if(!totals[catKey]) totals[catKey] = { curr: 0, prev: 0 };
-
-                    if(monthStr === currentMonthStr) totals[catKey].curr += e.cost;
-                    else if(monthStr === prevMonthStr) totals[catKey].prev += e.cost;
-                }
-            });
-
-            // Calculate Max Value for scaling
-            let maxVal = 1;
-            Object.values(totals).forEach(t => {
-                if(t.curr > maxVal) maxVal = t.curr;
-                if(t.prev > maxVal) maxVal = t.prev;
-            });
-
-            // Render bars for all found categories
-            Object.keys(totals).forEach(cat => {
-                if(totals[cat].curr === 0 && totals[cat].prev === 0) return;
-
-                // If it's a standard key, translate it. If custom, show as is.
-                const standardKeys = ["Food", "Drink", "Transport", "Bills", "Shopping", "Other"];
-                const label = standardKeys.includes(cat) ? t('cat'+cat) : cat; 
-
-                const pctPrev = (totals[cat].prev / maxVal) * 100;
-                const pctCurr = (totals[cat].curr / maxVal) * 100;
-
-                const html = `
-                <div class="shadow-row">
-                    <div class="shadow-label">
-                        <span>${label}</span>
-                        <span style="font-family:monospace;">$${totals[cat].curr.toFixed(1)} <span style="color:#666;">($${totals[cat].prev.toFixed(1)})</span></span>
-                    </div>
-                    <div class="shadow-bar-bg">
-                        <div class="shadow-bar-prev" style="width:${pctPrev}%"></div>
-                        <div class="shadow-bar-curr" style="width:${pctCurr}%"></div>
-                    </div>
-                </div>`;
-                container.innerHTML += html;
-            });
         }
 
         function updateManaPanelUI() {
             let cap = system.budgetCap || 0;
             let cur = system.budgetCurrent !== undefined ? system.budgetCurrent : cap;
-            
             let perc = 0;
-            const bar = document.getElementById('manaPanelFill');
-            const txt = document.getElementById('manaPanelText');
-            
-            if (cur >= 0) {
-                perc = (cap > 0) ? (cur / cap) * 100 : 0;
-                bar.className = 'mana-fill';
-                txt.textContent = `$${cur.toFixed(2)} / $${cap}`;
-            } else {
-                perc = 100; 
-                bar.className = 'mana-fill negative';
-                txt.textContent = `OVERDRAFT: $${cur.toFixed(2)}`;
-            }
-            bar.style.width = perc + "%";
-
-            const now = new Date();
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            const daysLeft = lastDay - now.getDate() + 1; 
-            
-            let safeSpend = 0;
-            if (cur > 0) safeSpend = cur / daysLeft;
-            
-            document.getElementById('manaSafeSpend').textContent = 
-                (cur > 0) ? `Daily Safe Limit: $${safeSpend.toFixed(2)} (${daysLeft} days left)` : "BUDGET EXCEEDED";
-
-            document.getElementById('settingManaInput').value = cap;
-            renderManaComparison();
+            if (cur >= 0) perc = (cap > 0) ? (cur / cap) * 100 : 0;
+            else perc = 100;
+            document.getElementById('manaPanelFill').style.width = perc + "%";
+            document.getElementById('manaPanelText').textContent = `$${cur.toFixed(2)} / $${cap}`;
         }
 
         /* WITHDRAWAL */
@@ -1608,26 +1523,14 @@
             document.getElementById('withdrawInput').value = '';
             document.getElementById('dispCurrent').textContent = formatVal(system.vaultCurrent || 0);
             document.getElementById('dispSavings').textContent = formatVal(system.vaultSavings || 0);
-            let curUSD = (system.vaultCurrent || 0) / system.exchangeRate;
-            let savUSD = (system.vaultSavings || 0) / system.exchangeRate;
-            document.getElementById('dispCurrentUSD').textContent = '$' + curUSD.toLocaleString(undefined, {minimumFractionDigits:2});
-            document.getElementById('dispSavingsUSD').textContent = '$' + savUSD.toLocaleString(undefined, {minimumFractionDigits:2});
-            selectedWithdrawSource = null;
-            document.getElementById('btnSrcCurrent').classList.remove('active');
-            document.getElementById('btnSrcSavings').classList.remove('active');
-            document.getElementById('savingsWarning').style.display = 'none';
         };
         window.closeWithdrawModal = () => document.getElementById('withdrawModal').style.display = 'none';
         window.selectSource = (src) => {
             selectedWithdrawSource = src;
             document.getElementById('btnSrcCurrent').classList.remove('active');
             document.getElementById('btnSrcSavings').classList.remove('active');
-            document.getElementById('savingsWarning').style.display = 'none';
             if(src === 'current') document.getElementById('btnSrcCurrent').classList.add('active');
-            if(src === 'savings') {
-                document.getElementById('btnSrcSavings').classList.add('active');
-                document.getElementById('savingsWarning').style.display = 'block';
-            }
+            if(src === 'savings') document.getElementById('btnSrcSavings').classList.add('active');
         };
         window.submitWithdraw = async () => {
             let val = document.getElementById('withdrawInput').value;
@@ -1638,186 +1541,71 @@
             if(selectedWithdrawSource === 'savings') {
                 if(!confirm("⚠ PENALTY WARNING ⚠\nWithdraw from SAVINGS?")) return;
                 if((system.vaultSavings || 0) >= req) system.vaultSavings = Money.sub(system.vaultSavings, req);
-                else { showToast("Not enough in Savings", "error"); return; }
+                else { showToast("Not enough", "error"); return; }
             } else {
                 if((system.vaultCurrent || 0) >= req) system.vaultCurrent = Money.sub(system.vaultCurrent, req);
-                else { showToast("Not enough in Current", "error"); return; }
+                else { showToast("Not enough", "error"); return; }
             }
             render(); await save(); closeWithdrawModal(); showToast("Withdrawal Confirmed", "success");
         };
 
-        /* SETTINGS V5.2 WORLD */
-        window.openSettings = () => {
-            document.getElementById('mainSettingsMenu').style.display = 'block';
-            document.getElementById('manaConfigPanel').style.display = 'none';
-
-            document.getElementById('settingsModal').style.display = 'flex';
-            document.getElementById('settingRateInput').value = system.exchangeRate;
-            document.getElementById('countrySelector').value = system.countryCode || 'LB';
-            document.getElementById('activeCurrencyDisplay').textContent = (system.currencySymbol || 'L.L');
-            document.getElementById('activeLocDisplay').textContent = system.location ? system.location.name : 'Unknown';
-            
-            document.getElementById('rankE').value = system.customRanks.E;
-            document.getElementById('rankC').value = system.customRanks.C;
-            document.getElementById('rankB').value = system.customRanks.B;
-            document.getElementById('rankA').value = system.customRanks.A;
-            document.getElementById('rankS').value = system.customRanks.S;
-            document.getElementById('rankSS').value = system.customRanks.SS;
-            document.getElementById('locName').value = system.location.name;
-            document.getElementById('locLat').value = system.location.lat;
-            document.getElementById('locLon').value = system.location.lon;
-            document.getElementById('langBtn').textContent = (system.language === 'en') ? "SWITCH TO ARABIC" : "SWITCH TO ENGLISH";
-
-            drawGrowthGraph();
-        }
-
-        window.applyCountryPreset = (code) => {
-            const data = COUNTRIES[code];
-            if(data) {
-                // Update UI Fields
-                document.getElementById('locName').value = data.city;
-                document.getElementById('locLat').value = data.lat;
-                document.getElementById('locLon').value = data.lon;
-                
-                // Set system vars (temporary until saved)
-                system.countryCode = code;
-                system.currencySymbol = data.symbol;
-                system.useKSystem = data.useK;
-                system.location = { name: data.city, lat: data.lat, lon: data.lon };
-
-                document.getElementById('activeCurrencyDisplay').textContent = data.symbol;
-                document.getElementById('activeLocDisplay').textContent = data.city;
-
-                // For Non-Lebanon, allow user to click sync
-                if(code !== 'LB') {
-                    showToast("Preset Applied. Click 'Sync Rate' for live value.", "info");
-                }
-            }
+        /* GOLD HISTORY LOGIC (NEW) */
+        let histKarat = 24;
+        window.openGoldHistory = () => {
+            document.getElementById('goldHistoryModal').style.display = 'flex';
+            renderGoldHistory(activeVaultKarat);
         };
 
-        window.toggleConfigMode = () => {
-            const p = document.getElementById('configPanel');
-            p.style.display = (p.style.display === 'none') ? 'block' : 'none';
-        }
+        window.renderGoldHistory = (k) => {
+            histKarat = k;
+            // Update tabs UI
+            document.querySelectorAll('#goldHistoryModal .k-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('histK'+k).classList.add('active');
 
-        window.toggleLanguage = () => {
-            system.language = (system.language === 'en') ? 'ar' : 'en';
-            document.getElementById('langBtn').textContent = (system.language === 'en') ? "SWITCH TO ARABIC" : "SWITCH TO ENGLISH";
-            applyLanguage();
-        }
-
-        function applyLanguage() {
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                el.textContent = t(key);
-            });
-            document.body.style.direction = (system.language === 'ar') ? 'rtl' : 'ltr';
+            const container = document.getElementById('historyList');
+            container.innerHTML = '';
             
-            document.querySelectorAll('#manaCatInput option').forEach(opt => {
-                opt.textContent = t(opt.getAttribute('data-i18n'));
-            });
-        }
-
-        window.closeSettings = async () => {
-            let nRate = parseFloat(document.getElementById('settingRateInput').value);
-            if(nRate >= 1) system.exchangeRate = nRate;
-
-            system.customRanks.E = parseFloat(document.getElementById('rankE').value) || 0;
-            system.customRanks.C = parseFloat(document.getElementById('rankC').value) || 0;
-            system.customRanks.B = parseFloat(document.getElementById('rankB').value) || 0;
-            system.customRanks.A = parseFloat(document.getElementById('rankA').value) || 0;
-            system.customRanks.S = parseFloat(document.getElementById('rankS').value) || 0;
-            system.customRanks.SS = parseFloat(document.getElementById('rankSS').value) || 0;
+            // Filter
+            const list = (system.goldTransactions || []).filter(t => t.karat == k);
             
-            system.location.name = document.getElementById('locName').value || "Baalbek";
-            system.location.lat = parseFloat(document.getElementById('locLat').value) || 34.00;
-            system.location.lon = parseFloat(document.getElementById('locLon').value) || 36.21;
-
-            await save();
-            showToast("Settings Saved", "success");
-            document.getElementById('settingsModal').style.display = 'none';
-            fetchWeather();
-            render();
-        }
-
-        window.exportData = () => {
-            const backup = { system: system, timestamp: new Date().toISOString(), version: "5.2" };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "system_v5.2_" + getSystemDate() + ".json");
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
-            showToast("Download Started", "success");
-        };
-
-        window.importData = (input) => {
-            const file = input.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if(data.system && confirm("Overwrite current system?")) {
-                        setSaving(true);
-                        system = { ...system, ...data.system };
-                        await save(true); 
-                        alert("Backup Restored. Reloading.");
-                        location.reload();
-                    }
-                } catch(err) { showToast("Invalid File", "error"); } finally { setSaving(false); }
-            };
-            reader.readAsText(file);
-        };
-
-        /* GRAPH */
-        function drawGrowthGraph() {
-            const svg = document.getElementById('chartSvg');
-            svg.innerHTML = ''; 
-            const hKeys = Object.keys(system.history).sort();
-            if(hKeys.length < 2) {
-                svg.innerHTML = '<text x="50%" y="50%" fill="#666" text-anchor="middle" font-size="10">Not Enough Data</text>';
+            if(list.length === 0) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">No purchase history for '+k+'K</div>';
                 return;
             }
 
-            const dataPoints = hKeys.map(k => {
-                const entry = system.history[k];
-                return { month: k, val: (entry.val / entry.rate) }; 
-            });
+            // Sort by Date Descending (Newest first)
+            list.sort((a,b) => b.id - a.id);
 
-            let minVal = Math.min(...dataPoints.map(d => d.val));
-            let maxVal = Math.max(...dataPoints.map(d => d.val));
-            if(minVal === maxVal) { minVal = 0; maxVal = maxVal * 1.5; }
-
-            const width = svg.clientWidth;
-            const height = svg.clientHeight;
-            const padding = 20;
-            let pointsStr = "";
+            // Render
+            const currentMarketPricePerGram = global24kGramPrice * karatRatios[k];
             
-            dataPoints.forEach((d, i) => {
-                const x = padding + (i / (dataPoints.length - 1)) * (width - (padding * 2));
-                const y = height - padding - ((d.val - minVal) / (maxVal - minVal)) * (height - (padding * 2));
-                pointsStr += `${x},${y} `;
+            list.forEach(item => {
+                const currentVal = item.weight * currentMarketPricePerGram;
+                const profit = currentVal - item.costUSD;
+                const profitPct = (item.costUSD > 0) ? (profit / item.costUSD) * 100 : 0;
                 
-                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                circle.setAttribute("cx", x); circle.setAttribute("cy", y); circle.setAttribute("r", 3);
-                circle.classList.add("graph-point");
-                
-                circle.onmouseover = (e) => {
-                    const tt = document.getElementById('graphTooltip');
-                    tt.style.display = 'block';
-                    tt.style.left = (x + 10) + 'px'; tt.style.top = (y - 20) + 'px';
-                    tt.textContent = `${d.month}: $${d.val.toFixed(0)}`;
-                };
-                circle.onmouseout = () => { document.getElementById('graphTooltip').style.display = 'none'; };
-                svg.appendChild(circle);
-            });
+                const plColor = (profit >= 0) ? 'var(--success)' : 'var(--danger)';
+                const sign = (profit >= 0) ? '+' : '';
 
-            const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-            polyline.setAttribute("points", pointsStr);
-            svg.prepend(polyline);
-        }
+                container.innerHTML += `
+                <div class="history-list-item">
+                    <div>
+                        <span class="hist-date">${item.date}</span>
+                        <div class="hist-weight">${item.weight.toFixed(2)}g</div>
+                    </div>
+                    <div class="hist-cost-block">
+                        <span class="hist-label">COST</span>
+                        <div class="hist-val">$${item.costUSD.toFixed(2)}</div>
+                        <div class="hist-label" style="margin-top:2px;">AVG: $${(item.costUSD/item.weight).toFixed(1)}/g</div>
+                    </div>
+                    <div class="hist-pl-block">
+                        <span class="hist-label">MARKET: <span class="hist-market">$${currentVal.toFixed(2)}</span></span>
+                        <div class="hist-pl-val" style="color:${plColor}">${sign}${profit.toFixed(2)}</div>
+                        <div style="font-size:0.6rem; color:${plColor}">${sign}${profitPct.toFixed(1)}%</div>
+                    </div>
+                </div>`;
+            });
+        };
 
         /* GOLD & UI LOGIC */
         window.showGoldPrices = async () => {
@@ -1832,8 +1620,7 @@
         window.setKarat = async (k) => { system.preferredKarat = k; await save(); updateGoldModalUI(); render(); };
         function updateGoldModalUI() {
             let k = system.preferredKarat || 24;
-            document.querySelectorAll('.k-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('k'+k).classList.add('active');
+            document.querySelectorAll('.gold-window .k-btn').forEach(b => b.classList.remove('active'));
             const ratio = karatRatios[k];
             const currentGramPrice = global24kGramPrice * ratio;
             document.getElementById('dispKaratTitle').textContent = k + 'K';
@@ -1876,6 +1663,8 @@
             };
         };
         window.closeGoldTransModal = () => document.getElementById('goldTransactionModal').style.display = 'none';
+        
+        // --- MODIFIED TRANSACTION LOGIC FOR HISTORY + LIFO ---
         document.getElementById('btnConfirmGoldTrans').onclick = async () => {
             let w = parseFloat(document.getElementById('goldTransInput').value);
             if(!w || w <= 0) return;
@@ -1889,6 +1678,7 @@
 
                 if(totalAvailable >= totalCostLira) {
                     if(confirm(`Confirm Purchase?\n${w}g (${activeVaultKarat}K)\nCOST: $${manualUSD.toFixed(2)}`)) {
+                        // Deduct Money
                         let remainingCost = totalCostLira;
                         if(system.vaultSavings > 0) {
                             if(system.vaultSavings >= remainingCost) { system.vaultSavings = Money.sub(system.vaultSavings, remainingCost); remainingCost = 0; }
@@ -1896,26 +1686,58 @@
                         }
                         if(remainingCost > 0) system.vaultCurrent = Money.sub(system.vaultCurrent, remainingCost);
                         
-                        system.goldInventory[activeVaultKarat] = Money.add(system.goldInventory[activeVaultKarat] || 0, w);
-                        system.goldCosts[activeVaultKarat] = Money.add(system.goldCosts[activeVaultKarat] || 0, manualUSD);
+                        // Add Transaction (HISTORY)
+                        if(!system.goldTransactions) system.goldTransactions = [];
+                        system.goldTransactions.push({
+                            id: Date.now(),
+                            date: getSystemDate(),
+                            karat: activeVaultKarat,
+                            weight: w,
+                            costUSD: manualUSD,
+                            pricePerGramAtBuy: manualUSD / w
+                        });
 
                         await save(); closeGoldTransModal(); render(); showToast("Gold Stored", "success");
                     }
                 } else { showToast("Insufficient Funds", "error"); }
 
             } else {
+                // SELL LOGIC (LIFO - Last In First Out)
                 if((system.goldInventory[activeVaultKarat] || 0) >= w) {
                     let gramPriceUSD = global24kGramPrice * karatRatios[activeVaultKarat];
+                    
                     if(confirm(`Confirm LIQUIDATION?\n${w}g\nValue: $${(w*gramPriceUSD).toFixed(2)}`)) {
-                        let currentWeight = system.goldInventory[activeVaultKarat];
-                        let sellRatio = w / currentWeight;
-                        let costToRemove = (system.goldCosts[activeVaultKarat] || 0) * sellRatio;
+                        
+                        // Get List for this karat, sort DESC (Newest First) to sell newest
+                        let relevantTrans = system.goldTransactions.filter(t => t.karat == activeVaultKarat).sort((a,b) => b.id - a.id);
+                        
+                        let weightToSell = w;
+                        
+                        for(let trans of relevantTrans) {
+                            if(weightToSell <= 0) break;
 
-                        system.goldInventory[activeVaultKarat] = Money.sub(system.goldInventory[activeVaultKarat], w);
-                        system.goldCosts[activeVaultKarat] = Money.sub(system.goldCosts[activeVaultKarat], costToRemove);
-                        if(system.goldCosts[activeVaultKarat] < 0) system.goldCosts[activeVaultKarat] = 0;
+                            if(trans.weight <= weightToSell) {
+                                // Consumed this whole transaction record
+                                weightToSell = Money.sub(weightToSell, trans.weight);
+                                // Remove this transaction from system
+                                system.goldTransactions = system.goldTransactions.filter(t => t.id !== trans.id);
+                            } else {
+                                // Partial sale from this record
+                                let ratioSold = weightToSell / trans.weight;
+                                let costRemoved = trans.costUSD * ratioSold;
+                                
+                                // Update the record
+                                trans.weight = Money.sub(trans.weight, weightToSell);
+                                trans.costUSD = Money.sub(trans.costUSD, costRemoved);
+                                
+                                // Done
+                                weightToSell = 0;
+                            }
+                        }
 
+                        // Add Money Back
                         system.vaultCurrent = Money.add(system.vaultCurrent || 0, (w * gramPriceUSD) * rate);
+                        
                         await save(); closeGoldTransModal(); render(); showToast("Gold Liquidated", "success");
                     }
                 } else { showToast("Insufficient Gold", "error"); }
@@ -1937,7 +1759,6 @@
             if(t && amount > 0) {
                 const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
                 system.quests.push({ id: uniqueId, title: t, target: amount, current: 0, isDebt: true, targetDate: d });
-                
                 if(isRecurring) {
                     if(!system.recurringTemplates) system.recurringTemplates = [];
                     const day = d.split('-')[2];
@@ -2029,12 +1850,151 @@
             }
         };
 
+        // SETTINGS & OTHER
+        window.openSettings = () => {
+            document.getElementById('mainSettingsMenu').style.display = 'block';
+            document.getElementById('manaConfigPanel').style.display = 'none';
+            document.getElementById('settingsModal').style.display = 'flex';
+            document.getElementById('settingRateInput').value = system.exchangeRate;
+            document.getElementById('countrySelector').value = system.countryCode || 'LB';
+            document.getElementById('activeCurrencyDisplay').textContent = (system.currencySymbol || 'L.L');
+            document.getElementById('activeLocDisplay').textContent = system.location ? system.location.name : 'Unknown';
+            drawGrowthGraph();
+        }
+
+        window.closeSettings = async () => {
+            let nRate = parseFloat(document.getElementById('settingRateInput').value);
+            if(nRate >= 1) system.exchangeRate = nRate;
+            await save();
+            showToast("Settings Saved", "success");
+            document.getElementById('settingsModal').style.display = 'none';
+            fetchWeather();
+            render();
+        }
+
+        window.applyCountryPreset = (code) => {
+            const data = COUNTRIES[code];
+            if(data) {
+                document.getElementById('locName').value = data.city;
+                document.getElementById('locLat').value = data.lat;
+                document.getElementById('locLon').value = data.lon;
+                system.countryCode = code;
+                system.currencySymbol = data.symbol;
+                system.useKSystem = data.useK;
+                system.location = { name: data.city, lat: data.lat, lon: data.lon };
+                document.getElementById('activeCurrencyDisplay').textContent = data.symbol;
+                document.getElementById('activeLocDisplay').textContent = data.city;
+            }
+        };
+
+        window.toggleConfigMode = () => {
+            const p = document.getElementById('configPanel');
+            p.style.display = (p.style.display === 'none') ? 'block' : 'none';
+        }
+
+        window.toggleLanguage = () => {
+            system.language = (system.language === 'en') ? 'ar' : 'en';
+            document.getElementById('langBtn').textContent = (system.language === 'en') ? "SWITCH TO ARABIC" : "SWITCH TO ENGLISH";
+            applyLanguage();
+        }
+
+        function applyLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = t(key);
+            });
+            document.body.style.direction = (system.language === 'ar') ? 'rtl' : 'ltr';
+            document.querySelectorAll('#manaCatInput option').forEach(opt => {
+                opt.textContent = t(opt.getAttribute('data-i18n'));
+            });
+        }
+
+        window.exportData = () => {
+            const backup = { system: system, timestamp: new Date().toISOString(), version: "6.0" };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "system_v6.0_" + getSystemDate() + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            showToast("Download Started", "success");
+        };
+
+        window.importData = (input) => {
+            const file = input.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(data.system && confirm("Overwrite current system?")) {
+                        setSaving(true);
+                        system = { ...system, ...data.system };
+                        await save(true); 
+                        alert("Backup Restored. Reloading.");
+                        location.reload();
+                    }
+                } catch(err) { showToast("Invalid File", "error"); } finally { setSaving(false); }
+            };
+            reader.readAsText(file);
+        };
+
+        /* GRAPH */
+        function drawGrowthGraph() {
+            const svg = document.getElementById('chartSvg');
+            svg.innerHTML = ''; 
+            const hKeys = Object.keys(system.history).sort();
+            if(hKeys.length < 2) {
+                svg.innerHTML = '<text x="50%" y="50%" fill="#666" text-anchor="middle" font-size="10">Not Enough Data</text>';
+                return;
+            }
+
+            const dataPoints = hKeys.map(k => {
+                const entry = system.history[k];
+                return { month: k, val: (entry.val / entry.rate) }; 
+            });
+
+            let minVal = Math.min(...dataPoints.map(d => d.val));
+            let maxVal = Math.max(...dataPoints.map(d => d.val));
+            if(minVal === maxVal) { minVal = 0; maxVal = maxVal * 1.5; }
+
+            const width = svg.clientWidth;
+            const height = svg.clientHeight;
+            const padding = 20;
+            let pointsStr = "";
+            
+            dataPoints.forEach((d, i) => {
+                const x = padding + (i / (dataPoints.length - 1)) * (width - (padding * 2));
+                const y = height - padding - ((d.val - minVal) / (maxVal - minVal)) * (height - (padding * 2));
+                pointsStr += `${x},${y} `;
+                
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", x); circle.setAttribute("cy", y); circle.setAttribute("r", 3);
+                circle.classList.add("graph-point");
+                
+                circle.onmouseover = (e) => {
+                    const tt = document.getElementById('graphTooltip');
+                    tt.style.display = 'block';
+                    tt.style.left = (x + 10) + 'px'; tt.style.top = (y - 20) + 'px';
+                    tt.textContent = `${d.month}: $${d.val.toFixed(0)}`;
+                };
+                circle.onmouseout = () => { document.getElementById('graphTooltip').style.display = 'none'; };
+                svg.appendChild(circle);
+            });
+
+            const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            polyline.setAttribute("points", pointsStr);
+            svg.prepend(polyline);
+        }
+
         function render() {
             const todayStr = getSystemDate(); 
             let rate = system.exchangeRate || 89500;
             const vCurrent = (system.vaultCurrent || 0);
             const vSavings = (system.vaultSavings || 0);
             
+            // Calc Inventory from Transactions
             let totalPortfolioValueUSD = 0; let totalPortfolioCostUSD = 0;
             if(system.goldInventory) for(let [k, g] of Object.entries(system.goldInventory)) totalPortfolioValueUSD += g * (global24kGramPrice * karatRatios[k]);
             if(system.goldCosts) for(let [k, c] of Object.entries(system.goldCosts)) totalPortfolioCostUSD += c;
