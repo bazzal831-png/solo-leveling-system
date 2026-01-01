@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUNG JIN-WOO SYSTEM | V6.1 FIXED</title>
+    <title>SUNG JIN-WOO SYSTEM | V6.2 FIXED</title>
     <style>
         :root {
             --bg: #05070b; --panel: rgba(17, 20, 29, 0.95); 
@@ -48,25 +48,6 @@
         }
         .gold-vault-card { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.05); }
 
-        /* MANA STYLES (INTERNAL) */
-        .mana-bar-container {
-            height: 18px; background: #0a0a20; border: 1px solid #1a1a40;
-            position: relative; border-radius: 2px; overflow: hidden;
-        }
-        .mana-fill {
-            height: 100%; width: 100%; transition: width 0.5s ease-in-out, background 0.5s;
-            background: linear-gradient(90deg, #3742fa, #5352ed);
-            box-shadow: 0 0 10px #5352ed;
-        }
-        .mana-fill.negative {
-            background: linear-gradient(90deg, #4b0082, #bc13fe);
-            box-shadow: 0 0 10px #bc13fe;
-        }
-        .mana-text {
-            position: absolute; width: 100%; text-align: center; top: 0; line-height: 18px;
-            font-size: 0.65rem; color: white; font-weight: bold; text-shadow: 1px 1px 2px black; z-index: 2;
-        }
-        
         /* PORTFOLIO & GENERAL */
         .portfolio-summary {
             padding: 15px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -118,8 +99,8 @@
         /* MODAL STYLES - FIXED FOR KEYBOARD */
         .modal-backdrop {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000;
-            display: none; justify-content: center; align-items: flex-start; /* Changed from center */
-            padding-top: 40px; /* Space for keyboard */
+            display: none; justify-content: center; align-items: flex-start;
+            padding-top: 40px;
         }
         .modal-window {
             background: var(--panel); border: 1px solid var(--mana);
@@ -179,22 +160,6 @@
             padding: 3px 6px; font-size: 0.6rem; border: 1px solid var(--mana);
             pointer-events: none; display: none; border-radius: 4px; z-index: 10;
         }
-
-        /* SHADOW GRAPH STYLES */
-        .shadow-container { display:flex; align-items:flex-end; justify-content:space-between; height:60px; padding:5px; border:1px solid #222; background:rgba(0,0,0,0.3); }
-        .shadow-col { width: 12%; background: #333; border-radius: 2px 2px 0 0; position:relative; transition:0.3s; }
-        .shadow-col:hover { background: var(--debt-color); }
-        .shadow-val { position:absolute; top:-12px; width:100%; text-align:center; font-size:0.5rem; color:#aaa; }
-        .shadow-day { position:absolute; bottom:-15px; width:100%; text-align:center; font-size:0.5rem; color:#666; }
-
-        /* MANA HISTORY LIST */
-        .mana-hist-card { 
-            background: rgba(0,0,0,0.4); border:1px solid #333; padding:10px; margin-bottom:8px; 
-            display:flex; justify-content:space-between; align-items:center;
-        }
-        .mana-hist-date { font-size:0.6rem; color:#666; display:block; margin-bottom:2px; }
-        .mana-hist-item { font-size:0.8rem; font-weight:bold; color:white; }
-        .mana-hist-cat { font-size:0.6rem; color:var(--mana); background:rgba(0,210,255,0.1); padding:1px 4px; border-radius:3px; margin-left:5px; }
 
         /* CUSTOM RANK INPUTS */
         .rank-config-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
@@ -379,7 +344,7 @@
 
     <div id="authOverlay">
         <div class="login-card">
-            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V6.1</div>
+            <div style="color:var(--mana); margin-bottom:20px; letter-spacing:3px;">SYSTEM ACCESS V6.2</div>
             <button class="btn-system" id="loginBtn" style="background: white; color: black; border: none;">INITIALIZE (GOOGLE)</button>
         </div>
     </div>
@@ -390,10 +355,6 @@
             
             <div id="mainSettingsMenu">
                 <div class="modal-title" data-i18n="settings">SYSTEM SETTINGS</div>
-                
-                <button class="btn-system" onclick="toggleManaPanel()" style="margin-bottom:15px; border-color:#5352ed; color:#5352ed;">
-                    MANAGEMENT: PHANTOM SALARY (MANA)
-                </button>
 
                 <div class="settings-section">
                     <span class="settings-label" style="color:var(--success);">SELECT REGION (PRESET)</span>
@@ -467,80 +428,6 @@
 
                 <button class="modal-btn btn-cancel" style="width:100%" onclick="closeSettings()" data-i18n="close">CLOSE & SAVE</button>
             </div>
-
-            <div id="manaConfigPanel" style="display:none; text-align:left;">
-                <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">MANA BUDGET CONTROL</div>
-                
-                <div class="mana-panel-item" style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                        <span style="font-size:0.6rem; color:#888;">CURRENT STATUS</span>
-                        <span id="manaSafeSpend" style="font-size:0.6rem; color:var(--success);">Safe Daily: Calculating...</span>
-                    </div>
-                    <div class="mana-bar-container">
-                        <div class="mana-fill" id="manaPanelFill"></div>
-                        <div class="mana-text" id="manaPanelText">Loading...</div>
-                    </div>
-                </div>
-
-                <div class="mana-panel-item" style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
-                    <span class="settings-label">MONTHLY BUDGET LIMIT ($)</span>
-                    <div style="display:flex; gap:5px;">
-                        <input type="number" id="settingManaInput" class="modal-input" placeholder="e.g. 500" style="margin-bottom:0;">
-                        <button class="btn-system" style="width:auto; padding:0 15px;" onclick="saveManaCapOnly()">SET</button>
-                    </div>
-                </div>
-
-                <div class="mana-panel-item" style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
-                    <span class="settings-label">LOG EXPENSE</span>
-                    <p style="font-size:0.6rem; color:#666; margin-bottom:8px;">
-                        Enter Item, Category, then Cost.
-                    </p>
-                    <input type="text" id="manaItemInput" class="modal-input" placeholder="Item Name (e.g. Eggs)" style="margin-bottom:5px;">
-                    
-                    <select id="manaCatInput" class="modal-input" style="margin-bottom:5px; padding:12px;">
-                        <option value="Food" data-i18n="catFood">Food</option>
-                        <option value="Drink" data-i18n="catDrink">Drink</option>
-                        <option value="Transport" data-i18n="catTransport">Transport</option>
-                        <option value="Bills" data-i18n="catBills">Bills</option>
-                        <option value="Shopping" data-i18n="catShopping">Shopping</option>
-                        <option value="Other" data-i18n="catOther">Other (Custom)</option>
-                    </select>
-
-                    <input type="text" id="manaCustomCatInput" class="modal-input" placeholder="Specify Category" style="display:none; margin-bottom:5px; border-color:var(--debt-color);">
-
-                    <input type="text" id="manaCostInput" class="modal-input" placeholder="Cost (e.g. 10$ or 200k)" style="margin-bottom:10px;">
-                    
-                    <button class="btn-system" onclick="submitManaExpense()" style="background:#5352ed; color:white; border:none;">CONFIRM DEDUCTION</button>
-                </div>
-
-                <div class="mana-panel-item" style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
-                    <span class="settings-label">MONTHLY COMPARISON (SHADOW SYSTEM)</span>
-                    <!-- FIXED GRAPH CONTAINER -->
-                    <div id="manaShadowGraph" class="shadow-container" style="margin-top:15px; margin-bottom:10px;">
-                        <!-- JS WILL INJECT BARS HERE -->
-                    </div>
-                    <div style="text-align:center; font-size:0.5rem; color:#555;">DAILY SPENDING (LAST 7 DAYS)</div>
-                </div>
-
-                <div style="margin-bottom:15px;">
-                    <button class="btn-system" onclick="openManaHistory()" style="border-color:#888; color:#ccc;">
-                         📂 MANA HISTORY / S.LOG
-                    </button>
-                </div>
-
-                <button class="modal-btn btn-cancel" style="width:100%" onclick="toggleManaPanel()">BACK TO SETTINGS</button>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- MANA HISTORY MODAL -->
-    <div id="manaHistoryModal" class="modal-backdrop">
-        <div class="modal-window">
-            <div class="modal-title" style="color:#5352ed; border-color:#5352ed;">MANA EXPENSE LOG</div>
-            <p style="font-size:0.6rem; color:#888; margin-bottom:10px;">FULL HISTORY OF PHANTOM EXPENSES</p>
-            <div id="manaHistoryList" style="text-align:left; max-height:400px; overflow-y:auto; margin-bottom:15px;"></div>
-            <button class="modal-btn btn-cancel" style="width:100%" onclick="closeManaHistory()">CLOSE LOG</button>
         </div>
     </div>
 
@@ -796,7 +683,6 @@
                 </div>
             </div>
 
-            <!-- NEW HISTORY BUTTON ADDED HERE -->
             <div style="display:flex; border-top:1px solid rgba(255,215,0,0.2);">
                 <button class="btn-system" style="border:none; border-right:1px solid rgba(255,215,0,0.2); color:white; background:rgba(0,0,0,0.2);" onclick="openGoldTransaction('buy')" data-i18n="store">
                     STORE (BUY)
@@ -939,8 +825,7 @@
                 netWorth: "TOTAL NET WORTH", vaultCurrent: "THIS MONTH (CASH)", vaultSavings: "SAVINGS (CASH)",
                 addAssets: "+ Add Assets", withdraw: "Withdrawal", portValue: "TOTAL PORTFOLIO VALUE (ALL KARATS)",
                 store: "STORE (BUY)", liquidate: "LIQUIDATE (SELL)", paid: "PAID (MONTH)", unpaid: "UNPAID (MONTH)",
-                allTime: "ALL TIME PAID", goldPrices: "GOLD PRICES 🟡",
-                catFood: "Food", catDrink: "Drink", catTransport: "Transport", catBills: "Bills", catShopping: "Shopping", catOther: "Other (Custom)"
+                allTime: "ALL TIME PAID", goldPrices: "GOLD PRICES 🟡"
             },
             ar: {
                 settings: "إعدادات النظام", exchangeRate: "سعر الصرف",
@@ -951,8 +836,7 @@
                 netWorth: "صافي الثروة", vaultCurrent: "هذا الشهر (كاش)", vaultSavings: "الادخار (كاش)",
                 addAssets: "+ إضافة أصول", withdraw: "سحب أموال", portValue: "قيمة المحفظة (جميع العيارات)",
                 store: "تخزين (شراء)", liquidate: "تسييل (بيع)", paid: "مدفوع (شهري)", unpaid: "غير مدفوع",
-                allTime: "المدفوعات الكلية", goldPrices: "أسعار الذهب 🟡",
-                catFood: "طعام", catDrink: "شراب", catTransport: "مواصلات", catBills: "فواتير", catShopping: "مشتريات", catOther: "أخرى (مخصص)"
+                allTime: "المدفوعات الكلية", goldPrices: "أسعار الذهب 🟡"
             }
         };
 
@@ -1101,7 +985,6 @@
                         if(!system.customRanks) system.customRanks = { E: 0, C: 400000, B: 2000000, A: 10000000, S: 50000000, SS: 100000000 };
                         if(!system.location) system.location = { name: "Baalbek", lat: 34.00, lon: 36.21 };
                         if(!system.language) system.language = "en";
-                        if(!system.expenses) system.expenses = [];
                         if(!system.countryCode) system.countryCode = "LB";
                         if(system.useKSystem === undefined) system.useKSystem = true;
                         if(!system.currencySymbol) system.currencySymbol = "L.L";
@@ -1396,181 +1279,6 @@
             } else { showToast("Insufficient Salary!", "error"); }
         };
 
-        /* MANA / BUDGET LOGIC */
-        window.openSettingsToMana = () => {
-            openSettings();
-            toggleManaPanel();
-        };
-
-        window.toggleManaPanel = () => {
-            const main = document.getElementById('mainSettingsMenu');
-            const sub = document.getElementById('manaConfigPanel');
-            if(sub.style.display === 'none') {
-                main.style.display = 'none';
-                sub.style.display = 'block';
-                updateManaPanelUI();
-            } else {
-                sub.style.display = 'none';
-                main.style.display = 'block';
-            }
-        };
-
-        window.saveManaCapOnly = async () => {
-            let nMana = parseFloat(document.getElementById('settingManaInput').value);
-            if(!isNaN(nMana) && nMana > 0) {
-                system.budgetCap = nMana;
-                await save();
-                updateManaPanelUI();
-                render();
-                showToast("Budget Cap Updated", "success");
-            }
-        };
-
-        document.getElementById('manaCatInput').addEventListener('change', (e) => {
-            const val = e.target.value;
-            const customInput = document.getElementById('manaCustomCatInput');
-            if(val === 'Other') {
-                customInput.style.display = 'block';
-                customInput.focus();
-            } else {
-                customInput.style.display = 'none';
-            }
-        });
-
-        window.submitManaExpense = async () => {
-            let item = document.getElementById('manaItemInput').value.trim();
-            let cat = document.getElementById('manaCatInput').value; 
-            if(cat === 'Other') {
-                let customVal = document.getElementById('manaCustomCatInput').value.trim();
-                if(customVal) cat = customVal; 
-            }
-            let rawCost = document.getElementById('manaCostInput').value.trim();
-            if(!item || !rawCost) { showToast("Enter Item & Cost", "error"); return; }
-            let finalCostUSD = 0;
-            let str = rawCost.toString().toLowerCase().trim().replace(/,/g, '');
-            let rate = system.exchangeRate || 89500;
-            if (str.includes('$')) finalCostUSD = parseFloat(str.replace('$', '')) || 0;
-            else if (str.includes('k')) finalCostUSD = (parseFloat(str.replace('k', '')) * 1000) / rate;
-            else {
-                let val = parseFloat(str);
-                if (val >= 5000) finalCostUSD = val / rate;
-                else finalCostUSD = val;
-            }
-            
-            if(finalCostUSD <= 0) { showToast("Invalid Amount", "error"); return; }
-
-            if(system.budgetCurrent === undefined) system.budgetCurrent = system.budgetCap || 0;
-            system.budgetCurrent = Money.sub(system.budgetCurrent, finalCostUSD);
-
-            if(!system.expenses) system.expenses = [];
-            system.expenses.unshift({
-                id: Date.now(), item: item, cost: finalCostUSD, category: cat, date: getSystemDate()
-            });
-            if(system.expenses.length > 500) system.expenses.pop();
-
-            await save();
-            document.getElementById('manaItemInput').value = '';
-            document.getElementById('manaCostInput').value = '';
-            updateManaPanelUI();
-            showToast(`Spent $${finalCostUSD.toFixed(2)}`, "success");
-        };
-
-        window.openManaHistory = () => {
-            const modal = document.getElementById('manaHistoryModal');
-            const list = document.getElementById('manaHistoryList');
-            modal.style.display = 'flex';
-            list.innerHTML = '';
-
-            const recents = system.expenses || [];
-            if(recents.length === 0) list.innerHTML = '<div style="font-size:0.7rem; color:#666; text-align:center;">No activity.</div>';
-            else {
-                recents.forEach(ex => {
-                   list.innerHTML += `
-                    <div class="mana-hist-card">
-                        <div>
-                            <span class="mana-hist-date">${ex.date}</span>
-                            <div class="mana-hist-item">
-                                ${ex.item} <span class="mana-hist-cat">${ex.category}</span>
-                            </div>
-                        </div>
-                        <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                            <span style="color:#ff6b6b; font-family:monospace; font-weight:bold;">-$${ex.cost.toFixed(2)}</span>
-                            <span class="mana-del-btn" style="margin-top:5px; font-size:0.6rem; border:1px solid #333; padding:2px 6px;" onclick="deleteManaExpense(${ex.id})">REFUND</span>
-                        </div>
-                    </div>`;
-                });
-            }
-        };
-
-        window.closeManaHistory = () => document.getElementById('manaHistoryModal').style.display = 'none';
-
-        window.deleteManaExpense = async (id) => {
-            if(confirm("Refund?")) {
-                const expense = system.expenses.find(e => e.id === id);
-                if(expense) {
-                    system.budgetCurrent = Money.add(system.budgetCurrent, expense.cost);
-                    system.expenses = system.expenses.filter(e => e.id !== id);
-                    await save();
-                    updateManaPanelUI();
-                    if(document.getElementById('manaHistoryModal').style.display === 'flex') openManaHistory();
-                    showToast("Refunded", "success");
-                }
-            }
-        }
-
-        // FIXED MANA GRAPH LOGIC
-        function updateManaPanelUI() {
-            let cap = system.budgetCap || 0;
-            let cur = system.budgetCurrent !== undefined ? system.budgetCurrent : cap;
-            let perc = 0;
-            if (cur >= 0) perc = (cap > 0) ? (cur / cap) * 100 : 0;
-            else perc = 100; // Debt mode
-            document.getElementById('manaPanelFill').style.width = perc + "%";
-            document.getElementById('manaPanelFill').style.background = (cur < 0) ? "linear-gradient(90deg, #4b0082, #bc13fe)" : "linear-gradient(90deg, #3742fa, #5352ed)";
-            document.getElementById('manaPanelText').textContent = `$${cur.toFixed(2)} / $${cap}`;
-
-            // SHADOW GRAPH (LAST 7 DAYS SPENDING)
-            const graphDiv = document.getElementById('manaShadowGraph');
-            graphDiv.innerHTML = '';
-            
-            // 1. Group expenses by date
-            let spendingByDate = {};
-            // Init last 7 days
-            let today = new Date();
-            let dates = [];
-            for(let i=6; i>=0; i--) {
-                let d = new Date(); d.setDate(today.getDate() - i);
-                let key = d.toISOString().split('T')[0];
-                spendingByDate[key] = 0;
-                dates.push(key);
-            }
-
-            if(system.expenses) {
-                system.expenses.forEach(e => {
-                    // expense date format is YYYY-MM-DD
-                    if(spendingByDate[e.date] !== undefined) {
-                        spendingByDate[e.date] += e.cost;
-                    }
-                });
-            }
-
-            let maxSpend = Math.max(...Object.values(spendingByDate));
-            if(maxSpend < 10) maxSpend = 10; // min scale
-
-            dates.forEach(d => {
-                let val = spendingByDate[d];
-                let h = (val / maxSpend) * 100; 
-                if(h > 100) h = 100;
-                let dayLabel = d.split('-')[2]; // just the day
-                
-                graphDiv.innerHTML += `
-                <div class="shadow-col" style="height:${h}%">
-                    <span class="shadow-val">$${Math.floor(val)}</span>
-                    <span class="shadow-day">${dayLabel}</span>
-                </div>`;
-            });
-        }
-
         /* WITHDRAWAL */
         window.openWithdrawModal = () => {
             document.getElementById('withdrawModal').style.display = 'flex';
@@ -1819,6 +1527,29 @@
             }
         };
 
+        // EDIT DEBT FUNCTION
+        window.editDebt = async (id) => {
+            let q = system.quests.find(x => x.id === id);
+            if(!q) return;
+            
+            // Show current value in prompt for reference
+            let currentVal = (system.useKSystem) ? formatVal(q.target) : q.target;
+            
+            let input = prompt(`EDIT AMOUNT FOR: ${q.title}\nCurrent: ${currentVal}\n\nEnter NEW TOTAL amount (e.g. $80, 50k, 2m):`);
+            
+            if(input !== null && input.trim() !== "") {
+                let newVal = parseWish(input); // Reuse existing parser
+                if(newVal > 0) {
+                    q.target = newVal;
+                    await save();
+                    openMonthlyList('pending'); // Refresh view
+                    showToast("Debt Updated", "success");
+                } else {
+                    showToast("Invalid Amount", "error");
+                }
+            }
+        };
+
         window.discardQuest = async (id) => {
             if(confirm("Discard?")) {
                 let idx = system.quests.findIndex(x => x.id === id);
@@ -1878,7 +1609,10 @@
                             <span>${formatVal(q.target)}</span><span>$${(q.target/rate).toFixed(2)}</span>
                         </div>
                         <button class="btn-pay" onclick="payDebt(${q.id})">PAY (FROM SALARY)</button>
-                        <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
+                        <div style="margin-top:10px; text-align:right;">
+                            <button class="discard-btn" style="color:var(--mana); border-color:var(--mana); margin-right:5px;" onclick="editDebt(${q.id})">Edit</button>
+                            <button class="discard-btn" onclick="discardQuest(${q.id})">Discard</button>
+                        </div>
                     </div>`;
                 });
             } else {
@@ -1902,7 +1636,6 @@
         // SETTINGS & OTHER
         window.openSettings = () => {
             document.getElementById('mainSettingsMenu').style.display = 'block';
-            document.getElementById('manaConfigPanel').style.display = 'none';
             document.getElementById('settingsModal').style.display = 'flex';
             document.getElementById('settingRateInput').value = system.exchangeRate;
             document.getElementById('countrySelector').value = system.countryCode || 'LB';
@@ -1990,17 +1723,14 @@
                 el.textContent = t(key);
             });
             document.body.style.direction = (system.language === 'ar') ? 'rtl' : 'ltr';
-            document.querySelectorAll('#manaCatInput option').forEach(opt => {
-                opt.textContent = t(opt.getAttribute('data-i18n'));
-            });
         }
 
         window.exportData = () => {
-            const backup = { system: system, timestamp: new Date().toISOString(), version: "6.0" };
+            const backup = { system: system, timestamp: new Date().toISOString(), version: "6.2" };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "system_v6.0_" + getSystemDate() + ".json");
+            downloadAnchorNode.setAttribute("download", "system_v6.2_" + getSystemDate() + ".json");
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
