@@ -1,3 +1,11 @@
+لقد قمت بتعديل دالة `editDebt` داخل الكود لتسمح لك بثلاثة خيارات عند تعديل الدين:
+1. **كتابة رقم جديد** (سيتم استبدال المبلغ القديم بالكامل).
+2. **كتابة علامة `+` قبل الرقم** (لإضافة مبلغ على الدين الحالي، مثال: `+50`).
+3. **كتابة علامة `-` قبل الرقم** (لخصم مبلغ من الدين الحالي، مثال: `-20`).
+
+إليك الكود كاملاً بعد التعديل:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1527,28 +1535,47 @@
             }
         };
 
-        // EDIT DEBT FUNCTION
+        // --- NEW EDIT DEBT FUNCTION (WITH ADD/SUBTRACT) ---
         window.editDebt = async (id) => {
             let q = system.quests.find(x => x.id === id);
             if(!q) return;
             
-            // Show current value in prompt for reference
-            let currentVal = (system.useKSystem) ? formatVal(q.target) : q.target;
+            let currentDisp = (system.useKSystem) ? formatVal(q.target) : q.target;
             
-            let input = prompt(`EDIT AMOUNT FOR: ${q.title}\nCurrent: ${currentVal}\n\nEnter NEW TOTAL amount (e.g. $80, 50k, 2m):`);
+            // New prompt explains features
+            let input = prompt(`EDIT DEBT: ${q.title}\nCurrent: ${currentDisp}\n\n1. Enter new total (e.g. 500k)\n2. Add: starts with + (e.g. +50)\n3. Subtract: starts with - (e.g. -20)`);
             
             if(input !== null && input.trim() !== "") {
-                let newVal = parseWish(input); // Reuse existing parser
-                if(newVal > 0) {
-                    q.target = newVal;
+                let cleanInput = input.trim();
+                let isAdd = cleanInput.startsWith('+');
+                let isSub = cleanInput.startsWith('-');
+                
+                // Parse value (remove symbol if present)
+                let valStr = (isAdd || isSub) ? cleanInput.substring(1) : cleanInput;
+                let val = parseWish(valStr); 
+
+                if(val > 0 || (val === 0 && !isSub)) {
+                    if(isAdd) {
+                        q.target = Money.add(q.target, val);
+                        showToast(`Added ${formatVal(val)}`, "success");
+                    } else if (isSub) {
+                        let newTotal = Money.sub(q.target, val);
+                        if(newTotal < 0) newTotal = 0;
+                        q.target = newTotal;
+                        showToast(`Removed ${formatVal(val)}`, "success");
+                    } else {
+                        // Regular replace
+                        q.target = val;
+                        showToast("Debt Updated", "success");
+                    }
                     await save();
-                    openMonthlyList('pending'); // Refresh view
-                    showToast("Debt Updated", "success");
+                    openMonthlyList('pending'); 
                 } else {
                     showToast("Invalid Amount", "error");
                 }
             }
         };
+        // --------------------------------------------------
 
         window.discardQuest = async (id) => {
             if(confirm("Discard?")) {
@@ -1938,3 +1965,4 @@
     </script>
 </body>
 </html>
+```
